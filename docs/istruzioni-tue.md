@@ -27,7 +27,11 @@ Non collegare l’account Grants sotto il manager Brignole “così si vede tutt
 
 1. hPanel → il sito `seo.brignole.ch` come **applicazione Node** (non PHP), Node 20 o più.
 2. Collegamento GitHub: `claudiobrignole/seo-regia`, ramo `main`. Avvio: `npm start`.
-3. Database MySQL: creane uno nuovo, annota host, nome, utente, password, porta (di solito 3306).
+3. Database MySQL: hPanel → **Database** → **Database MySQL** → **Crea**.
+   Annota nome database, utente e password. Per il pannello Node (stesso account):
+   - `DB_HOST` = `127.0.0.1` (non `localhost`: su Node spesso non funziona)
+   - `DB_PORT` = `3306` (non compare come casella: e sempre questa)
+   Se `127.0.0.1` viene rifiutato: **Database** → **MySQL remoto**: in alto c e un nome tipo `srv1234.hstgr.io`. Usa quello come `DB_HOST`, porta sempre `3306`.
 4. Nell’applicazione, **Environment variables**, aggiungi almeno:
    - `PANNELLO_PASSWORD` (minimo 12 caratteri)
    - `CRON_CHIAVE` (un’altra stringa lunga a caso)
@@ -36,9 +40,13 @@ Non collegare l’account Grants sotto il manager Brignole “così si vede tutt
    - `MODELLO_TESTI=claude`
    - `ANTHROPIC_API_KEY`
 5. Riavvia l’applicazione se Hostinger lo chiede.
-6. Nel browser apri:  
-   `https://seo.brignole.ch/api/setup/migra?chiave=LA_TUA_CRON_CHIAVE`  
-   Deve comparire `"esito":"ok"`. Poi entra in `https://seo.brignole.ch` con la password del pannello.
+6. Nel browser apri (sostituisci SOLO la parte dopo `chiave=`, con la stessa `CRON_CHIAVE` delle variabili, senza virgolette):  
+   `https://seo.brignole.ch/api/setup/migra?chiave=`  
+   e incolla la chiave attaccata, esempio:  
+   `https://seo.brignole.ch/api/setup/migra?chiave=abc123def456`  
+   Deve comparire una pagina **Database pronto**.  
+   Se compare **chiave non valida**: la parola nell indirizzo non e identica a CRON_CHIAVE (spazi, virgolette, o caratteri come # & +). Usa una chiave solo di lettere e numeri, salva, riavvia, riprova.  
+   Se compare **Il database non risponde** oppure Chrome dice errore 500: la chiave e ok, sbagliano i valori `DB_`. Vedi il punto 3, salva, **riavvia** l applicazione Node, riprova lo stesso indirizzo.
 
 Le altre variabili (Google, WordPress, Ecwid, GitHub, Ads) si aggiungono dopo, senza rifare il sito. Se manca un banco Ads, l’altro deve funzionare lo stesso.
 

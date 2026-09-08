@@ -20,6 +20,12 @@ export function db(): mysql.Pool {
 }
 
 export async function query<T = any>(sql: string, valori: unknown[] = []): Promise<T[]> {
+  // Senza parametri si usa query, non execute: CREATE TABLE in prepared statement
+  // su alcuni MySQL di Hostinger viene rifiutato.
+  if (valori.length === 0) {
+    const [righe] = await db().query(sql)
+    return righe as T[]
+  }
   const [righe] = await db().execute(sql, valori as never)
   return righe as T[]
 }

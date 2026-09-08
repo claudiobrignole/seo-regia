@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { passwordCorretta, creaBiglietto } from '@/lib/sessione'
+import { urlPubblica } from '@/lib/url-pubblica'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,15 +21,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ errore: (e as Error).message }, { status: 500 })
   }
 
-  const destinazione = new URL(req.url)
   if (!corretta) {
-    destinazione.pathname = '/accesso'
+    const destinazione = urlPubblica(req, '/accesso')
     destinazione.search = `?errore=1&poi=${encodeURIComponent(poi)}`
     return NextResponse.redirect(destinazione, { status: 303 })
   }
 
-  destinazione.pathname = poi.startsWith('/') ? poi : '/'
-  destinazione.search = ''
+  const destinazione = urlPubblica(req, poi.startsWith('/') ? poi : '/')
   const risposta = NextResponse.redirect(destinazione, { status: 303 })
 
   const biglietto = await creaBiglietto()

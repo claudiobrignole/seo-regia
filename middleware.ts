@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { biglietttoValido, NOME_COOKIE_SESSIONE } from '@/lib/sessione'
+import { urlPubblica } from '@/lib/url-pubblica'
 
 /**
  * Chi non ha il biglietto finisce sulla pagina di accesso.
@@ -20,13 +21,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  const verso = req.nextUrl.clone()
-  verso.pathname = '/accesso'
+  const verso = urlPubblica(req, '/accesso')
   verso.searchParams.set('poi', percorso)
   return NextResponse.redirect(verso)
 }
 
 export const config = {
-  // Fuori: file statici e l icona del sito.
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

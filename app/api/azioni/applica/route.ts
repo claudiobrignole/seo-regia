@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { applicaAzione } from '@/lib/esecutori/applica'
+import { urlPubblica } from '@/lib/url-pubblica'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,9 +20,8 @@ export async function POST(req: NextRequest) {
   try {
     const r = await applicaAzione(id)
     if (req.headers.get('accept')?.includes('text/html') || !(req.headers.get('content-type') ?? '').includes('json')) {
-      const verso = new URL(req.url)
-      const sito = verso.searchParams.get('sito')
-      verso.pathname = sito ? `/sito/${sito}` : '/'
+      const sito = new URL(req.url).searchParams.get('sito')
+      const verso = urlPubblica(req, sito ? `/sito/${sito}` : '/')
       verso.search = 'ok=applicata'
       return NextResponse.redirect(verso, { status: 303 })
     }

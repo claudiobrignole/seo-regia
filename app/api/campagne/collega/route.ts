@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query, unaRiga } from '@/lib/db'
+import { urlPubblica } from '@/lib/url-pubblica'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,8 +18,6 @@ export async function POST(req: NextRequest) {
     `UPDATE campagne_bozze SET campagna_google_id = ?, stato = 'collegata' WHERE id = ?`,
     [googleId, id]
   )
-  const verso = new URL(req.url)
-  verso.pathname = `/pubblicita/${banco}`
-  verso.search = ''
+  const verso = urlPubblica(req, `/pubblicita/${banco}`)
   return NextResponse.redirect(verso, { status: 303 })
 }

@@ -31,6 +31,7 @@ Non collegare l’account Grants sotto il manager Brignole “così si vede tutt
 4. Nell’applicazione, **Environment variables**, aggiungi almeno:
    - `PANNELLO_PASSWORD` (minimo 12 caratteri)
    - `CRON_CHIAVE` (un’altra stringa lunga a caso)
+   - `PANNELLO_URL` = `https://seo.brignole.ch`
    - `DB_HOST` `DB_PORT` `DB_USER` `DB_PASSWORD` `DB_NAME`
    - `MODELLO_TESTI=claude`
    - `ANTHROPIC_API_KEY`

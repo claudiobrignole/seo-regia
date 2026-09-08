@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { caricaAzione, segnaRifiutata, annota } from '@/lib/registro'
+import { urlPubblica } from '@/lib/url-pubblica'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,8 +14,7 @@ export async function POST(req: NextRequest) {
   }
   await segnaRifiutata(id)
   await annota(a.sito_id, 'errore', id, { rifiutata: true })
-  const verso = new URL(req.url)
-  verso.pathname = `/sito/${a.sito_id}`
+  const verso = urlPubblica(req, `/sito/${a.sito_id}`)
   verso.search = 'ok=rifiutata'
   return NextResponse.redirect(verso, { status: 303 })
 }

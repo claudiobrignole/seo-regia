@@ -42,7 +42,26 @@ export default async function Pannello() {
         <div style={{ fontSize: 12, letterSpacing: '.12em', textTransform: 'uppercase', color: '#1F6F5C' }}>
           Pannello interno
         </div>
-        <h1 style={{ margin: '8px 0 0', fontSize: 34, letterSpacing: '-.02em' }}>Regia SEO</h1>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 }}>
+          <h1 style={{ margin: '8px 0 0', fontSize: 34, letterSpacing: '-.02em' }}>Regia SEO</h1>
+          <form method="POST" action="/api/uscita">
+            <button
+              type="submit"
+              style={{
+                background: 'none',
+                border: '1px solid #C4CAC3',
+                borderRadius: 4,
+                padding: '5px 11px',
+                fontSize: 12.5,
+                color: '#4A524E',
+                cursor: 'pointer',
+                fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+              }}
+            >
+              Esci
+            </button>
+          </form>
+        </div>
       </header>
 
       {errore && (

@@ -29,6 +29,30 @@ Gira su Hostinger Business, piano che supporta Node.
 - `db/schema.sql` — lo schema. Si applica con `npm run db:migra`.
 - `docs/decisioni.md` — perché le cose sono come sono, con la data.
 
+## Credenziali
+
+In produzione le credenziali arrivano dalle **variabili d'ambiente** del pannello
+Hostinger, non da un file: un `.env.local` creato a mano nel gestore file
+verrebbe sovrascritto al rilascio successivo da GitHub. In locale si usa
+`.env.local`, che `.gitignore` esclude. Il codice legge sempre `process.env`,
+quindi le due strade sono equivalenti dal punto di vista del programma.
+
+Il database si prepara con `npm run db:migra` oppure, senza terminale, con una
+chiamata a `/api/setup/migra?chiave=LA_CHIAVE`. Lo schema e idempotente.
+
+## Accesso al pannello
+
+Una password sola, in `PANNELLO_PASSWORD`, e un cookie firmato che dura trenta
+giorni (`lib/sessione.ts`). Il cookie contiene una scadenza e la sua firma, non
+la password. Il `middleware.ts` manda alla pagina di accesso chi non ha il
+biglietto, ma lascia passare `/api/cron` e `/api/setup`, che hanno la loro
+chiave: un lavoro pianificato non sa fare login.
+
+Cambiare `PANNELLO_PASSWORD` invalida tutte le sessioni aperte, ed e il modo di
+chiudere fuori tutti se serve. Non ci sono utenti multipli e non servono: e un
+pannello per una persona. Se un giorno dovesse aprirsi a piu persone, il punto
+da cambiare e solo questo file piu una tabella utenti.
+
 ## Come girano i lavori notturni
 
 Non eseguiamo Node dal pianificatore, perché su questi ambienti la
@@ -56,6 +80,11 @@ insieme supera qualunque limite di tempo.
 
 ## Stato
 
-Impalcatura. Il generatore dei testi nuovi (`valore_nuovo` nelle proposte) non
-c'è ancora: le regole individuano le opportunità e lasciano il campo vuoto.
-Va scritto in `lib/regole/testi.ts`.
+Vedi `docs/stato.md`: dice cosa è fatto, cosa manca e in che ordine, più i
+numeri da cui nasce la regola principale. È il primo file da leggere quando si
+riapre il progetto dopo una pausa.
+
+In breve: l'impalcatura è completa e collaudata, ma il generatore dei testi
+nuovi non c'è ancora. Le regole individuano le opportunità e lasciano
+`valore_nuovo` vuoto, quindi nessuna proposta è applicabile finché
+`lib/regole/testi.ts` non viene scritto.

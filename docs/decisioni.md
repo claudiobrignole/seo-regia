@@ -1,5 +1,7 @@
 # Decisioni, con la data
 
+Per lo stato del lavoro vedi `stato.md`. Qui ci sono solo le scelte e il perche.
+
 Questo file esiste perché fra sei mesi nessuno si ricorda perché una cosa è
 fatta così. Ogni voce dice cosa si è deciso e cosa si è scartato.
 
@@ -58,3 +60,22 @@ di improvvisare, perche senza storico non esiste annullamento.
 claudiobrignole/TagTales, claudiobrignole/kizunama, claudiobrignole/luna-nihongo,
 claudiobrignole/strangeglyph e biographylibrary/Biography-Library. Quest ultimo sta sotto l organizzazione
 dell associazione, coerente con la separazione delle due identita.
+
+## 2026-09-08, credenziali dalle variabili d ambiente, non da un file
+Idea di Claudio, ed e la scelta giusta: Hostinger espone una sezione per le
+variabili d ambiente nel pannello dell applicazione. Un file .env.local creato
+a mano nel gestore file verrebbe sovrascritto al rilascio successivo da GitHub.
+Il codice legge process.env, quindi in locale il file resta valido.
+
+## 2026-09-08, la migrazione si puo fare dal browser
+Aggiunta la rotta /api/setup/migra protetta dalla stessa chiave dei lavori
+notturni: prepara il database senza aprire un terminale. Lo schema usa
+CREATE TABLE IF NOT EXISTS, quindi rilanciarla e innocuo.
+
+## 2026-09-08, accesso con password e cookie firmato
+Il pannello non e piu raggiungibile da chiunque conosca l indirizzo. Una sola
+password in PANNELLO_PASSWORD, un cookie firmato con scadenza a trenta giorni,
+nessun servizio esterno e nessuna tabella utenti: e un pannello per una persona.
+Le rotte /api/cron e /api/setup restano fuori dal controllo perche hanno la loro
+chiave e un lavoro pianificato non sa fare login. Cambiare la password invalida
+tutte le sessioni aperte.

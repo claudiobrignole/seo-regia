@@ -3,12 +3,18 @@
 Pannello che misura, diagnostica e corregge il SEO di sette siti, con un ciclo
 notturno e un registro che permette di annullare ogni modifica.
 
-## Installazione
+## Installazione su Hostinger
 
-    npm install
-    cp .env.example .env.local     # e riempi i valori
-    npm run db:migra
-    npm run build && npm start
+1. Collega il repository al sottodominio come applicazione Node.
+2. Nel pannello dell applicazione, sezione **Environment variables**, aggiungi
+   le variabili elencate in `.env.example`. Per partire bastano
+   `PANNELLO_PASSWORD`, `CRON_CHIAVE` e le quattro `DB_`.
+3. Prepara il database aprendo nel browser
+   `https://seo.tuodominio/api/setup/migra?chiave=LA_CHIAVE_CRON`.
+4. Apri il pannello.
+
+Installazione e sviluppo in locale: `npm install`, copia `.env.example` in
+`.env.local`, `npm run db:migra`, `npm run dev`.
 
 ## I lavori pianificati
 

@@ -38,31 +38,38 @@ export const regolaCtrBasso: Regola = {
       titolo: string | null
       descrizione: string | null
     }>(
-      `SELECT m.chiave, m.clic, m.impressioni, m.posizione, p.titolo, p.descrizione
+      `SELECT m.chiave,
+              SUM(m.clic) AS clic,
+              SUM(m.impressioni) AS impressioni,
+              AVG(m.posizione) AS posizione,
+              p.titolo, p.descrizione
          FROM misure m
          LEFT JOIN pagine p ON p.sito_id = m.sito_id AND p.url = m.chiave
         WHERE m.sito_id = ?
           AND m.fonte = 'search-console'
           AND m.tipo_chiave = 'pagina'
-          AND m.giorno = (SELECT MAX(giorno) FROM misure WHERE sito_id = ? AND fonte = 'search-console')
-          AND m.impressioni >= 300
-          AND m.posizione IS NOT NULL
-          AND m.posizione <= 12
-        ORDER BY m.impressioni DESC
+          AND m.giorno >= DATE_SUB(CURDATE(), INTERVAL 28 DAY)
+        GROUP BY m.chiave, p.titolo, p.descrizione
+        HAVING SUM(m.impressioni) >= 300
+           AND AVG(m.posizione) IS NOT NULL
+           AND AVG(m.posizione) <= 12
+        ORDER BY SUM(m.impressioni) DESC
         LIMIT 100`,
-      [s.id, s.id]
+      [s.id]
     )
 
     const proposte: Proposta[] = []
 
     for (const r of righe) {
-      const ctrReale = r.impressioni ? r.clic / r.impressioni : 0
-      const atteso = attesoPerPosizione(r.posizione)
-      // Solo scarti veri: sotto meta dell atteso.
+      const impressioni = Number(r.impressioni)
+      const clic = Number(r.clic)
+      const posizione = Number(r.posizione)
+      const ctrReale = impressioni ? clic / impressioni : 0
+      const atteso = attesoPerPosizione(posizione)
       if (ctrReale >= atteso * 0.5) continue
 
-      const clicAttesi = Math.round(r.impressioni * atteso)
-      const guadagno = Math.max(0, clicAttesi - r.clic)
+      const clicAttesi = Math.round(impressioni * atteso)
+      const guadagno = Math.max(0, clicAttesi - clic)
       if (guadagno < 20) continue
 
       proposte.push({
@@ -70,10 +77,10 @@ export const regolaCtrBasso: Regola = {
         bersaglio: r.chiave,
         campo: 'titolo',
         valoreVecchio: r.titolo,
-        valoreNuovo: '', // lo compone chi genera i testi, vedi lib/regole/testi.ts
+        valoreNuovo: '',
         motivo:
-          `${r.impressioni.toLocaleString('it-CH')} impressioni in posizione ${r.posizione.toFixed(1)} ` +
-          `ma solo ${r.clic} clic (${(ctrReale * 100).toFixed(2)} per cento contro ${(atteso * 100).toFixed(1)} atteso). ` +
+          `${impressioni.toLocaleString('it-CH')} impressioni in posizione ${posizione.toFixed(1)} ` +
+          `ma solo ${clic} clic (${(ctrReale * 100).toFixed(2)} per cento contro ${(atteso * 100).toFixed(1)} atteso). ` +
           `Il titolo mostrato non convince chi vede il risultato.`,
         guadagnoStimato: guadagno,
         rischio: 'sicura',

@@ -6,10 +6,15 @@ import type { Sito } from '@/siti.config'
 /**
  * La Search Console conta tutti, anche chi rifiuta i cookie:
  * per il traffico di ricerca e questa la fonte, non Analytics.
+ *
+ * Si salva un giorno per volta (dimensione date). Sommare finestre
+ * sovrapposte sulla home produceva numeri falsi.
  */
 
 export type RigaRicerca = {
+  giorno: string
   chiave: string
+  chiave2?: string
   clic: number
   impressioni: number
   ctr: number
@@ -18,23 +23,22 @@ export type RigaRicerca = {
 
 async function interroga(
   s: Sito,
-  dimensione: 'page' | 'query',
+  dimensioni: Array<'date' | 'page' | 'query'>,
   da: string,
   a: string,
-  limite = 5000
+  limite = 25000
 ): Promise<RigaRicerca[]> {
   const api = google.searchconsole({ version: 'v1', auth: auth(s.identita) as any })
   const righe: RigaRicerca[] = []
   let inizio = 0
 
-  // La Search Console pagina a 25000 righe: si scorre finche restituisce qualcosa.
   for (;;) {
     const res = await api.searchanalytics.query({
       siteUrl: s.searchConsole,
       requestBody: {
         startDate: da,
         endDate: a,
-        dimensions: [dimensione],
+        dimensions: dimensioni,
         rowLimit: Math.min(limite, 25000),
         startRow: inizio,
         type: 'web',
@@ -42,8 +46,14 @@ async function interroga(
     })
     const lotto = res.data.rows ?? []
     for (const r of lotto) {
+      const keys = r.keys ?? []
+      const haData = dimensioni[0] === 'date'
       righe.push({
-        chiave: r.keys?.[0] ?? '',
+        giorno: haData ? (keys[0] ?? a) : a,
+        chiave: haData ? (keys[1] ?? '') : (keys[0] ?? ''),
+        chiave2: dimensioni.includes('query') && dimensioni.includes('page')
+          ? keys[haData ? 2 : 1]
+          : undefined,
         clic: r.clicks ?? 0,
         impressioni: r.impressions ?? 0,
         ctr: r.ctr ?? 0,
@@ -59,34 +69,62 @@ async function interroga(
 export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<number> {
   let scritte = 0
 
-  for (const [dimensione, tipo] of [
-    ['page', 'pagina'],
-    ['query', 'query'],
-  ] as const) {
-    const righe = await interroga(s, dimensione, da, a)
-    for (const r of righe) {
-      if (!r.chiave) continue
-      await salvaMisura({
-        sitoId: s.id,
-        fonte: 'search-console',
-        giorno: a,
-        chiave: r.chiave,
-        tipoChiave: tipo,
-        clic: r.clic,
-        impressioni: r.impressioni,
-        posizione: Number(r.posizione.toFixed(2)),
-        extra: { ctr: r.ctr, finestra: { da, a } },
-      })
-      scritte++
-    }
+  for (const r of await interroga(s, ['date', 'page'], da, a)) {
+    if (!r.chiave) continue
+    await salvaMisura({
+      sitoId: s.id,
+      fonte: 'search-console',
+      giorno: r.giorno,
+      chiave: r.chiave,
+      tipoChiave: 'pagina',
+      clic: r.clic,
+      impressioni: r.impressioni,
+      posizione: Number(r.posizione.toFixed(2)),
+      extra: { ctr: r.ctr },
+    })
+    scritte++
   }
+
+  for (const r of await interroga(s, ['date', 'query'], da, a)) {
+    if (!r.chiave) continue
+    await salvaMisura({
+      sitoId: s.id,
+      fonte: 'search-console',
+      giorno: r.giorno,
+      chiave: r.chiave,
+      tipoChiave: 'query',
+      clic: r.clic,
+      impressioni: r.impressioni,
+      posizione: Number(r.posizione.toFixed(2)),
+      extra: { ctr: r.ctr },
+    })
+    scritte++
+  }
+
+  // Coppie pagina + query: servono a chi scrive i titoli. Una fotografia
+  // della finestra, non da sommare sulla home.
+  for (const r of await interroga(s, ['page', 'query'], da, a, 10000)) {
+    if (!r.chiave || !r.chiave2) continue
+    await salvaMisura({
+      sitoId: s.id,
+      fonte: 'search-console',
+      giorno: a,
+      chiave: `${r.chiave}|||${r.chiave2}`.slice(0, 500),
+      tipoChiave: 'pagina_query',
+      clic: r.clic,
+      impressioni: r.impressioni,
+      posizione: Number(r.posizione.toFixed(2)),
+      extra: { ctr: r.ctr, pagina: r.chiave, query: r.chiave2, finestra: { da, a } },
+    })
+    scritte++
+  }
+
   return scritte
 }
 
 /**
  * Rapporto sulle funzionalita di AI generativa, ancora in prova.
- * Su Aelle vale 9.480 impressioni in tre mesi su 193 pagine: va tenuto
- * su una riga separata, perche sono impressioni che quasi non producono clic.
+ * Fonte distinta: altrimenti sovrascrive i clic del risultato classico.
  */
 export async function raccogliAI(s: Sito, da: string, a: string): Promise<number> {
   const api = google.searchconsole({ version: 'v1', auth: auth(s.identita) as any })
@@ -96,10 +134,8 @@ export async function raccogliAI(s: Sito, da: string, a: string): Promise<number
       requestBody: {
         startDate: da,
         endDate: a,
-        dimensions: ['page'],
+        dimensions: ['date', 'page'],
         rowLimit: 5000,
-        // Nota: il nome del filtro per le superfici AI cambia mentre il rapporto
-        // e in versione di prova. Se l API lo rifiuta non blocchiamo la raccolta.
         dimensionFilterGroups: [
           { filters: [{ dimension: 'searchAppearance', operator: 'equals', expression: 'AI_OVERVIEW' }] },
         ],
@@ -108,22 +144,24 @@ export async function raccogliAI(s: Sito, da: string, a: string): Promise<number
     })
     let n = 0
     for (const r of res.data.rows ?? []) {
+      const giorno = r.keys?.[0] ?? a
+      const pagina = r.keys?.[1] ?? ''
+      if (!pagina) continue
       await salvaMisura({
         sitoId: s.id,
-        fonte: 'search-console',
-        giorno: a,
-        chiave: r.keys?.[0] ?? '',
+        fonte: 'search-console-ai',
+        giorno,
+        chiave: pagina,
         tipoChiave: 'pagina',
         clic: r.clicks ?? 0,
         impressioni: r.impressions ?? 0,
         posizione: r.position ?? null,
-        extra: { superficie: 'ai', finestra: { da, a } },
+        extra: { superficie: 'ai' },
       })
       n++
     }
     return n
   } catch (e) {
-    // Il rapporto e in versione di prova: se non risponde, si prosegue.
     console.warn(`[ai] ${s.id}: rapporto non disponibile`, (e as Error).message)
     return 0
   }

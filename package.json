@@ -8,8 +8,7 @@
     "build": "next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
-    "db:migra": "node scripts/migra.mjs",
-    "cron:locale": "node scripts/cron-locale.mjs"
+    "db:migra": "node scripts/migra.mjs"
   },
   "dependencies": {
     "next": "15.5.21",

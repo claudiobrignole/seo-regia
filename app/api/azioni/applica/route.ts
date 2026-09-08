@@ -1,69 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { unaRiga } from '@/lib/db'
-import { segnaApplicata, segnaFallita, annota, type Azione } from '@/lib/registro'
-import { scriviSeo, leggiSeo } from '@/lib/esecutori/wordpress'
-import { proponiModifica } from '@/lib/esecutori/github'
-import { scriviSeoProdotto, leggiSeoProdotto } from '@/lib/esecutori/ecwid'
-import { sito } from '@/siti.config'
+import { applicaAzione } from '@/lib/esecutori/applica'
 
 export const dynamic = 'force-dynamic'
 
-/**
- * Applica una singola azione approvata.
- * Prima di scrivere rilegge il valore attuale: se qualcuno ha cambiato le cose
- * a mano nel frattempo, il valore che salviamo per l annullamento e quello vero,
- * non quello che avevamo in memoria.
- */
-export async function POST(req: NextRequest) {
-  const { id } = (await req.json()) as { id: number }
-  const a = await unaRiga<Azione>('SELECT * FROM azioni WHERE id = ?', [id])
-  if (!a) return NextResponse.json({ errore: 'azione non trovata' }, { status: 404 })
-  if (a.stato !== 'proposta' && a.stato !== 'approvata') {
-    return NextResponse.json({ errore: `azione gia in stato ${a.stato}` }, { status: 409 })
+async function idDa(req: NextRequest): Promise<number> {
+  const tipo = req.headers.get('content-type') ?? ''
+  if (tipo.includes('application/json')) {
+    const b = (await req.json()) as { id?: number }
+    return Number(b.id)
   }
+  const modulo = await req.formData()
+  return Number(modulo.get('id'))
+}
 
-  const s = sito(a.sito_id)
-
+export async function POST(req: NextRequest) {
+  const id = await idDa(req)
+  if (!id) return NextResponse.json({ errore: 'manca id' }, { status: 400 })
   try {
-    let riferimento: string | undefined
-
-    if (s.scrittura.tipo === 'wordpress') {
-      const attuale = await leggiSeo(s, a.bersaglio)
-      const vecchio = a.campo === 'titolo' ? attuale.titolo : attuale.descrizione
-      await scriviSeo(s, a.bersaglio, {
-        [a.campo === 'titolo' ? 'titolo' : 'descrizione']: a.valore_nuovo,
-      })
-      await annota(s.id, 'applicata', a.id, { campo: a.campo, vecchio, nuovo: a.valore_nuovo })
-    } else if (s.scrittura.tipo === 'github') {
-      riferimento = await proponiModifica(
-        s,
-        { [a.bersaglio]: { [a.campo === 'titolo' ? 'titolo' : 'descrizione']: a.valore_nuovo } },
-        `SEO: ${a.campo} di ${a.bersaglio}`,
-        `${a.motivo}\n\nProposto dal pannello di regia SEO. Valore precedente: ${a.valore_vecchio ?? 'nessuno'}`
-      )
-      await annota(s.id, 'applicata', a.id, { richiesta: riferimento })
-    } else if (s.scrittura.tipo === 'nessuna') {
-      // Sito senza repository: non scriviamo. Senza storico non c e annullamento,
-      // e senza annullamento l automazione non e accettabile.
-      throw new Error(
-        `${s.nome} non ha un posto sicuro dove scrivere. ${s.scrittura.motivo} ` +
-          `Mettilo su GitHub e cambia la voce in siti.config.ts.`
-      )
-    } else {
-      const idProdotto = Number(a.bersaglio)
-      const attuale = await leggiSeoProdotto(idProdotto)
-      await scriviSeoProdotto(idProdotto, {
-        [a.campo === 'titolo' ? 'titolo' : 'descrizione']: a.valore_nuovo,
-      })
-      await annota(s.id, 'applicata', a.id, { campo: a.campo, vecchio: attuale })
+    const r = await applicaAzione(id)
+    if (req.headers.get('accept')?.includes('text/html') || !(req.headers.get('content-type') ?? '').includes('json')) {
+      const verso = new URL(req.url)
+      const sito = verso.searchParams.get('sito')
+      verso.pathname = sito ? `/sito/${sito}` : '/'
+      verso.search = 'ok=applicata'
+      return NextResponse.redirect(verso, { status: 303 })
     }
-
-    await segnaApplicata(a.id, riferimento)
-    return NextResponse.json({ ok: true, riferimento })
+    return NextResponse.json({ ok: true, ...r })
   } catch (e) {
     const messaggio = (e as Error).message
-    await segnaFallita(a.id, messaggio)
-    await annota(s.id, 'errore', a.id, { messaggio })
-    return NextResponse.json({ errore: messaggio }, { status: 500 })
+    const status = /non trovata/.test(messaggio) ? 404 : /gia in stato|Manca il testo|solo un avviso/.test(messaggio) ? 409 : 500
+    return NextResponse.json({ errore: messaggio }, { status })
   }
 }

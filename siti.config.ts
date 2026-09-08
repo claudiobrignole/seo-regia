@@ -129,7 +129,7 @@ export const SITI: Sito[] = [
     automazioneAttiva: false,
     scrittura: { tipo: 'github', repo: 'claudiobrignole/luna-nihongo', ramoBase: 'main', fileDati: 'seo/contenuti.json' },
     identita: 'brignole',
-    note: 'Online ma non ancora attivo: decidere se tenerlo fuori dall indice finche non e pronto.',
+    note: 'Pronto, non ancora promosso. Stesso ciclo SEO degli altri: prima i testi, poi i dati (all inizio saranno zero). Prima campagna a pagamento del banco Brignole.',
   },
   {
     id: 'biography-library',

@@ -20,7 +20,7 @@ export function db(): mysql.Pool {
 }
 
 export async function query<T = any>(sql: string, valori: unknown[] = []): Promise<T[]> {
-  const [righe] = await db().execute(sql, valori)
+  const [righe] = await db().execute(sql, valori as never)
   return righe as T[]
 }
 
@@ -35,7 +35,7 @@ export async function salvaMisura(m: {
   fonte: string
   giorno: string
   chiave: string
-  tipoChiave: 'pagina' | 'query' | 'prodotto' | 'sito'
+  tipoChiave: 'pagina' | 'query' | 'pagina_query' | 'prodotto' | 'sito'
   clic?: number
   impressioni?: number
   posizione?: number | null

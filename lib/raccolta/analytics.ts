@@ -23,7 +23,7 @@ export async function raccogliComportamento(s: Sito, da: string, a: string): Pro
     property: s.analyticsProperty,
     requestBody: {
       dateRanges: [{ startDate: da, endDate: a }],
-      dimensions: [{ name: 'pagePath' }, { name: 'hostName' }],
+      dimensions: [{ name: 'date' }, { name: 'pagePath' }, { name: 'hostName' }],
       metrics: [
         { name: 'screenPageViews' },
         { name: 'activeUsers' },
@@ -35,19 +35,23 @@ export async function raccogliComportamento(s: Sito, da: string, a: string): Pro
           inListFilter: { values: s.hostnameValidi },
         },
       },
-      limit: '5000',
+      limit: '10000',
     },
   })
 
   let n = 0
   for (const r of res.data.rows ?? []) {
-    const percorso = r.dimensionValues?.[0]?.value ?? ''
-    const host = r.dimensionValues?.[1]?.value ?? ''
-    if (!s.hostnameValidi.includes(host)) continue // doppia rete di sicurezza
+    const giornoGrezzo = r.dimensionValues?.[0]?.value ?? ''
+    const percorso = r.dimensionValues?.[1]?.value ?? ''
+    const host = r.dimensionValues?.[2]?.value ?? ''
+    if (!s.hostnameValidi.includes(host)) continue
+    const giorno = giornoGrezzo.length === 8
+      ? `${giornoGrezzo.slice(0, 4)}-${giornoGrezzo.slice(4, 6)}-${giornoGrezzo.slice(6, 8)}`
+      : a
     await salvaMisura({
       sitoId: s.id,
       fonte: 'analytics',
-      giorno: a,
+      giorno,
       chiave: `https://${host}${percorso}`,
       tipoChiave: 'pagina',
       clic: Number(r.metricValues?.[0]?.value ?? 0),
@@ -55,7 +59,6 @@ export async function raccogliComportamento(s: Sito, da: string, a: string): Pro
         utenti: Number(r.metricValues?.[1]?.value ?? 0),
         secondiCoinvolgimento: Number(r.metricValues?.[2]?.value ?? 0),
         avvertenza: 'solo visitatori che hanno accettato i cookie',
-        finestra: { da, a },
       },
     })
     n++

@@ -3,7 +3,7 @@
 Pannello che misura, diagnostica e corregge il SEO dei siti di Claudio Brignole.
 Gira su Hostinger Business, piano che supporta Node.
 
-## Le tre cose da sapere prima di toccare qualsiasi cosa
+## Le quattro cose da sapere prima di toccare qualsiasi cosa
 
 1. **Il registro viene prima dell'automazione.** Nessuna modifica automatica si
    accende se non è possibile annullarla. Ogni scrittura salva il valore
@@ -16,11 +16,15 @@ Gira su Hostinger Business, piano che supporta Node.
 3. **Due identità separate.** Il perimetro Brignole e l'associazione Biography
    Library usano due account di servizio distinti e non si mescolano mai.
    Vedi `identita` in `siti.config.ts`.
+4. **Due banchi pubblicità.** Brignole a pagamento e Biography Library Ad Grants
+   non condividono token, manager, schermate ne totali di spesa.
 
 ## Dove sta cosa
 
 - `siti.config.ts` — i siti del perimetro. Aggiungerne uno è una voce qui, non codice.
-- `lib/raccolta/` — Search Console, Analytics, Ecwid, Google. Solo lettura.
+- `lib/raccolta/` — Search Console, Analytics, Ecwid, Google Ads. Solo lettura.
+- `lib/modelli/` — Claude, Gemini, Mistral (e Grok se c e la chiave). Solo testi.
+- `lib/ads/` — bozze campagna e verdetti, isolati per identita.
 - `lib/scansione/crawler.ts` — legge le pagine una per una, con pausa. Gentile per scelta.
 - `lib/regole/` — le diagnosi. Una regola, un file. La più importante è `ctr-basso.ts`.
 - `lib/esecutori/` — WordPress, GitHub, Ecwid. Gli unici punti che scrivono.
@@ -28,6 +32,7 @@ Gira su Hostinger Business, piano che supporta Node.
 - `app/api/cron/` — le rotte che i lavori pianificati chiamano.
 - `db/schema.sql` — lo schema. Si applica con `npm run db:migra`.
 - `docs/decisioni.md` — perché le cose sono come sono, con la data.
+- `docs/istruzioni-tue.md` — passi nel browser, per chi non programma.
 
 ## Credenziali
 
@@ -84,7 +89,6 @@ Vedi `docs/stato.md`: dice cosa è fatto, cosa manca e in che ordine, più i
 numeri da cui nasce la regola principale. È il primo file da leggere quando si
 riapre il progetto dopo una pausa.
 
-In breve: l'impalcatura è completa e collaudata, ma il generatore dei testi
-nuovi non c'è ancora. Le regole individuano le opportunità e lasciano
-`valore_nuovo` vuoto, quindi nessuna proposta è applicabile finché
-`lib/regole/testi.ts` non viene scritto.
+In breve: il codice del ciclo e al posto (testi, coda, due banchi Ads). Manca
+il collegamento operativo (Cloud, token Ads, Hostinger, prima scansione) e
+la lettura di `seo/contenuti.json` nei siti Node. Vedi `docs/istruzioni-tue.md`.

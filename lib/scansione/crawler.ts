@@ -1,14 +1,16 @@
 import * as cheerio from 'cheerio'
-import { query } from '@/lib/db'
+import { query, unaRiga } from '@/lib/db'
 import type { Sito } from '@/siti.config'
 
 /**
  * Scansione gentile: una pagina alla volta, con pausa.
  * Non serve andare veloci, serve non disturbare i siti veri.
+ * Aelle non sta in tre minuti: si riprende dalla coda la notte dopo.
  */
 
 const PAUSA_MS = 700
-const MAX_PAGINE = 800
+const MAX_PAGINE_NOTTE = 220
+const LIMITE_MS = 240_000
 
 export type Fotografia = {
   url: string
@@ -74,26 +76,65 @@ export async function leggiPagina(url: string): Promise<Fotografia | null> {
   }
 }
 
-/** Percorre il sito partendo dalla sitemap, o dalla home se la sitemap manca. */
+async function mettiInCoda(sitoId: string, url: string, priorita: number) {
+  const corto = url.slice(0, 760)
+  await query(
+    `INSERT INTO scansione_coda (sito_id, url, priorita, stato)
+     VALUES (?,?,?,'in_coda')
+     ON DUPLICATE KEY UPDATE priorita = GREATEST(priorita, VALUES(priorita))`,
+    [sitoId, corto, priorita]
+  )
+}
+
+async function riempiCoda(s: Sito) {
+  const restano = await unaRiga<{ n: number }>(
+    `SELECT COUNT(*) AS n FROM scansione_coda WHERE sito_id = ? AND stato = 'in_coda'`,
+    [s.id]
+  )
+  if (Number(restano?.n ?? 0) > 0) return
+
+  const daSearch = await query<{ chiave: string; impressioni: number }>(
+    `SELECT chiave, SUM(impressioni) AS impressioni FROM misure
+      WHERE sito_id = ? AND fonte = 'search-console' AND tipo_chiave = 'pagina'
+        AND giorno >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+      GROUP BY chiave
+      ORDER BY impressioni DESC
+      LIMIT 400`,
+    [s.id]
+  )
+  for (const r of daSearch) {
+    if (r.chiave.startsWith('http')) await mettiInCoda(s.id, r.chiave, 1000 + Math.min(r.impressioni, 9999))
+  }
+
+  const sitemap = await indirizziDaSitemap(s.dominio)
+  const partenze = sitemap.length ? sitemap : [`https://${s.dominio}/`]
+  for (const url of partenze) await mettiInCoda(s.id, url, 10)
+}
+
 export async function scansiona(s: Sito): Promise<number> {
-  const partenze = await indirizziDaSitemap(s.dominio)
-  const coda = partenze.length ? partenze : [`https://${s.dominio}/`]
-  const viste = new Set<string>()
-  const entranti = new Map<string, number>()
+  await riempiCoda(s)
+  const inizio = Date.now()
   let salvate = 0
+  const entranti = new Map<string, number>()
 
-  while (coda.length && viste.size < MAX_PAGINE) {
-    const url = coda.shift()!
-    if (viste.has(url)) continue
-    viste.add(url)
+  while (salvate < MAX_PAGINE_NOTTE && Date.now() - inizio < LIMITE_MS) {
+    const prossima = await unaRiga<{ url: string }>(
+      `SELECT url FROM scansione_coda
+        WHERE sito_id = ? AND stato = 'in_coda'
+        ORDER BY priorita DESC LIMIT 1`,
+      [s.id]
+    )
+    if (!prossima) break
 
-    const f = await leggiPagina(url)
+    await query(`UPDATE scansione_coda SET stato = 'fatta' WHERE sito_id = ? AND url = ?`, [s.id, prossima.url])
+
+    const f = await leggiPagina(prossima.url)
     await attendi(PAUSA_MS)
     if (!f) continue
 
     for (const l of f.linkInterni) {
       entranti.set(l, (entranti.get(l) ?? 0) + 1)
-      if (!viste.has(l) && coda.length + viste.size < MAX_PAGINE) coda.push(l)
+      await mettiInCoda(s.id, l, 1)
     }
 
     await query(
@@ -115,19 +156,27 @@ export async function scansiona(s: Sito): Promise<number> {
     salvate++
   }
 
-  // Le pagine orfane, quelle che nessun link interno raggiunge, si vedono da qui.
   for (const [url, n] of entranti) {
-    await query('UPDATE pagine SET link_entranti = ? WHERE sito_id = ? AND url = ?', [n, s.id, url.slice(0, 760)])
+    await query('UPDATE pagine SET link_entranti = link_entranti + ? WHERE sito_id = ? AND url = ?', [
+      n,
+      s.id,
+      url.slice(0, 760),
+    ])
+  }
+
+  const ancora = await unaRiga<{ n: number }>(
+    `SELECT COUNT(*) AS n FROM scansione_coda WHERE sito_id = ? AND stato = 'in_coda'`,
+    [s.id]
+  )
+  if (Number(ancora?.n ?? 0) === 0) {
+    await query(`DELETE FROM scansione_coda WHERE sito_id = ?`, [s.id])
   }
 
   return salvate
 }
 
 async function indirizziDaSitemap(dominio: string): Promise<string[]> {
-  const candidate = [
-    `https://${dominio}/sitemap_index.xml`,
-    `https://${dominio}/sitemap.xml`,
-  ]
+  const candidate = [`https://${dominio}/sitemap_index.xml`, `https://${dominio}/sitemap.xml`]
   for (const url of candidate) {
     try {
       const res = await fetch(url)
@@ -136,7 +185,6 @@ async function indirizziDaSitemap(dominio: string): Promise<string[]> {
       const loc = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim())
       if (!loc.length) continue
 
-      // Indice di sitemap: si scende di un livello.
       if (loc.every((l) => l.endsWith('.xml'))) {
         const tutte: string[] = []
         for (const sub of loc.slice(0, 20)) {

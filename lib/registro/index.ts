@@ -31,18 +31,32 @@ export type Azione = {
   guadagno_stimato: number | null
   rischio: 'sicura' | 'da_approvare'
   stato: string
+  riferimento_esterno?: string | null
 }
 
 export async function proponi(a: Omit<Azione, 'id' | 'stato'>): Promise<number> {
-  // Non riproporre la stessa cosa se e gia in coda o gia applicata.
-  const esiste = await unaRiga<{ id: number }>(
-    `SELECT id FROM azioni
+  const esiste = await unaRiga<Azione>(
+    `SELECT * FROM azioni
      WHERE sito_id = ? AND bersaglio = ? AND campo = ?
-       AND stato IN ('proposta','approvata','applicata')
+       AND stato IN ('proposta','approvata','applicata','rifiutata')
      LIMIT 1`,
     [a.sito_id, a.bersaglio, a.campo]
   )
-  if (esiste) return esiste.id
+  if (esiste) {
+    // Una proposta vuota non deve bloccare il generatore dei testi.
+    if (
+      esiste.stato !== 'applicata' &&
+      !(esiste.valore_nuovo ?? '').trim() &&
+      (a.valore_nuovo ?? '').trim()
+    ) {
+      await query(
+        `UPDATE azioni SET valore_nuovo = ?, valore_vecchio = ?, motivo = ?, guadagno_stimato = ?, rischio = ?
+         WHERE id = ?`,
+        [a.valore_nuovo, a.valore_vecchio, a.motivo, a.guadagno_stimato, a.rischio, esiste.id]
+      )
+    }
+    return esiste.id
+  }
 
   const righe = await query<any>(
     `INSERT INTO azioni
@@ -52,6 +66,10 @@ export async function proponi(a: Omit<Azione, 'id' | 'stato'>): Promise<number> 
      a.motivo, a.guadagno_stimato, a.rischio]
   )
   return (righe as any).insertId ?? 0
+}
+
+export async function aggiornaValoreVecchio(id: number, valore: string | null) {
+  await query('UPDATE azioni SET valore_vecchio = ? WHERE id = ?', [valore, id])
 }
 
 export async function segnaApplicata(id: number, riferimento?: string) {
@@ -65,11 +83,21 @@ export async function segnaFallita(id: number, errore: string) {
   await query(`UPDATE azioni SET stato = 'fallita', errore = ? WHERE id = ?`, [errore.slice(0, 2000), id])
 }
 
-/** Rimette il valore precedente. Funziona anche a mesi di distanza. */
-export async function annulla(id: number): Promise<Azione> {
-  const a = await unaRiga<Azione>('SELECT * FROM azioni WHERE id = ?', [id])
+export async function segnaRifiutata(id: number) {
+  await query(`UPDATE azioni SET stato = 'rifiutata' WHERE id = ?`, [id])
+}
+
+export async function caricaAzione(id: number): Promise<Azione | null> {
+  return unaRiga<Azione>('SELECT * FROM azioni WHERE id = ?', [id])
+}
+
+/** Segna annullata dopo che l esecutore ha riscritto il valore precedente. */
+export async function segnaAnnullata(id: number): Promise<Azione> {
+  const a = await caricaAzione(id)
   if (!a) throw new Error(`Azione ${id} non trovata`)
-  if (a.stato !== 'applicata') throw new Error(`Azione ${id} non e stata applicata: nulla da annullare`)
+  if (a.stato !== 'applicata') {
+    throw new Error(`Azione ${id} non e stata applicata: nulla da annullare`)
+  }
   if (a.valore_vecchio === null) {
     throw new Error(`Azione ${id}: nessun valore precedente registrato, annullamento non sicuro`)
   }

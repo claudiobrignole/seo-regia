@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   const biglietto = await creaBiglietto()
   risposta.cookies.set(biglietto.nome, biglietto.valore, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: biglietto.scadenzaSecondi,

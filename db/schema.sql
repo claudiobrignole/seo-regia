@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS misure (
   fonte         VARCHAR(32)  NOT NULL,   -- search-console | analytics | ecwid | merchant | ads
   giorno        DATE         NOT NULL,
   chiave        VARCHAR(512) NOT NULL,   -- url della pagina, oppure la query, oppure lo sku
-  tipo_chiave   VARCHAR(16)  NOT NULL,   -- pagina | query | prodotto | sito
+  tipo_chiave   VARCHAR(32)  NOT NULL,   -- pagina | query | pagina_query | prodotto | sito
   clic          INT          NOT NULL DEFAULT 0,
   impressioni   INT          NOT NULL DEFAULT 0,
   posizione     DECIMAL(6,2) NULL,
@@ -112,3 +112,82 @@ CREATE TABLE IF NOT EXISTS esecuzioni (
   messaggio     TEXT         NULL,
   KEY idx_lavoro (lavoro, iniziata_il)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Coda della scansione: un sito non sta in tre minuti, si riprende la notte dopo.
+CREATE TABLE IF NOT EXISTS scansione_coda (
+  sito_id   VARCHAR(64)  NOT NULL,
+  url       VARCHAR(768) NOT NULL,
+  priorita  INT          NOT NULL DEFAULT 0,
+  stato     ENUM('in_coda','fatta') NOT NULL DEFAULT 'in_coda',
+  PRIMARY KEY (sito_id, url(500)),
+  KEY idx_coda (sito_id, stato, priorita)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Campagne Google Ads. identita e obbligatoria: Brignole e Grants non si sommano.
+CREATE TABLE IF NOT EXISTS campagne (
+  id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+  identita            ENUM('brignole','biography-library') NOT NULL,
+  sito_id             VARCHAR(64)  NULL,
+  google_id           VARCHAR(32)  NOT NULL,
+  nome                VARCHAR(255) NOT NULL,
+  stato               VARCHAR(32)  NULL,
+  budget_giornaliero  DECIMAL(12,2) NULL,
+  UNIQUE KEY uniq_camp (identita, google_id),
+  KEY idx_identita (identita)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS campagne_giorni (
+  id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+  identita            ENUM('brignole','biography-library') NOT NULL,
+  campagna_google_id  VARCHAR(32)  NOT NULL,
+  giorno              DATE         NOT NULL,
+  impressioni         INT          NOT NULL DEFAULT 0,
+  clic                INT          NOT NULL DEFAULT 0,
+  costo               DECIMAL(12,2) NOT NULL DEFAULT 0,
+  conversioni         DECIMAL(12,2) NOT NULL DEFAULT 0,
+  ctr                 DECIMAL(8,5) NULL,
+  cpc                 DECIMAL(12,4) NULL,
+  UNIQUE KEY uniq_cg (identita, campagna_google_id, giorno),
+  KEY idx_identita_giorno (identita, giorno)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS campagne_parole (
+  id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+  identita            ENUM('brignole','biography-library') NOT NULL,
+  campagna_google_id  VARCHAR(32)  NOT NULL,
+  parola              VARCHAR(512) NOT NULL,
+  giorno              DATE         NOT NULL,
+  impressioni         INT          NOT NULL DEFAULT 0,
+  clic                INT          NOT NULL DEFAULT 0,
+  costo               DECIMAL(12,2) NOT NULL DEFAULT 0,
+  conversioni         DECIMAL(12,2) NOT NULL DEFAULT 0,
+  UNIQUE KEY uniq_cp (identita, campagna_google_id, parola(191), giorno)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS campagne_bozze (
+  id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+  identita            ENUM('brignole','biography-library') NOT NULL,
+  sito_id             VARCHAR(64)  NOT NULL,
+  titolo              VARCHAR(255) NOT NULL,
+  contenuto           JSON         NOT NULL,
+  campagna_google_id  VARCHAR(32)  NULL,
+  stato               ENUM('bozza','collegata','scartata') NOT NULL DEFAULT 'bozza',
+  creata_il           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_banco (identita, sito_id, stato)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS campagne_verdetti (
+  id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
+  identita            ENUM('brignole','biography-library') NOT NULL,
+  campagna_google_id  VARCHAR(32)  NOT NULL,
+  giorni              SMALLINT     NOT NULL,
+  consiglio           ENUM('continua','ottimizza','pausa','cancella') NOT NULL,
+  pro                 TEXT         NOT NULL,
+  contro              TEXT         NOT NULL,
+  motivo              TEXT         NOT NULL,
+  quando              TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_cv (identita, campagna_google_id, quando)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Se il database esiste gia, allarga il tipo chiave: CREATE TABLE IF NOT EXISTS non lo fa.
+ALTER TABLE misure MODIFY tipo_chiave VARCHAR(32) NOT NULL;

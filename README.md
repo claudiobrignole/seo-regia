@@ -35,7 +35,11 @@ In `siti.config.ts` ogni sito ha `automazioneAttiva: false`. Finché resta falso
 il pannello propone e basta. Si accende un sito alla volta, partendo da
 brignole.ch, e solo dopo aver verificato che il registro annulli davvero.
 
-## Cosa manca
+## Cosa manca (operativo)
 
-Il generatore dei testi (`lib/regole/testi.ts`): le regole trovano le
-opportunità ma lasciano vuoto il valore nuovo. È il prossimo pezzo.
+Il codice del ciclo c e. Manca il collegamento: Google Cloud, token Ads
+(due identita), variabili Hostinger, prima raccolta. Istruzioni senza
+programmare: `docs/istruzioni-tue.md`.
+
+Due banchi pubblicita, mai una cassa unica: `/pubblicita/brignole` e
+`/pubblicita/biography-library`.

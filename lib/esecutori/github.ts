@@ -66,7 +66,10 @@ export async function proponiModifica(
   })
 
   const { dati, sha } = await leggiFileSeo(s)
-  const uniti = { ...dati, ...modifiche }
+  const uniti: FileSeo = { ...dati }
+  for (const [url, voce] of Object.entries(modifiche)) {
+    uniti[url] = { ...(dati[url] ?? {}), ...voce }
+  }
 
   await gh(`/repos/${repo}/contents/${fileDati}`, {
     method: 'PUT',

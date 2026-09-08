@@ -79,3 +79,14 @@ nessun servizio esterno e nessuna tabella utenti: e un pannello per una persona.
 Le rotte /api/cron e /api/setup restano fuori dal controllo perche hanno la loro
 chiave e un lavoro pianificato non sa fare login. Cambiare la password invalida
 tutte le sessioni aperte.
+
+## 2026-09-08, Luna Nihongo e pronto
+Non si tiene fuori dall indice. Stesso ciclo degli altri: prima i testi, poi i
+dati (all inizio a zero). Prima campagna a pagamento del banco Brignole.
+
+## 2026-09-08, due banchi Ads, mai una cassa unica
+Biography Library e un associazione con Ad Grants gia approvato. Soldi, token,
+manager, schermate e suggerimenti restano separati da Luna Nihongo / Aelle /
+brignole.ch. Nessun totale Ads unico. Il pannello non crea ne mette in pausa
+campagne: consiglia e legge.
+

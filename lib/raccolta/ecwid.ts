@@ -52,21 +52,29 @@ export async function prodotti(): Promise<Prodotto[]> {
 
 /** Ordini del periodo, per collegare le vendite alle pagine e alle ricerche. */
 export async function raccogliVendite(sitoId: string, da: string, a: string): Promise<number> {
-  const r = await chiama<{ items: any[] }>('orders', {
-    createdFrom: da,
-    createdTo: a,
-    limit: '100',
-  })
-
   const perProdotto = new Map<string, { pezzi: number; ricavo: number; nome: string }>()
-  for (const ordine of r.items ?? []) {
-    for (const riga of ordine.items ?? []) {
-      const chiave = String(riga.productId ?? riga.sku ?? 'sconosciuto')
-      const acc = perProdotto.get(chiave) ?? { pezzi: 0, ricavo: 0, nome: riga.name ?? '' }
-      acc.pezzi += riga.quantity ?? 1
-      acc.ricavo += (riga.price ?? 0) * (riga.quantity ?? 1)
-      perProdotto.set(chiave, acc)
+  let offset = 0
+
+  for (;;) {
+    const r = await chiama<{ items: any[]; count?: number; total?: number }>('orders', {
+      createdFrom: da,
+      createdTo: a,
+      limit: '100',
+      offset: String(offset),
+    })
+    const items = r.items ?? []
+    for (const ordine of items) {
+      for (const riga of ordine.items ?? []) {
+        const chiave = String(riga.productId ?? riga.sku ?? 'sconosciuto')
+        const acc = perProdotto.get(chiave) ?? { pezzi: 0, ricavo: 0, nome: riga.name ?? '' }
+        acc.pezzi += riga.quantity ?? 1
+        acc.ricavo += (riga.price ?? 0) * (riga.quantity ?? 1)
+        perProdotto.set(chiave, acc)
+      }
     }
+    offset += items.length
+    if (items.length < 100) break
+    if (typeof r.total === 'number' && offset >= r.total) break
   }
 
   for (const [id, v] of perProdotto) {

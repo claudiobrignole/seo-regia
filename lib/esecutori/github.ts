@@ -11,17 +11,30 @@ import type { Sito } from '@/siti.config'
 
 const API = 'https://api.github.com'
 
-function token(): string {
+function tokenPer(s: Sito): string {
+  if (s.identita === 'biography-library') {
+    const t = process.env.GITHUB_TOKEN_BL
+    if (!t) {
+      throw new Error(
+        'Manca GITHUB_TOKEN_BL. Metti in Hostinger il token a grana fine dell organizzazione Biography Library, non quello dei repository Brignole.'
+      )
+    }
+    return t
+  }
   const t = process.env.GITHUB_TOKEN
-  if (!t) throw new Error('Manca GITHUB_TOKEN in .env.local')
+  if (!t) {
+    throw new Error(
+      'Manca GITHUB_TOKEN. Metti in Hostinger il token a grana fine del tuo account (TagTales, kizunama, luna-nihongo, strangeglyph).'
+    )
+  }
   return t
 }
 
-async function gh<T>(percorso: string, opzioni: RequestInit = {}): Promise<T> {
+async function gh<T>(s: Sito, percorso: string, opzioni: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API}${percorso}`, {
     ...opzioni,
     headers: {
-      Authorization: `Bearer ${token()}`,
+      Authorization: `Bearer ${tokenPer(s)}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       ...(opzioni.headers ?? {}),
@@ -39,6 +52,7 @@ export async function leggiFileSeo(s: Sito): Promise<{ dati: FileSeo; sha: strin
   const { repo, ramoBase, fileDati } = s.scrittura
   try {
     const r = await gh<{ content: string; sha: string }>(
+      s,
       `/repos/${repo}/contents/${fileDati}?ref=${ramoBase}`
     )
     return { dati: JSON.parse(Buffer.from(r.content, 'base64').toString('utf8')), sha: r.sha }
@@ -57,10 +71,10 @@ export async function proponiModifica(
   if (s.scrittura.tipo !== 'github') throw new Error(`${s.id} non e un sito su repository`)
   const { repo, ramoBase, fileDati } = s.scrittura
 
-  const base = await gh<{ object: { sha: string } }>(`/repos/${repo}/git/ref/heads/${ramoBase}`)
+  const base = await gh<{ object: { sha: string } }>(s, `/repos/${repo}/git/ref/heads/${ramoBase}`)
   const ramo = `seo/regia-${new Date().toISOString().slice(0, 10)}-${Date.now().toString(36)}`
 
-  await gh(`/repos/${repo}/git/refs`, {
+  await gh(s, `/repos/${repo}/git/refs`, {
     method: 'POST',
     body: JSON.stringify({ ref: `refs/heads/${ramo}`, sha: base.object.sha }),
   })
@@ -71,7 +85,7 @@ export async function proponiModifica(
     uniti[url] = { ...(dati[url] ?? {}), ...voce }
   }
 
-  await gh(`/repos/${repo}/contents/${fileDati}`, {
+  await gh(s, `/repos/${repo}/contents/${fileDati}`, {
     method: 'PUT',
     body: JSON.stringify({
       message: titoloRichiesta,
@@ -81,7 +95,7 @@ export async function proponiModifica(
     }),
   })
 
-  const pr = await gh<{ html_url: string }>(`/repos/${repo}/pulls`, {
+  const pr = await gh<{ html_url: string }>(s, `/repos/${repo}/pulls`, {
     method: 'POST',
     body: JSON.stringify({ title: titoloRichiesta, head: ramo, base: ramoBase, body: descrizione }),
   })

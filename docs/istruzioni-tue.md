@@ -167,7 +167,12 @@ Analytics: **solo Brignole.** Amministrazione → Accesso proprietà → Lettore
 
 ## 5. GitHub, WordPress, Ecwid
 
-**GitHub:** [token](https://github.com/settings/tokens) con accesso ai repo TagTales, kizunama, luna-nihongo, strangeglyph e Biography-Library. `GITHUB_TOKEN`.
+**GitHub:** due token a grana fine, non uno solo. GitHub li lega a un proprietario: o il tuo account o un’organizzazione.
+
+- Repo tuoi (TagTales, kizunama, luna-nihongo, strangeglyph): [token a grana fine](https://github.com/settings/tokens?type=beta) sul tuo utente. Contenuti: lettura e scrittura. Hostinger: `GITHUB_TOKEN`.
+- Repo associazione (`biographylibrary/Biography-Library`): altro token, proprietario l’organizzazione Biography Library. Hostinger: `GITHUB_TOKEN_BL`.
+
+Non usare un token “classic” con accesso a tutto, e non mettere il token Brignole nella casella dell’associazione. Se uno dei due scappa, lo revochi senza toccare l’altro.
 
 **WordPress** (Aelle, brignole.ch, Biography Library): profilo → Password per le applicazioni → nome `regia-seo`. Utente + password in `WP_AELLE_`*, `WP_BRIGNOLE_*`, `WP_BL_*`. Non è la password del login.
 

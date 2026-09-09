@@ -4,13 +4,14 @@ import type { Sito } from '@/siti.config'
 
 /**
  * Scansione gentile: una pagina alla volta, con pausa.
- * Non serve andare veloci, serve non disturbare i siti veri.
- * Aelle non sta in tre minuti: si riprende dalla coda la notte dopo.
+ * Hostinger taglia verso i 60 secondi (504): ogni passata deve
+ * chiudere prima. Aelle si riprende dalla coda la notte dopo.
  */
 
 const PAUSA_MS = 700
-const MAX_PAGINE_NOTTE = 220
-const LIMITE_MS = 240_000
+const MAX_PAGINE_PASSATA = 40
+const LIMITE_MS = 40_000
+const MAX_URL_SITEMAP = 400
 
 export type Fotografia = {
   url: string
@@ -117,7 +118,7 @@ export async function scansiona(s: Sito): Promise<number> {
   let salvate = 0
   const entranti = new Map<string, number>()
 
-  while (salvate < MAX_PAGINE_NOTTE && Date.now() - inizio < LIMITE_MS) {
+  while (salvate < MAX_PAGINE_PASSATA && Date.now() - inizio < LIMITE_MS) {
     const prossima = await unaRiga<{ url: string }>(
       `SELECT url FROM scansione_coda
         WHERE sito_id = ? AND stato = 'in_coda'
@@ -187,15 +188,16 @@ async function indirizziDaSitemap(dominio: string): Promise<string[]> {
 
       if (loc.every((l) => l.endsWith('.xml'))) {
         const tutte: string[] = []
-        for (const sub of loc.slice(0, 20)) {
+        for (const sub of loc.slice(0, 5)) {
           const r2 = await fetch(sub)
           if (!r2.ok) continue
           const x2 = await r2.text()
           tutte.push(...[...x2.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].trim()))
+          if (tutte.length >= MAX_URL_SITEMAP) break
         }
-        return tutte.filter((u) => !u.endsWith('.xml'))
+        return tutte.filter((u) => !u.endsWith('.xml')).slice(0, MAX_URL_SITEMAP)
       }
-      return loc
+      return loc.slice(0, MAX_URL_SITEMAP)
     } catch {
       /* si prova la candidata successiva */
     }

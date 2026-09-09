@@ -198,34 +198,66 @@ Non e un programma da scrivere. E una sveglia di Hostinger: ogni notte il server
 
 Usa **la stessa** `CRON_CHIAVE` gia nelle variabili, attaccata dopo `chiave=`, senza virgolette e senza spazi. Sotto, al posto di `INCOLLA_LA_CHIAVE`, metti quella parola.
 
-### Prima, una prova nel browser (come la migrazione)
+### Prima, prove nel browser (come la migrazione)
 
-Apri:
+Raccolta (una volta basta; i quattro `problemi` su Biography Library e token Ads di prova si ignorano):
 
 `https://seo.brignole.ch/api/cron/raccolta?chiave=INCOLLA_LA_CHIAVE`
 
-Aspetta anche un minuto: sta chiedendo i dati a Google. Deve comparire una pagina con del testo (non “chiave non valida”). Se dice **chiave non valida**, la parola non e identica a `CRON_CHIAVE`. Se parla di account di servizio, manca un invito in Search Console. Zero impressioni su Luna Nihongo e normale.
+Scansione: **un indirizzo alla volta**. Deve comparire JSON con `"pagine"`, non una pagina bianca. Aelle e grande: una passata legge un pezzo e si riprende da sola (lunedi notte, e le lunedi dopo). Se il browser dice **504 Gateway Time-out**, non ricaricare in loop: Hostinger ha tagliato l attesa. I siti piccoli di solito finiscono al primo colpo. Il negozio Ecwid sta dentro Aelle, non ha una scansione sua.
 
-Poi, sempre nel browser:
+- Aelle: `https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE`
+- brignole.ch: `https://seo.brignole.ch/api/cron/scansione?sito=brignole&chiave=INCOLLA_LA_CHIAVE`
+- Tag Tales: `https://seo.brignole.ch/api/cron/scansione?sito=tagtales&chiave=INCOLLA_LA_CHIAVE`
+- Kizunama: `https://seo.brignole.ch/api/cron/scansione?sito=kizunama&chiave=INCOLLA_LA_CHIAVE`
+- StrangeGlyph: `https://seo.brignole.ch/api/cron/scansione?sito=strangeglyph&chiave=INCOLLA_LA_CHIAVE`
+- Luna Nihongo: `https://seo.brignole.ch/api/cron/scansione?sito=lunanihongo&chiave=INCOLLA_LA_CHIAVE`
+- Biography Library (sito): `https://seo.brignole.ch/api/cron/scansione?sito=biography-library&chiave=INCOLLA_LA_CHIAVE`
+- Biography Library (app): `https://seo.brignole.ch/api/cron/scansione?sito=biography-library-app&chiave=INCOLLA_LA_CHIAVE`
 
-`https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE`
+Diagnosi (dopo almeno una scansione):
 
-Oggi basta Aelle. Gli altri siti si aggiungono dopo, uno per notte.
+`https://seo.brignole.ch/api/cron/diagnosi?chiave=INCOLLA_LA_CHIAVE`
 
-### Poi, la sveglia su Hostinger (quattro righe, non una)
+Verifica (puo restituire zero: non ci sono ancora modifiche applicate da quattordici giorni):
+
+`https://seo.brignole.ch/api/cron/verifica?chiave=INCOLLA_LA_CHIAVE`
+
+Deve comparire del testo JSON, non “chiave non valida”.
+
+### Poi, la sveglia su Hostinger (dieci righe, non una)
 
 1. hPanel → sito `seo.brignole.ch` → Dashboard.
 2. Nella barra a sinistra cerca **Cron Jobs** (a volte **Lavori Cron**).
 3. Tipo: **Custom** (non PHP).
-4. Crea **quattro** lavori, uno alla volta. Incolla il comando intero nella casella Command / Comando. L orario di Hostinger e UTC: le tre di notte UTC sono le cinque in Svizzera d estate.
+4. Crea **dieci** lavori, uno alla volta. Incolla il comando intero nella casella Command / Comando. L orario di Hostinger e UTC: le tre di notte UTC sono le cinque in Svizzera d estate.
 
-**Ogni giorno, ore 3:00** (minuto 0, ora 3, resto asterisco):
+La scansione e **un sito per notte**: Aelle da sola non sta in tre minuti, si riprende la settimana dopo. Non mettere tutti i siti nella stessa sveglia.
+
+**Ogni giorno, ore 3:00** (minuto 0, ora 3, giorno della settimana vuoto o asterisco):
 
 `curl -fsS "https://seo.brignole.ch/api/cron/raccolta?chiave=INCOLLA_LA_CHIAVE"`
 
-**Ogni giorno, ore 3:30** (minuto 30, ora 3):
+**Scansioni, ore 3:30** (minuto 30, ora 3). Cambia solo il giorno della settimana:
 
-`curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE"`
+- Lunedi (giorno 1), Aelle:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE"`
+- Martedi (2), brignole.ch:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=brignole&chiave=INCOLLA_LA_CHIAVE"`
+- Mercoledi (3), Tag Tales:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=tagtales&chiave=INCOLLA_LA_CHIAVE"`
+- Giovedi (4), Kizunama:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=kizunama&chiave=INCOLLA_LA_CHIAVE"`
+- Venerdi (5), StrangeGlyph:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=strangeglyph&chiave=INCOLLA_LA_CHIAVE"`
+- Sabato (6), Luna Nihongo:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=lunanihongo&chiave=INCOLLA_LA_CHIAVE"`
+- Domenica (0), Biography Library sito:  
+  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=biography-library&chiave=INCOLLA_LA_CHIAVE"`
+
+**Domenica, ore 4:00** (minuto 0, ora 4, giorno 0), Biography Library app:
+
+`curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=biography-library-app&chiave=INCOLLA_LA_CHIAVE"`
 
 **Ogni giorno, ore 4:30** (minuto 30, ora 4):
 

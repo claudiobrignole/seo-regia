@@ -32,7 +32,7 @@ async function haGiaBozza(sitoId: string): Promise<boolean> {
 export async function generaBozzeMancanti(): Promise<number> {
   let n = 0
   for (const s of SITI) {
-    const PRIORITARI = new Set(['lunanihongo', 'brignole', 'aelle', 'biography-library'])
+    const PRIORITARI = new Set(['aelle-store', 'aelle', 'biography-library', 'brignole'])
     if (!PRIORITARI.has(s.id)) continue
     if (await haGiaBozza(s.id)) continue
     try {

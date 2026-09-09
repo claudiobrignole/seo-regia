@@ -23,6 +23,11 @@ function credenziali(s: Sito) {
   return { utente, password, base: s.scrittura.base }
 }
 
+/** Chiamata REST autenticata. Serve anche al caricamento conversioni Grants. */
+export async function chiamaWordpress(s: Sito, percorso: string, opzioni: RequestInit = {}) {
+  return chiama(s, percorso, opzioni)
+}
+
 async function chiama(s: Sito, percorso: string, opzioni: RequestInit = {}) {
   const { utente, password, base } = credenziali(s)
   const autorizzazione = Buffer.from(`${utente}:${password}`).toString('base64')

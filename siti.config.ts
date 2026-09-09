@@ -11,8 +11,8 @@ export type Sito = {
   nome: string
   dominio: string
   piattaforma: Piattaforma
-  /** proprieta Search Console: conviene passare tutte a proprieta di dominio */
-  searchConsole: string
+  /** proprieta Search Console; null se lo statuto o il sito non la usano */
+  searchConsole: string | null
   /** identificatore proprieta Analytics; null dove non misuriamo */
   analyticsProperty: string | null
   /** nomi host accettati in lettura: serve a scartare i dati falsi */
@@ -129,7 +129,7 @@ export const SITI: Sito[] = [
     automazioneAttiva: false,
     scrittura: { tipo: 'github', repo: 'claudiobrignole/luna-nihongo', ramoBase: 'main', fileDati: 'seo/contenuti.json' },
     identita: 'brignole',
-    note: 'Pronto, non ancora promosso. Stesso ciclo SEO degli altri: prima i testi, poi i dati (all inizio saranno zero). Prima campagna a pagamento del banco Brignole.',
+    note: 'Pronto, non ancora promosso. Stesso ciclo SEO degli altri: prima i testi, poi i dati (all inizio saranno zero). Niente campagna a pagamento finche Claudio non la chiede.',
   },
   {
     id: 'biography-library',
@@ -143,7 +143,7 @@ export const SITI: Sito[] = [
     automazioneAttiva: false,
     scrittura: { tipo: 'wordpress', base: 'https://biographylibrary.org', prefissoCredenziali: 'WP_BL' },
     identita: 'biography-library',
-    note: 'Identita separata. robots.txt da rifare: oggi ha solo Crawl-delay e nessuna Sitemap.',
+    note: 'Identita separata. Nessuno script di misura sul sito (niente Analytics, GTM, pixel). Search Console solo DNS. Conversioni Grants: plugin regia-bl-grants, upload notturno. robots.txt da rifare: oggi ha solo Crawl-delay e nessuna Sitemap.',
   },
   {
     id: 'biography-library-app',
@@ -157,7 +157,7 @@ export const SITI: Sito[] = [
     automazioneAttiva: false,
     scrittura: { tipo: 'github', repo: 'biographylibrary/Biography-Library', ramoBase: 'main', fileDati: 'seo/contenuti.json' },
     identita: 'biography-library',
-    note: 'Qui vivranno le biografie pubbliche. Nessuna misurazione del comportamento, solo Search Console.',
+    note: 'Biografie pubbliche. Niente Analytics. Search Console del dominio, verifica DNS. Gli annunci Grants atterrano su biographylibrary.org, non qui, finche Claudio non decide altrimenti.',
   },
 ]
 

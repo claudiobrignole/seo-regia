@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Google Ads API tool documentation — Biography Library (Regia SEO)</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; font-size: 12pt; line-height: 1.45; max-width: 720px; margin: 40px auto; color: #111; }
+    h1 { font-size: 18pt; margin-bottom: 6px; }
+    h2 { font-size: 13pt; margin-top: 28px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+    p, li { margin: 8px 0; }
+    .nota { font-size: 10pt; color: #444; font-style: italic; margin-bottom: 24px; }
+    table { border-collapse: collapse; width: 100%; font-size: 10pt; margin: 12px 0 20px; }
+    th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+    th { background: #eee; }
+    .mock { font-family: Helvetica, Arial, sans-serif; border: 1px solid #333; padding: 16px; margin: 16px 0; font-size: 10pt; }
+    code { font-family: Menlo, Consolas, monospace; font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+<h1>Google Ads API — Tool documentation</h1>
+<p class="nota">This document follows Google’s API Center template. It is a separate application from the Brignole paid-ads token. This token is only for the Biography Library Google Ad Grants account.</p>
+
+<h2>Company name</h2>
+<p><strong>Biography Library</strong> (nonprofit association)</p>
+<ul>
+  <li>Website: <strong>https://biographylibrary.org</strong></li>
+  <li>Internal tool (password-protected, not a public product): <strong>https://seo.brignole.ch</strong></li>
+  <li>API contact: <strong>claudio@brignole.ch</strong></li>
+</ul>
+
+<h2>Business model</h2>
+<p>Biography Library is a nonprofit association. We advertise only our own websites with Google Ad Grants. We do not run an agency and we do not manage ads for other organisations.</p>
+<p>Websites in scope:</p>
+<ul>
+  <li>https://biographylibrary.org</li>
+  <li>https://app.biographylibrary.org (same organisation; ads land on the main site unless we change that later)</li>
+</ul>
+<p>A separate commercial activity (Brignole) has its own Google Ads accounts and its own developer token. This token will <strong>not</strong> access those accounts. Grants spend and paid spend are never combined.</p>
+<p>The association’s public websites must not carry visitor-tracking scripts (no Google Analytics, Tag Manager, or ads pixels on the pages), by statute. Search Console is verified with DNS only. Conversion recording uses a first-party WordPress plugin that stores the Google click id from the landing URL when someone submits a contact form. No Google JavaScript is loaded on the site.</p>
+
+<h2>Tool access / use</h2>
+<p>The tool is <strong>Regia SEO</strong>, a private panel for one operator.</p>
+<ul>
+  <li>No public sign-ups. No third-party users. No agency access.</li>
+  <li>Reads campaign performance (impressions, clicks, CTR, keywords) once per night.</li>
+  <li>Prepares campaign <em>drafts</em> in the panel. Live campaigns are created by hand in the Google Ads interface.</li>
+  <li>Does <strong>not</strong> create, pause, enable, or mutate campaigns, ads, budgets, or keywords through the API.</li>
+  <li>Does upload <strong>click conversions</strong> for form submissions that followed an ad click (gclid), using ConversionUploadService. No CSV is uploaded by hand.</li>
+  <li>On first run, the tool may enable auto-tagging and create one conversion action of type UPLOAD_CLICKS if it is missing. That is the only other write.</li>
+</ul>
+<p>We apply for <strong>Basic Access</strong>. The tool is not offered to other advertisers. Required Minimum Functionality does not apply.</p>
+
+<h2>Tool design</h2>
+<ol>
+  <li>A scheduled job authenticates as a Google Cloud service account invited to the Biography Library manager / Grants client (Standard access, so conversion upload is allowed).</li>
+  <li>Read: <code>GoogleAdsService.Search</code> for campaign, campaign_budget, keyword_view, metrics.</li>
+  <li>Write (Grants only): <code>uploadClickConversions</code> with gclid, conversion action, time, and a unique order id. Optional one-time <code>mutateCustomer</code> (auto-tagging) and <code>conversionActions.mutate</code> (create UPLOAD_CLICKS action).</li>
+  <li>The UI at https://seo.brignole.ch/pubblicita/biography-library reads the database. It never calls mutate on campaigns.</li>
+</ol>
+
+<h2>API services called</h2>
+<ul>
+  <li><strong>GoogleAdsService.Search</strong> (read)</li>
+  <li><strong>ConversionUploadService</strong> (uploadClickConversions)</li>
+  <li><strong>CustomerService.MutateCustomer</strong> once, auto-tagging only</li>
+  <li><strong>ConversionActionService.Mutate</strong> once, if the upload action does not exist</li>
+</ul>
+<p>We do not call CampaignService, AdGroupAdService, or other mutate methods to change ads.</p>
+
+<h2>Google Ads accounts in scope</h2>
+<ul>
+  <li>Manager that owns this token: Biography Library manager (login-customer-id).</li>
+  <li>Linked client: Grants account <strong>289-519-5392</strong> (digits: 2895195392).</li>
+  <li>Not in scope: Brignole paid account 712-100-7160.</li>
+</ul>
+
+<h2>Tool mockups</h2>
+<p>The tool is not externally accessible. Mock-up of the Grants desk:</p>
+<div class="mock">
+  <h3>Regia SEO — Ad Grants (Biography Library)</h3>
+  <p>Google credit, not Brignole money. No Analytics on the website. Conversions from contact forms, uploaded at night.</p>
+  <table>
+    <tr><th>Name</th><th>Status</th><th>Clicks (30 days)</th><th>Grant used</th><th>Advice</th></tr>
+    <tr><td>Search — oral history</td><td>ENABLED</td><td>80</td><td>quota</td><td>CTR above five percent. Keep.</td></tr>
+  </table>
+  <p>Conversions: waiting 0, uploaded 2, errors 0. Last upload: 8 September 2026. Do not install Analytics. Do not upload a CSV.</p>
+</div>
+
+<p>Date: 9 September 2026</p>
+</body>
+</html>

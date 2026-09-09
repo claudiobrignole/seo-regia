@@ -3,7 +3,7 @@
 Pannello che misura, diagnostica e corregge il SEO dei siti di Claudio Brignole.
 Gira su Hostinger Business, piano che supporta Node.
 
-## Le quattro cose da sapere prima di toccare qualsiasi cosa
+## Le cinque cose da sapere prima di toccare qualsiasi cosa
 
 1. **Il registro viene prima dell'automazione.** Nessuna modifica automatica si
    accende se non è possibile annullarla. Ogni scrittura salva il valore
@@ -12,19 +12,25 @@ Gira su Hostinger Business, piano che supporta Node.
    ai cookie, quindi Analytics vede solo chi accetta. Il traffico di ricerca si
    legge dalla Search Console, le vendite da Ecwid. Analytics serve solo per il
    comportamento, e sempre filtrato per nome host, perché la proprietà riceve
-   dati falsi inviati da fuori.
+   dati falsi inviati da fuori. **Sui siti Biography Library Analytics non si
+   installa affatto** (statuto: niente tracciatori sulle pagine).
 3. **Due identità separate.** Il perimetro Brignole e l'associazione Biography
    Library usano due account di servizio distinti e non si mescolano mai.
    Vedi `identita` in `siti.config.ts`.
 4. **Due banchi pubblicità.** Brignole a pagamento e Biography Library Ad Grants
    non condividono token, manager, schermate ne totali di spesa.
+5. **Biography Library senza script di misura.** Search Console si verifica con
+   DNS, Cloud serve al pannello. L unica scrittura su Google Ads e il caricamento
+   notturno delle conversioni dai moduli del sito (`lib/ads/carica-conversioni.ts`).
+   Il banco Brignole resta sola lettura. Nessun CSV a mano.
 
 ## Dove sta cosa
 
 - `siti.config.ts` — i siti del perimetro. Aggiungerne uno è una voce qui, non codice.
-- `lib/raccolta/` — Search Console, Analytics, Ecwid, Google Ads. Solo lettura.
+- `lib/raccolta/` — Search Console, Analytics, Ecwid, Google Ads in lettura.
 - `lib/modelli/` — Claude, Gemini, Mistral (e Grok se c e la chiave). Solo testi.
-- `lib/ads/` — bozze campagna e verdetti, isolati per identita.
+- `lib/ads/` — bozze, verdetti, e (solo Grants) caricamento conversioni dai moduli.
+- `plugin-wp/regia-bl-grants/` — plugin WordPress Biography Library, senza script Google.
 - `lib/scansione/crawler.ts` — legge le pagine una per una, con pausa. Gentile per scelta.
 - `lib/regole/` — le diagnosi. Una regola, un file. La più importante è `ctr-basso.ts`.
 - `lib/esecutori/` — WordPress, GitHub, Ecwid. Gli unici punti che scrivono.
@@ -89,6 +95,6 @@ Vedi `docs/stato.md`: dice cosa è fatto, cosa manca e in che ordine, più i
 numeri da cui nasce la regola principale. È il primo file da leggere quando si
 riapre il progetto dopo una pausa.
 
-In breve: il codice del ciclo e al posto (testi, coda, due banchi Ads). Manca
-il collegamento operativo (Cloud, token Ads, Hostinger, prima scansione) e
-la lettura di `seo/contenuti.json` nei siti Node. Vedi `docs/istruzioni-tue.md`.
+In breve: il codice del ciclo e al posto (testi, coda, due banchi Ads, conversioni
+Grants automatiche). Manca il resto del collegamento operativo. Vedi
+`docs/istruzioni-tue.md` e `docs/stato.md`.

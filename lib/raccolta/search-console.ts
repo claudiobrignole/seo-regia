@@ -28,6 +28,7 @@ async function interroga(
   a: string,
   limite = 25000
 ): Promise<RigaRicerca[]> {
+  if (!s.searchConsole) return []
   const api = google.searchconsole({ version: 'v1', auth: auth(s.identita) as any })
   const righe: RigaRicerca[] = []
   let inizio = 0
@@ -127,6 +128,7 @@ export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<n
  * Fonte distinta: altrimenti sovrascrive i clic del risultato classico.
  */
 export async function raccogliAI(s: Sito, da: string, a: string): Promise<number> {
+  if (!s.searchConsole) return 0
   const api = google.searchconsole({ version: 'v1', auth: auth(s.identita) as any })
   try {
     const res = await api.searchanalytics.query({

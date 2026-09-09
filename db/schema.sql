@@ -189,5 +189,26 @@ CREATE TABLE IF NOT EXISTS campagne_verdetti (
   KEY idx_cv (identita, campagna_google_id, quando)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Conversioni Grants caricate dai moduli del sito, senza pixel.
+CREATE TABLE IF NOT EXISTS grants_conversioni (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  wp_id         BIGINT       NULL,
+  gclid         VARCHAR(255) NULL,
+  quando        DATETIME     NOT NULL,
+  tipo_modulo   VARCHAR(128) NULL,
+  stato         ENUM('da_caricare','caricata','errore','senza_gclid') NOT NULL,
+  messaggio     TEXT         NULL,
+  tentativi     INT          NOT NULL DEFAULT 0,
+  caricata_il   TIMESTAMP    NULL,
+  UNIQUE KEY uniq_wp (wp_id),
+  KEY idx_stato (stato)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS grants_impostazioni (
+  chiave        VARCHAR(64)  NOT NULL,
+  valore        VARCHAR(255) NOT NULL,
+  PRIMARY KEY (chiave)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Se il database esiste gia, allarga il tipo chiave: CREATE TABLE IF NOT EXISTS non lo fa.
 ALTER TABLE misure MODIFY tipo_chiave VARCHAR(32) NOT NULL;

@@ -9,6 +9,7 @@ export function sitiPerSearchConsole(): Sito[] {
   const visti = new Set<string>()
   const out: Sito[] = []
   for (const s of SITI) {
+    if (!s.searchConsole) continue
     const k = `${s.identita}:${s.searchConsole}`
     if (visti.has(k)) continue
     visti.add(k)

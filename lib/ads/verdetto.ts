@@ -95,8 +95,8 @@ function giudica(identita: Identita, nome: string, s: Stats): { consiglio: Consi
       return {
         consiglio: 'ottimizza',
         pro: `${s.clic} clic nel periodo.`,
-        contro: 'Nessuna conversione tracciata: il Grants ne chiede almeno una al mese.',
-        motivo: 'Controlla il tracciamento e la pagina di atterraggio. Destinazione solo biographylibrary.org.',
+        contro: 'Nessuna conversione nel periodo: il Grants ne chiede almeno una al mese.',
+        motivo: 'Le conversioni le carica il pannello dai moduli del sito, senza Analytics. Controlla il plugin su biographylibrary.org e la coda in questa scheda. Destinazione solo biographylibrary.org.',
       }
     }
     return {

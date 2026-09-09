@@ -5,6 +5,7 @@ import { raccogliRicerca, raccogliAI } from '@/lib/raccolta/search-console'
 import { raccogliComportamento } from '@/lib/raccolta/analytics'
 import { raccogliVendite } from '@/lib/raccolta/ecwid'
 import { raccogliAds } from '@/lib/raccolta/ads'
+import { caricaConversioniGrants } from '@/lib/ads/carica-conversioni'
 import { sitiPerSearchConsole, sitiPerAnalytics, sitiPerEcwid } from '@/lib/raccolta/perimetro'
 import { giornoIso } from '@/lib/date'
 
@@ -53,6 +54,12 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       problemi.push(`ads/${identita}: ${(e as Error).message}`)
     }
+  }
+
+  try {
+    righe += await caricaConversioniGrants()
+  } catch (e) {
+    problemi.push(`grants-conversioni: ${(e as Error).message}`)
   }
 
   await chiudiEsecuzione(

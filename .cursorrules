@@ -12,6 +12,9 @@ Vincoli:
 - Filtrare sempre Analytics per nome host: la proprietà riceve dati falsi.
 - Due identità Google separate, Brignole e Biography Library, mai mescolate.
 - Due banchi Ads: spesa Brignole e quota Grants non si sommano mai.
+- Siti Biography Library: nessuno script di misura (niente Analytics, GTM, pixel).
+  Search Console a DNS e Cloud dell associazione vanno bene. Conversioni Grants
+  solo da modulo del sito e upload notturno, mai CSV a mano.
 - I siti su repository si modificano solo tramite richiesta di modifica sul file
   seo/contenuti.json, mai sul codice.
 

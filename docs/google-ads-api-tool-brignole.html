@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Google Ads API tool documentation — Brignole (Regia SEO)</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; font-size: 12pt; line-height: 1.45; max-width: 720px; margin: 40px auto; color: #111; }
+    h1 { font-size: 18pt; margin-bottom: 6px; }
+    h2 { font-size: 13pt; margin-top: 28px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+    p, li { margin: 8px 0; }
+    .nota { font-size: 10pt; color: #444; font-style: italic; margin-bottom: 24px; }
+    table { border-collapse: collapse; width: 100%; font-size: 10pt; margin: 12px 0 20px; }
+    th, td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+    th { background: #eee; }
+    .mock { font-family: Helvetica, Arial, sans-serif; border: 1px solid #333; padding: 16px; margin: 16px 0; font-size: 10pt; }
+    .mock h3 { margin: 0 0 4px; font-size: 14pt; }
+    .mock .sub { color: #555; margin-bottom: 12px; font-size: 9pt; }
+    code { font-family: Menlo, Consolas, monospace; font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+<h1>Google Ads API — Tool documentation</h1>
+<p class="nota">This document follows Google’s API Center template (Company name, Business model, Tool access/use, Tool design, API services called, Tool mockups). The tool is internal and password-protected; it is not sold and is not accessible to third parties.</p>
+
+<h2>Company name</h2>
+<p><strong>Brignole</strong> (Claudio Brignole)</p>
+<ul>
+  <li>Company website: <strong>https://brignole.ch</strong></li>
+  <li>Internal tool URL (password-protected, not a public product): <strong>https://seo.brignole.ch</strong></li>
+  <li>API contact: <strong>claudio@brignole.ch</strong></li>
+</ul>
+
+<h2>Business model</h2>
+<p>Brignole is a small private business. We operate our own websites and advertise only those sites. We do not run an advertising agency. We do not manage Google Ads for other companies, clients, or third parties.</p>
+<p>Websites we own and may advertise with this token (paid Google Ads, billed to Brignole):</p>
+<ul>
+  <li>https://brignole.ch — personal / professional site</li>
+  <li>https://aelle.hiphop — music project and related store</li>
+  <li>https://lunanihongo.com — Japanese language learning site (ready to promote; first paid campaign target)</li>
+</ul>
+<p>We only advertise websites we own. We do not advertise for anyone else.</p>
+<p>Separately, a nonprofit association (Biography Library) has its own Google Ad Grants account. That Grants account is <strong>not</strong> linked to this manager, is <strong>not</strong> billed to Brignole, and will <strong>not</strong> be accessed with this developer token. If API access is needed for Grants, it will be a separate manager account and a separate application.</p>
+
+<h2>Tool access / use</h2>
+<p>The tool is named <strong>Regia SEO</strong>. It is a private control panel for one operator (Claudio Brignole).</p>
+<ul>
+  <li>Access: a single shared password and a signed session cookie. There are no public sign-ups, no customer tenants, and no external users.</li>
+  <li>No agency, freelancer, or third party can log in. Reports are not sent to an external agency.</li>
+  <li>The Google Ads part of the panel is <strong>read-only</strong>. The operator views campaign performance and can prepare a <em>draft</em> of a future campaign (text, keywords, suggested daily budget). Drafts stay inside the panel. The operator then creates or edits the live campaign by hand in the Google Ads web interface.</li>
+  <li>The tool <strong>does not</strong> create, pause, enable, or mutate campaigns, ads, budgets, or keywords through the API.</li>
+  <li>A nightly scheduled job (once per day) pulls the last days of performance into our own database so the dashboard can load without calling the API on every page view.</li>
+</ul>
+<p>This application is for <strong>Basic Access</strong> on production accounts owned by Brignole. We do not need Standard Access or Required Minimum Functionality, because the tool is not offered to external advertisers.</p>
+
+<h2>Tool design</h2>
+<p>High-level flow:</p>
+<ol>
+  <li>A scheduled job authenticates as a Google Cloud service account that has been invited to the Brignole Google Ads manager / client account.</li>
+  <li>The job calls <code>GoogleAdsService.Search</code> (GAQL) against the Brignole client customer ID only.</li>
+  <li>Results are stored in our MySQL database (campaign list, daily metrics, keyword-level metrics).</li>
+  <li>The web UI at https://seo.brignole.ch/pubblicita/brignole reads that database and shows a table of campaigns (name, status, clicks, spend, a short written recommendation).</li>
+  <li>Recommendations are computed locally (for example: spend with almost no conversions). They are advice for the operator. They do not write back to Google Ads.</li>
+  <li>Campaign drafts are stored only in our database. Publishing a live campaign is a manual step in Google Ads, not an API mutate.</li>
+</ol>
+<p>Expected API volume: a few <code>Search</code> requests per night (campaign list, campaign metrics by day, keyword_view by day). Well below Basic Access limits. No user-facing live polling of the API.</p>
+<p>Authentication: service account (Google Cloud) plus this developer token. The token will be sent only from our hosted panel (Hostinger). It will not be embedded in a public website or a mobile app.</p>
+
+<h2>API services called</h2>
+<p>Read-only. We use the Google Ads API REST method:</p>
+<ul>
+  <li><strong>GoogleAdsService.Search</strong> (<code>POST .../customers/{customer_id}/googleAds:search</code>)</li>
+</ul>
+<p>GAQL resources and fields:</p>
+<ul>
+  <li><strong>campaign</strong> — id, name, status; <strong>campaign_budget.amount_micros</strong></li>
+  <li><strong>campaign</strong> with <strong>segments.date</strong> and metrics: impressions, clicks, cost_micros, conversions, ctr, average_cpc</li>
+  <li><strong>keyword_view</strong> — ad_group_criterion.keyword.text, segments.date, impressions, clicks, cost_micros, conversions</li>
+</ul>
+<p>We do <strong>not</strong> call mutate methods, including but not limited to:</p>
+<ul>
+  <li>CampaignService / CampaignBudgetService / AdGroupService / AdGroupAdService mutate</li>
+  <li>KeywordPlanIdeaService (not used today)</li>
+  <li>any upload, experiment, or conversion-adjust service</li>
+</ul>
+<p>If we later need write access or Keyword Planner, we will submit an updated use description before changing the tool.</p>
+
+<h2>Google Ads accounts in scope for this token</h2>
+<ul>
+  <li>Manager (MCC) that owns this developer token: the Brignole manager account created for API Center (login-customer-id).</li>
+  <li>Linked client: Brignole Google Ads <strong>712-100-7160</strong> (digits: 7121007160).</li>
+  <li>Not in scope: Biography Library Ad Grants account 289-519-5392.</li>
+</ul>
+
+<h2>Tool mockups</h2>
+<p>The tool is not externally accessible. Below is a mock-up of the Brignole ads desk the single operator sees after signing in.</p>
+
+<div class="mock">
+  <h3>Regia SEO — Paid ads (Brignole)</h3>
+  <p class="sub">Your money: Luna Nihongo, Aelle, brignole.ch. Ad Grants for the nonprofit are not shown here and are not added to these totals.</p>
+  <p><strong>Campaigns read from Google</strong></p>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Clicks (30 days)</th>
+      <th>Spend</th>
+      <th>Advice</th>
+    </tr>
+    <tr>
+      <td>Luna Nihongo — search</td>
+      <td>ENABLED</td>
+      <td>42</td>
+      <td>CHF 38.20</td>
+      <td>Keep. Conversions are present.</td>
+    </tr>
+    <tr>
+      <td>Aelle — brand</td>
+      <td>PAUSED</td>
+      <td>0</td>
+      <td>CHF 0.00</td>
+      <td>Paused on purpose. No action.</td>
+    </tr>
+  </table>
+  <p><strong>Campaign drafts (not sent to Google Ads)</strong></p>
+  <p>Draft: “Luna Nihongo — first search campaign”. Suggested daily budget, headlines, and keywords stored in our database. Operator copies them into Google Ads by hand.</p>
+</div>
+
+<p>Sign-in screen (internal): one password field. No OAuth for end users. No multi-account product. Demo access for Google reviewers can be arranged by email at claudio@brignole.ch if required; the panel is not a public SaaS.</p>
+
+<h2>Permissible use summary</h2>
+<ul>
+  <li>In-house reporting and decision support for accounts we own.</li>
+  <li>No tool offered to other advertisers.</li>
+  <li>No automated bidding, no automated campaign creation, no automated pause/enable via API.</li>
+  <li>No mixing of this token with a Google Ad Grants account.</li>
+</ul>
+
+<p>Date: 8 September 2026</p>
+
+</body>
+</html>

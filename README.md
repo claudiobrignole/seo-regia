@@ -37,9 +37,9 @@ brignole.ch, e solo dopo aver verificato che il registro annulli davvero.
 
 ## Cosa manca (operativo)
 
-Il codice del ciclo c e. Manca il collegamento: Google Cloud, token Ads
-(due identita), variabili Hostinger, prima raccolta. Istruzioni senza
-programmare: `docs/istruzioni-tue.md`.
+Il codice del ciclo c e, conversioni Grants automatiche incluse. Manca il resto
+del collegamento (inviti Console, cron, plugin sul sito associazione). Istruzioni:
+`docs/istruzioni-tue.md`. Due banchi, mai una cassa unica.
 
 Due banchi pubblicita, mai una cassa unica: `/pubblicita/brignole` e
 `/pubblicita/biography-library`.

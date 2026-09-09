@@ -11,13 +11,13 @@ const BANCHI: Record<string, { identita: Identita; titolo: string; sottotitolo: 
     identita: 'brignole',
     titolo: 'Pubblicita Brignole',
     sottotitolo:
-      'Soldi tuoi: Luna Nihongo, Aelle, brignole.ch. Qui non compare il Grants dell associazione e non si somma nulla con Biography Library.',
+      'Soldi tuoi: Aelle Store, Aelle, brignole.ch. Luna Nihongo resta nel ciclo SEO, senza campagna finche non la chiedi. Qui non compare il Grants e non si somma nulla con Biography Library.',
   },
   'biography-library': {
     identita: 'biography-library',
     titolo: 'Pubblicita Biography Library',
     sottotitolo:
-      'Solo Ad Grants dell associazione. Credito Google, non spesa Brignole. Regole: tasso di clic sopra il cinque per cento, una conversione al mese, destinazione solo i siti dell associazione.',
+      'Solo Ad Grants. Credito Google, non spesa Brignole. Sito senza Analytics ne pixel. Conversioni dai moduli, caricate di notte. Tasso di clic sopra il cinque per cento, destinazione solo i siti dell associazione.',
   },
 }
 
@@ -32,6 +32,8 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
   let bozze: any[] = []
   let verdetti: any[] = []
   let grants: any = null
+  let codaConversioni: { stato: string; n: number }[] = []
+  let ultimaCaricata: string | null = null
 
   try {
     campagne = await query(
@@ -61,6 +63,17 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
     if (cfg.identita === 'biography-library') {
       const g = await query(`SELECT * FROM adgrants_stato ORDER BY mese DESC LIMIT 1`)
       grants = g[0] ?? null
+      try {
+        codaConversioni = await query(
+          `SELECT stato, COUNT(*) AS n FROM grants_conversioni GROUP BY stato`
+        )
+        const u = await query<{ quando: Date | string }>(
+          `SELECT quando FROM grants_conversioni WHERE stato = 'caricata' ORDER BY caricata_il DESC LIMIT 1`
+        )
+        ultimaCaricata = u[0]?.quando ? String(u[0].quando).slice(0, 10) : null
+      } catch {
+        codaConversioni = []
+      }
     }
   } catch (e) {
     errore = (e as Error).message
@@ -76,6 +89,18 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
           <strong>Dati non ancora disponibili.</strong>
           <p style={{ margin: '8px 0 0', fontSize: 14 }}>
             {errore}. Se manca la tabella, lancia di nuovo la migrazione. Se manca il token Ads, vedi le istruzioni tue.
+          </p>
+        </div>
+      )}
+
+      {cfg.identita === 'biography-library' && (
+        <div style={{ background: '#EDEFEC', padding: 16, borderRadius: 6, marginBottom: 24, fontSize: 14 }}>
+          <strong>Conversioni, senza Analytics sul sito</strong>
+          <p style={{ margin: '8px 0 0' }}>
+            Le carica il lavoro notturno dai moduli di biographylibrary.org. Non caricare file CSV in Google Ads.
+            {codaConversioni.length === 0 && ' Ancora nessuna riga: manca il plugin, o nessuno ha inviato un modulo dopo un clic Grants.'}
+            {codaConversioni.map((c) => ` ${c.stato}: ${c.n}.`).join('')}
+            {ultimaCaricata ? ` Ultima caricata su Google: ${ultimaCaricata}.` : ''}
           </p>
         </div>
       )}

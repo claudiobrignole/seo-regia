@@ -1,73 +1,13 @@
-import { auth, type Identita } from './google'
 import { query } from '@/lib/db'
+import type { Identita } from '@/lib/raccolta/google'
+import { banco, bancoPronto, gaql } from '@/lib/ads/chiamata'
 
 /**
- * Lettura sola delle campagne. Brignole e Biography Library usano
+ * Lettura delle campagne. Brignole e Biography Library usano
  * token, numeri account e account di servizio distinti. Se manca una
  * chiave, si salta quel banco: l altro deve funzionare lo stesso.
+ * L unica scrittura Ads e in lib/ads/carica-conversioni.ts (solo Grants).
  */
-
-type BancoAds = {
-  identita: Identita
-  token?: string
-  cliente?: string
-  manager?: string
-}
-
-function banco(identita: Identita): BancoAds {
-  if (identita === 'biography-library') {
-    return {
-      identita,
-      token: process.env.BL_ADS_DEVELOPER_TOKEN,
-      cliente: (process.env.BL_ADS_CUSTOMER_ID ?? '').replace(/-/g, ''),
-      manager: (process.env.BL_ADS_MANAGER_ID ?? '').replace(/-/g, '') || undefined,
-    }
-  }
-  return {
-    identita,
-    token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
-    cliente: (process.env.GOOGLE_ADS_CUSTOMER_ID ?? '').replace(/-/g, ''),
-    manager: (process.env.GOOGLE_ADS_MANAGER_ID ?? '').replace(/-/g, '') || undefined,
-  }
-}
-
-function versioneApi(): string {
-  return process.env.GOOGLE_ADS_API_VERSION ?? 'v19'
-}
-
-async function gaql(b: BancoAds, sql: string): Promise<any[]> {
-  if (!b.token || !b.cliente) {
-    throw new Error(
-      `Mancano il token o il numero account Ads per ${b.identita}. ` +
-        `Vedi docs/istruzioni-tue.md, sezione Google Ads.`
-    )
-  }
-
-  const client = await auth(b.identita).getClient()
-  const tok = await client.getAccessToken()
-  const access = typeof tok === 'string' ? tok : tok?.token
-  if (!access) throw new Error(`Nessun gettone di accesso Google per ${b.identita}`)
-
-  const url = `https://googleads.googleapis.com/${versioneApi()}/customers/${b.cliente}/googleAds:search`
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${access}`,
-    'developer-token': b.token,
-    'Content-Type': 'application/json',
-  }
-  if (b.manager) headers['login-customer-id'] = b.manager
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query: sql }),
-  })
-  const corpo = await res.json()
-  if (!res.ok) {
-    const msg = corpo?.error?.message ?? JSON.stringify(corpo).slice(0, 400)
-    throw new Error(`Google Ads ${b.identita}: ${res.status} ${msg}`)
-  }
-  return corpo.results ?? []
-}
 
 function microsAEuro(micros: string | number | undefined): number {
   const n = Number(micros ?? 0)
@@ -76,7 +16,7 @@ function microsAEuro(micros: string | number | undefined): number {
 
 export async function raccogliAds(identita: Identita, da: string, a: string): Promise<number> {
   const b = banco(identita)
-  if (!b.token || !b.cliente) {
+  if (!bancoPronto(b)) {
     console.warn(`[ads] ${identita}: credenziali assenti, banco saltato`)
     return 0
   }
@@ -203,7 +143,9 @@ async function aggiornaGrants(identita: Identita, a: string) {
     )
   }
   if (conversioni < 1 && Number(a.slice(8, 10)) >= 20) {
-    avvisi.push('Manca ancora una conversione tracciata in questo mese: senza, Google puo sospendere il Grants.')
+    avvisi.push(
+      'Manca ancora una conversione nel mese. Il pannello le carica da solo dai moduli del sito: controlla il plugin e la coda in Pubblicita Biography Library, non installare Analytics.'
+    )
   }
   await query(
     `INSERT INTO adgrants_stato (mese, ctr, conversioni, conforme, avvisi)

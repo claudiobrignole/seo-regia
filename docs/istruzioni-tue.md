@@ -153,7 +153,7 @@ Due progetti Cloud, due file JSON. Analytics **solo** sui siti Brignole.
 5. Incolla il JSON in `GOOGLE_SERVICE_ACCOUNT_JSON` o `BL_SERVICE_ACCOUNT_JSON`.
 6. Copia `client_email` dal JSON.
 
-Search Console, per ogni dominio di quella identità: Impostazioni → Utenti → Aggiungi → email dell’account di servizio → **Proprietario**. Sull’associazione la verifica e **solo DNS** (record TXT), nessuna meta nel tema e nessuno script.
+Search Console, per ogni dominio di quella identità: nel selettore in alto scegli la proprietà **Dominio** (non quella che inizia con `https://`). Impostazioni → Utenti → Aggiungi → email `...iam.gserviceaccount.com` del JSON → **Proprietario**. Se l’invito sta solo sul prefisso URL, la raccolta fallisce. Sull’associazione la verifica e **solo DNS** (record TXT), nessuna meta nel tema e nessuno script.
 
 Domini Brignole: aelle.hiphop, brignole.ch, tagtalesgallery.com, kizunama.com, strangeglyph.xyz, lunanihongo.com.
 
@@ -194,19 +194,48 @@ Niente JavaScript Google. Se un visitatore arriva da un annuncio, il plugin tien
 
 ## 6. Sveglia notturna
 
-hPanel → Cron. Sostituisci `LA_CHIAVE` con `CRON_CHIAVE`.
+Non e un programma da scrivere. E una sveglia di Hostinger: ogni notte il server apre da solo tre o quattro indirizzi del pannello (come hai fatto tu a mano per “Database pronto”). Cosi Search Console, vendite e diagnosi arrivano senza che tu clicchi.
 
-- 03:00 ogni giorno  
-`curl -fsS -H "x-chiave-cron: LA_CHIAVE" https://seo.brignole.ch/api/cron/raccolta`
-- 03:30, un sito a notte, esempio  
-`curl -fsS -H "x-chiave-cron: LA_CHIAVE" "https://seo.brignole.ch/api/cron/scansione?sito=aelle"`  
-Altre notti: `brignole`, `lunanihongo`, `tagtales`, `kizunama`, `strangeglyph`, `biography-library`. La prima scansione utile e Aelle (il negozio condivide la stessa Search Console).
-- 04:30  
-`curl -fsS -H "x-chiave-cron: LA_CHIAVE" https://seo.brignole.ch/api/cron/diagnosi`
-- Lunedì 05:00  
-`curl -fsS -H "x-chiave-cron: LA_CHIAVE" https://seo.brignole.ch/api/cron/verifica`
+Usa **la stessa** `CRON_CHIAVE` gia nelle variabili, attaccata dopo `chiave=`, senza virgolette e senza spazi. Sotto, al posto di `INCOLLA_LA_CHIAVE`, metti quella parola.
 
-La prima volta puoi incollare il primo `curl` nel Terminale del Mac (Spotlight → Terminale). Se `problemi` parla di account di servizio, manca l’invito in Search Console. Zero impressioni su Luna Nihongo è normale.
+### Prima, una prova nel browser (come la migrazione)
+
+Apri:
+
+`https://seo.brignole.ch/api/cron/raccolta?chiave=INCOLLA_LA_CHIAVE`
+
+Aspetta anche un minuto: sta chiedendo i dati a Google. Deve comparire una pagina con del testo (non “chiave non valida”). Se dice **chiave non valida**, la parola non e identica a `CRON_CHIAVE`. Se parla di account di servizio, manca un invito in Search Console. Zero impressioni su Luna Nihongo e normale.
+
+Poi, sempre nel browser:
+
+`https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE`
+
+Oggi basta Aelle. Gli altri siti si aggiungono dopo, uno per notte.
+
+### Poi, la sveglia su Hostinger (quattro righe, non una)
+
+1. hPanel → sito `seo.brignole.ch` → Dashboard.
+2. Nella barra a sinistra cerca **Cron Jobs** (a volte **Lavori Cron**).
+3. Tipo: **Custom** (non PHP).
+4. Crea **quattro** lavori, uno alla volta. Incolla il comando intero nella casella Command / Comando. L orario di Hostinger e UTC: le tre di notte UTC sono le cinque in Svizzera d estate.
+
+**Ogni giorno, ore 3:00** (minuto 0, ora 3, resto asterisco):
+
+`curl -fsS "https://seo.brignole.ch/api/cron/raccolta?chiave=INCOLLA_LA_CHIAVE"`
+
+**Ogni giorno, ore 3:30** (minuto 30, ora 3):
+
+`curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE"`
+
+**Ogni giorno, ore 4:30** (minuto 30, ora 4):
+
+`curl -fsS "https://seo.brignole.ch/api/cron/diagnosi?chiave=INCOLLA_LA_CHIAVE"`
+
+**Solo lunedi, ore 5:00** (minuto 0, ora 5, giorno della settimana 1):
+
+`curl -fsS "https://seo.brignole.ch/api/cron/verifica?chiave=INCOLLA_LA_CHIAVE"`
+
+Salva dopo ogni riga. Se Hostinger rifiuta il comando (“caratteri non ammessi”), manda uno screenshot: a volte vuole il tipo Custom, o un file `.sh`. Non serve il Terminale del Mac.
 
 ---
 

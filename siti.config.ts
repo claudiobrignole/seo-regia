@@ -11,7 +11,7 @@ export type Sito = {
   nome: string
   dominio: string
   piattaforma: Piattaforma
-  /** proprieta Search Console; null se lo statuto o il sito non la usano */
+  /** proprieta Search Console: `sc-domain:sito` se in elenco compare senza https, altrimenti `https://sito/` */
   searchConsole: string | null
   /** identificatore proprieta Analytics; null dove non misuriamo */
   analyticsProperty: string | null
@@ -39,7 +39,7 @@ export const SITI: Sito[] = [
     nome: 'Aelle Hip Hop Magazine',
     dominio: 'aelle.hiphop',
     piattaforma: 'wordpress',
-    searchConsole: 'sc-domain:aelle.hiphop',
+    searchConsole: 'https://aelle.hiphop/',
     analyticsProperty: 'properties/547064912',
     hostnameValidi: ['aelle.hiphop', 'www.aelle.hiphop'],
     lingue: ['it', 'en'],
@@ -53,7 +53,7 @@ export const SITI: Sito[] = [
     nome: 'Aelle Store',
     dominio: 'aelle.hiphop',
     piattaforma: 'ecwid',
-    searchConsole: 'sc-domain:aelle.hiphop',
+    searchConsole: 'https://aelle.hiphop/',
     analyticsProperty: 'properties/547064912',
     hostnameValidi: ['aelle.hiphop', 'www.aelle.hiphop'],
     lingue: ['it', 'en'],
@@ -67,8 +67,8 @@ export const SITI: Sito[] = [
     nome: 'Brignole',
     dominio: 'brignole.ch',
     piattaforma: 'wordpress',
-    searchConsole: 'sc-domain:brignole.ch',
-    analyticsProperty: 'properties/525716337',
+    searchConsole: 'https://brignole.ch/',
+    analyticsProperty: 'properties/525716537',
     hostnameValidi: ['brignole.ch', 'www.brignole.ch'],
     lingue: ['it', 'en', 'fr', 'de'],
     automazioneAttiva: false,
@@ -95,7 +95,7 @@ export const SITI: Sito[] = [
     nome: 'Kizunama',
     dominio: 'kizunama.com',
     piattaforma: 'node',
-    searchConsole: 'sc-domain:kizunama.com',
+    searchConsole: 'https://kizunama.com/',
     analyticsProperty: null,
     hostnameValidi: ['kizunama.com', 'www.kizunama.com'],
     lingue: ['it', 'en'],
@@ -108,7 +108,7 @@ export const SITI: Sito[] = [
     nome: 'StrangeGlyph',
     dominio: 'strangeglyph.xyz',
     piattaforma: 'node',
-    searchConsole: 'sc-domain:strangeglyph.xyz',
+    searchConsole: 'https://strangeglyph.xyz/',
     analyticsProperty: null,
     hostnameValidi: ['strangeglyph.xyz', 'www.strangeglyph.xyz'],
     lingue: ['en'],

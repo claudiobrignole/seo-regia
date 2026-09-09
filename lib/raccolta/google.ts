@@ -27,7 +27,7 @@ export function auth(identita: Identita): GoogleAuth {
   if (!grezzo) {
     throw new Error(
       `Manca l account di servizio per l identita "${identita}". ` +
-        `Riempi ${identita === 'biography-library' ? 'BL_SERVICE_ACCOUNT_JSON' : 'GOOGLE_SERVICE_ACCOUNT_JSON'} in .env.local`
+        `Riempi ${identita === 'biography-library' ? 'BL_SERVICE_ACCOUNT_JSON' : 'GOOGLE_SERVICE_ACCOUNT_JSON'} nelle variabili Hostinger (in locale: .env.local)`
     )
   }
 

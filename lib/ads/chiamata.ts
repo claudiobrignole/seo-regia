@@ -30,7 +30,8 @@ export function banco(identita: Identita): BancoAds {
 }
 
 export function versioneApi(): string {
-  return process.env.GOOGLE_ADS_API_VERSION ?? 'v19'
+  // v19 e spenta: Google risponde con una pagina HTML, non JSON.
+  return process.env.GOOGLE_ADS_API_VERSION ?? 'v23'
 }
 
 export function bancoPronto(b: BancoAds): boolean {
@@ -67,7 +68,17 @@ export async function adsPost(identita: Identita, percorso: string, corpo: unkno
     headers,
     body: JSON.stringify(corpo),
   })
-  const json = await res.json()
+  const testo = await res.text()
+  let json: any
+  try {
+    json = JSON.parse(testo)
+  } catch {
+    throw new Error(
+      `Google Ads ${identita}: risposta non JSON (HTTP ${res.status}). ` +
+        `In Hostinger imposta GOOGLE_ADS_API_VERSION=v23, salva, riavvia, e riprova la raccolta. ` +
+        testo.replace(/\s+/g, ' ').slice(0, 180)
+    )
+  }
   if (!res.ok) {
     const msg = json?.error?.message ?? JSON.stringify(json).slice(0, 400)
     throw new Error(`Google Ads ${identita}: ${res.status} ${msg}`)

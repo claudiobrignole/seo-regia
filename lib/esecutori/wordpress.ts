@@ -5,8 +5,9 @@ import type { Sito } from '@/siti.config'
  * Non e la password del tuo account: e una chiave separata, che revochi
  * dal tuo profilo utente senza toccare nient altro.
  *
- * Su brignole.ch e Aelle passiamo dai campi di Rank Math, cosi le modifiche
- * restano visibili e correggibili a mano dentro WordPress.
+ * Su brignole.ch e Aelle i titoli passano dai campi di Rank Math.
+ * robots.txt passa dal plugin Regia robots (o, se manca, Claudio lo incolla
+ * in Rank Math a mano).
  */
 
 function credenziali(s: Sito) {
@@ -209,4 +210,36 @@ export async function scriviSeo(
     method: 'POST',
     body: JSON.stringify(corpo),
   })
+}
+
+function erroreRobotsWordpress(e: unknown): Error {
+  const m = (e as Error).message
+  if (/\b404\b/.test(m)) {
+    return new Error(
+      'Su WordPress manca il plugin Regia robots (cartella plugin-wp/regia-robots nel progetto). Installa, attiva, e l utente della password applicativa deve essere Amministratore. Oppure copia il testo della scheda: Rank Math in modalita avanzata → Impostazioni generali → Modifica robots.txt. Se in File Manager c e un file robots.txt nella radice, cancellalo prima, sennò Rank Math non vale.'
+    )
+  }
+  if (/\b403\b/.test(m)) {
+    return new Error(
+      'L utente della password applicativa non puo cambiare le impostazioni del sito. Rendilo Amministratore, oppure copia il testo in Rank Math: modalita avanzata, Impostazioni generali, Modifica robots.txt.'
+    )
+  }
+  if (/\b409\b/.test(m)) {
+    return new Error(
+      'Esiste un file robots.txt fisico nella radice del sito: Rank Math non lo sovrascrive. In File Manager cancellalo (o sostituiscilo col testo della scheda), poi Approva di nuovo.'
+    )
+  }
+  return e instanceof Error ? e : new Error(String(e))
+}
+
+/** Scrive robots.txt via plugin Regia robots (Rank Math o filtro del sito). */
+export async function scriviRobots(s: Sito, testo: string): Promise<void> {
+  try {
+    await chiama(s, 'regia-seo/v1/robots', {
+      method: 'POST',
+      body: JSON.stringify({ testo }),
+    })
+  } catch (e) {
+    throw erroreRobotsWordpress(e)
+  }
 }

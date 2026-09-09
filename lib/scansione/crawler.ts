@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import { raccogliTecnici } from './tecnici'
 import { query, unaRiga } from '@/lib/db'
 import type { Sito } from '@/siti.config'
 
@@ -113,6 +114,11 @@ async function riempiCoda(s: Sito) {
 }
 
 export async function scansiona(s: Sito): Promise<number> {
+  try {
+    await raccogliTecnici(s)
+  } catch (e) {
+    console.warn(`[tecnici] ${s.id}: ${(e as Error).message}`)
+  }
   await riempiCoda(s)
   const inizio = Date.now()
   let salvate = 0

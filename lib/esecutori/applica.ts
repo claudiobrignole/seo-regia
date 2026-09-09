@@ -8,11 +8,12 @@ import {
   segnaFallita,
   type Azione,
 } from '@/lib/registro'
-import { scriviSeo, leggiSeo } from '@/lib/esecutori/wordpress'
-import { proponiModifica, leggiFileSeo } from '@/lib/esecutori/github'
+import { scriviSeo, leggiSeo, scriviRobots } from '@/lib/esecutori/wordpress'
+import { proponiModifica, proponiFileNellaCartellaSeo, leggiFileSeo } from '@/lib/esecutori/github'
 import { scriviSeoProdotto, leggiSeoProdotto } from '@/lib/esecutori/ecwid'
+import { leggiRobotsPubblico } from '@/lib/scansione/tecnici'
 
-const CAMPI_SCRIVIBILI = new Set(['titolo', 'descrizione', 'seo_prodotto'])
+const CAMPI_SCRIVIBILI = new Set(['titolo', 'descrizione', 'seo_prodotto', 'robots'])
 
 function campoSeo(campo: string): 'titolo' | 'descrizione' {
   return campo === 'descrizione' ? 'descrizione' : 'titolo'
@@ -20,6 +21,9 @@ function campoSeo(campo: string): 'titolo' | 'descrizione' {
 
 async function valoreAttuale(a: Azione): Promise<string | null> {
   const s = sito(a.sito_id)
+  if (a.campo === 'robots') {
+    return leggiRobotsPubblico(s.dominio)
+  }
   const campo = campoSeo(a.campo)
   if (s.scrittura.tipo === 'wordpress') {
     const attuale = await leggiSeo(s, a.bersaglio)
@@ -40,6 +44,26 @@ async function valoreAttuale(a: Azione): Promise<string | null> {
 
 async function scrivi(a: Azione, valore: string): Promise<string | undefined> {
   const s = sito(a.sito_id)
+
+  if (a.campo === 'robots') {
+    if (s.scrittura.tipo === 'wordpress') {
+      await scriviRobots(s, valore)
+      return
+    }
+    if (s.scrittura.tipo === 'github') {
+      return proponiFileNellaCartellaSeo(
+        s,
+        'robots.txt',
+        valore,
+        `SEO: robots.txt di ${s.dominio}`,
+        `${a.motivo}\n\nProposto dal pannello di regia SEO. File di dati in seo/robots.txt, non codice del sito. Finche il sito non lo pubblica da quella cartella, copia il testo anche nel robots.txt in vetrina.`
+      )
+    }
+    throw new Error(
+      `${s.nome}: robots.txt si scrive solo su WordPress o sui siti con repository. Qui non c e un posto sicuro.`
+    )
+  }
+
   const campo = campoSeo(a.campo)
 
   if (s.scrittura.tipo === 'wordpress') {
@@ -66,7 +90,7 @@ async function scrivi(a: Azione, valore: string): Promise<string | undefined> {
 export async function applicaAzione(id: number): Promise<{ riferimento?: string }> {
   const a = await caricaAzione(id)
   if (!a) throw new Error('azione non trovata')
-  if (a.stato !== 'proposta' && a.stato !== 'approvata') {
+  if (a.stato !== 'proposta' && a.stato !== 'approvata' && a.stato !== 'fallita') {
     throw new Error(`azione gia in stato ${a.stato}`)
   }
   if (!CAMPI_SCRIVIBILI.has(a.campo)) {

@@ -72,6 +72,14 @@ export const bottonePrimario: CSSProperties = {
   fontFamily: 'ui-sans-serif, system-ui, sans-serif',
 }
 
+export const esitoOk: CSSProperties = {
+  background: '#E7F2EE',
+  borderLeft: '3px solid #1F6F5C',
+  padding: '16px 20px',
+  marginBottom: 28,
+  borderRadius: '0 4px 4px 0',
+}
+
 export const avviso: CSSProperties = {
   background: '#F6E7DF',
   borderLeft: '3px solid #A8431C',

@@ -31,7 +31,9 @@ Gira su Hostinger Business, piano che supporta Node.
 - `lib/modelli/` — Claude, Gemini, Mistral (e Grok se c e la chiave). Solo testi.
 - `lib/ads/` — bozze, verdetti, e (solo Grants) caricamento conversioni dai moduli.
 - `plugin-wp/regia-bl-grants/` — plugin WordPress Biography Library, senza script Google.
+- `plugin-wp/regia-robots/` — lascia scrivere robots.txt al pannello (Rank Math o filtro).
 - `lib/scansione/crawler.ts` — legge le pagine una per una, con pausa. Gentile per scelta.
+- `lib/scansione/tecnici.ts` — fotografia di robots.txt e sitemap XML vera.
 - `lib/regole/` — le diagnosi. Una regola, un file. La più importante è `ctr-basso.ts`.
 - `lib/esecutori/` — WordPress, GitHub, Ecwid. Gli unici punti che scrivono.
 - `lib/registro/` — storico e annullamento.
@@ -87,7 +89,8 @@ insieme supera qualunque limite di tempo.
 - Prima di scrivere su un sito si rilegge sempre il valore attuale: se qualcuno
   ha cambiato le cose a mano, il valore da salvare per l'annullamento è quello vero.
 - I siti su repository non si toccano mai direttamente: si apre una richiesta di
-  modifica su `seo/contenuti.json`, mai sul codice.
+  modifica su file di dati in `seo/` (`contenuti.json` per i testi, `robots.txt`
+  per i crawler), mai sul codice.
 
 ## Stato
 

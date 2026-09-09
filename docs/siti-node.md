@@ -1,6 +1,6 @@
 # Siti Node: file `seo/contenuti.json`
 
-Il pannello non tocca il codice dei siti Next. Apre una richiesta di modifica su un solo file di dati. **Il sito deve leggere quel file**, altrimenti in vetrina non cambia nulla.
+Il pannello non tocca il codice dei siti Next. Apre una richiesta di modifica su file di dati in `seo/`: `contenuti.json` per i titoli, `robots.txt` per i crawler. **Il sito deve leggere quei file**, altrimenti in vetrina non cambia nulla. Finche il lettore di `robots.txt` non c e, dopo Approva copia il testo anche nel robots.txt pubblicato (`public/robots.txt` o File Manager).
 
 Forma del file (chiave = URL pubblico):
 

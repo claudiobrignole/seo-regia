@@ -3,7 +3,7 @@ import type { Sito } from '@/siti.config'
 export type Proposta = {
   regola: string
   bersaglio: string
-  campo: 'titolo' | 'descrizione' | 'alt' | 'jsonld' | 'robots' | 'slug' | 'seo_prodotto'
+  campo: 'titolo' | 'descrizione' | 'alt' | 'jsonld' | 'robots' | 'sitemap' | 'slug' | 'seo_prodotto'
   valoreVecchio: string | null
   valoreNuovo: string
   motivo: string

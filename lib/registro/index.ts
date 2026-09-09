@@ -7,7 +7,7 @@ import { query, unaRiga } from '@/lib/db'
 
 export async function annota(
   sitoId: string,
-  evento: 'applicata' | 'annullata' | 'verificata' | 'errore',
+  evento: 'applicata' | 'annullata' | 'verificata' | 'errore' | 'rifiutata',
   azioneId: number | null,
   dettaglio?: unknown
 ) {
@@ -32,6 +32,9 @@ export type Azione = {
   rischio: 'sicura' | 'da_approvare'
   stato: string
   riferimento_esterno?: string | null
+  errore?: string | null
+  creata_il?: Date | string | null
+  applicata_il?: Date | string | null
 }
 
 export async function proponi(a: Omit<Azione, 'id' | 'stato'>): Promise<number> {
@@ -72,9 +75,17 @@ export async function aggiornaValoreVecchio(id: number, valore: string | null) {
   await query('UPDATE azioni SET valore_vecchio = ? WHERE id = ?', [valore, id])
 }
 
+export async function aggiornaValoreNuovo(id: number, valore: string) {
+  await query(
+    `UPDATE azioni SET valore_nuovo = ?, errore = NULL
+      WHERE id = ? AND stato IN ('proposta','approvata','fallita')`,
+    [valore, id]
+  )
+}
+
 export async function segnaApplicata(id: number, riferimento?: string) {
   await query(
-    `UPDATE azioni SET stato = 'applicata', applicata_il = NOW(), riferimento_esterno = ? WHERE id = ?`,
+    `UPDATE azioni SET stato = 'applicata', applicata_il = NOW(), riferimento_esterno = ?, errore = NULL WHERE id = ?`,
     [riferimento ?? null, id]
   )
 }

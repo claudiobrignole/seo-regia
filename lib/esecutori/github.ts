@@ -2,7 +2,8 @@ import type { Sito } from '@/siti.config'
 
 /**
  * Sui siti Node non tocchiamo mai il sito pubblicato e non tocchiamo il codice.
- * Apriamo una richiesta di modifica su un solo file di dati, seo/contenuti.json.
+ * Apriamo una richiesta di modifica su file di dati in seo/: contenuti.json
+ * (titoli) o robots.txt. Mai una riga del programma del sito.
  *
  * Il motivo e semplice: un file di dati sbagliato ti da un titolo brutto,
  * una riga di codice sbagliata ti da un sito che non si avvia. E il confronto
@@ -100,5 +101,56 @@ export async function proponiModifica(
     body: JSON.stringify({ title: titoloRichiesta, head: ramo, base: ramoBase, body: descrizione }),
   })
 
+  return pr.html_url
+}
+
+/**
+ * Richiesta di modifica su un file nella cartella seo/, mai sul codice del sito.
+ * Usato per robots.txt. Il sito deve ancora pubblicare quel file in vetrina.
+ */
+export async function proponiFileNellaCartellaSeo(
+  s: Sito,
+  nomeFile: string,
+  contenuto: string,
+  titoloRichiesta: string,
+  descrizione: string
+): Promise<string> {
+  if (s.scrittura.tipo !== 'github') throw new Error(`${s.id} non e un sito su repository`)
+  if (nomeFile !== 'robots.txt') {
+    throw new Error('Nella cartella seo/ il pannello scrive solo robots.txt, oltre a contenuti.json.')
+  }
+  const { repo, ramoBase } = s.scrittura
+  const percorso = `seo/${nomeFile}`
+
+  const base = await gh<{ object: { sha: string } }>(s, `/repos/${repo}/git/ref/heads/${ramoBase}`)
+  const ramo = `seo/regia-${new Date().toISOString().slice(0, 10)}-${Date.now().toString(36)}`
+
+  await gh(s, `/repos/${repo}/git/refs`, {
+    method: 'POST',
+    body: JSON.stringify({ ref: `refs/heads/${ramo}`, sha: base.object.sha }),
+  })
+
+  let sha: string | undefined
+  try {
+    const esistente = await gh<{ sha: string }>(s, `/repos/${repo}/contents/${percorso}?ref=${ramoBase}`)
+    sha = esistente.sha
+  } catch {
+    sha = undefined
+  }
+
+  await gh(s, `/repos/${repo}/contents/${percorso}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      message: titoloRichiesta,
+      content: Buffer.from(contenuto, 'utf8').toString('base64'),
+      branch: ramo,
+      ...(sha ? { sha } : {}),
+    }),
+  })
+
+  const pr = await gh<{ html_url: string }>(s, `/repos/${repo}/pulls`, {
+    method: 'POST',
+    body: JSON.stringify({ title: titoloRichiesta, head: ramo, base: ramoBase, body: descrizione }),
+  })
   return pr.html_url
 }

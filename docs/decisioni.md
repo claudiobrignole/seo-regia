@@ -98,3 +98,13 @@ Search Console si verifica con DNS. Cloud dell associazione serve al pannello,
 non si installa sul sito. Account di servizio Ads: accesso Standard (l upload
 conversioni non passa in sola lettura). Plugin `plugin-wp/regia-bl-grants`.
 
+## 2026-09-10, robots.txt si sistema, le sitemap enormi no
+Si legge robots.txt e si cerca una sitemap che sia davvero XML (200 con HTML
+non conta). Si propone un robots migliore: riga Sitemap sul dominio giusto,
+niente Crawl-delay. Non si riscrivono a mano gli indici generati da Rank Math
+o dal sito: se la sitemap e una pagina HTML, e una nota (accendi Sitemap in
+Rank Math, escludi sitemap*.xml da LiteSpeed). Sui siti Node la scrittura e
+`seo/robots.txt`, stesso vincolo di `seo/contenuti.json`: dati, non codice.
+Su WordPress Approva chiama il plugin `plugin-wp/regia-robots`; se c e un file
+fisico in radice, Rank Math non vale e va cancellato dal File Manager.
+

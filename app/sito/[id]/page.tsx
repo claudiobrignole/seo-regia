@@ -1,24 +1,55 @@
 import { notFound } from 'next/navigation'
 import { query } from '@/lib/db'
 import { SITI } from '@/siti.config'
-import { Telaio, avviso, bottonePrimario, bottoneSecondario } from '@/app/componenti/telaio'
+import { Telaio, avviso, esitoOk } from '@/app/componenti/telaio'
 import type { Azione } from '@/lib/registro'
+import { SchedaAzione } from './scheda-azione'
 
 export const dynamic = 'force-dynamic'
 
-const CAMPI_SCRIVIBILI = new Set(['titolo', 'descrizione', 'seo_prodotto'])
+const IN_CODA = new Set(['proposta', 'approvata', 'fallita'])
+
+const BANNER: Record<string, { ok: boolean; testo: string }> = {
+  applicata: {
+    ok: true,
+    testo: 'Modifica applicata. Controlla il sito (o la richiesta su GitHub). La scheda non e sparita: e nello storico in fondo.',
+  },
+  rifiutata: {
+    ok: true,
+    testo: 'Proposta chiusa. Resta nello storico: non verra riproposta finche non cambia la pagina.',
+  },
+  annullata: {
+    ok: true,
+    testo: 'Valore precedente rimesso sul sito. L azione resta nello storico.',
+  },
+  fallita: {
+    ok: false,
+    testo: 'Non e andata a buon fine. La scheda resta in coda, in rosso, con il motivo. Correggi il testo se serve e riprova.',
+  },
+  annullo_fallito: {
+    ok: false,
+    testo: 'Annullamento non riuscito. La modifica applicata e ancora sul sito. Riprova dalla scheda nello storico.',
+  },
+  gia_chiusa: {
+    ok: false,
+    testo: 'Questa azione era gia chiusa. Guardala nello storico in fondo alla pagina.',
+  },
+}
 
 export default async function PaginaSito({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ ok?: string }>
+  searchParams: Promise<{ esito?: string; ok?: string }>
 }) {
   const { id } = await params
-  const { ok } = await searchParams
+  const q = await searchParams
   const s = SITI.find((x) => x.id === id)
   if (!s) notFound()
+
+  const esito = q.esito || (q.ok === 'applicata' || q.ok === 'rifiutata' || q.ok === 'annullata' ? q.ok : undefined)
+  const banner = esito ? BANNER[esito] : undefined
 
   let azioni: Azione[] = []
   let errore: string | null = null
@@ -26,7 +57,9 @@ export default async function PaginaSito({
   let impressioni = 0
   try {
     azioni = await query<Azione>(
-      `SELECT * FROM azioni WHERE sito_id = ? ORDER BY FIELD(stato,'proposta','approvata','applicata','fallita','rifiutata','annullata'), id DESC LIMIT 80`,
+      `SELECT * FROM azioni WHERE sito_id = ?
+        ORDER BY FIELD(stato,'fallita','proposta','approvata','applicata','rifiutata','annullata'), id DESC
+        LIMIT 400`,
       [s.id]
     )
     const tot = await query<{ clic: number; impressioni: number }>(
@@ -41,13 +74,18 @@ export default async function PaginaSito({
     errore = (e as Error).message
   }
 
+  const coda = azioni.filter((a) => IN_CODA.has(a.stato))
+  const storico = azioni.filter((a) => !IN_CODA.has(a.stato))
   const zero = clic === 0 && impressioni === 0
 
   return (
     <Telaio titolo={s.nome} sottotitolo={`${s.dominio}. Automazione ${s.automazioneAttiva ? 'attiva' : 'spenta'}.`}>
-      {ok === 'applicata' && <p>Modifica applicata. Controlla il sito (o la richiesta su GitHub).</p>}
-      {ok === 'rifiutata' && <p>Proposta rifiutata: non verra riproposta finche non cambia il bersaglio.</p>}
-      {ok === 'annullata' && <p>Valore precedente rimesso sul sito.</p>}
+      {banner && (
+        <div style={banner.ok ? esitoOk : avviso} role="status">
+          <strong>{banner.ok ? 'Fatto.' : 'Non e andata a buon fine.'}</strong>
+          <p style={{ margin: '8px 0 0', fontSize: 14 }}>{banner.testo}</p>
+        </div>
+      )}
 
       {errore && (
         <div style={avviso}>
@@ -57,74 +95,50 @@ export default async function PaginaSito({
       )}
 
       <p style={{ fontSize: 15 }}>
-        Ultimi 30 giorni, Search Console: {clic.toLocaleString('it-CH')} clic, {impressioni.toLocaleString('it-CH')} impressioni.
+        Ultimi 30 giorni, Search Console: {clic.toLocaleString('it-CH')} clic, {impressioni.toLocaleString('it-CH')}{' '}
+        impressioni.
         {zero ? ' Zero dati: se il sito e nuovo o non promosso, e normale, non e un guasto.' : ''}
       </p>
       {s.note && <p style={{ fontSize: 14, color: '#4A524E' }}>{s.note}</p>}
+      {s.scrittura.tipo === 'github' && (
+        <p style={{ fontSize: 14, color: '#4A524E' }}>
+          Questo sito si aggiorna con una richiesta su GitHub, sui file in seo/ (contenuti.json e robots.txt). Approva apre la richiesta: la vetrina cambia solo quando il sito legge quel file.
+        </p>
+      )}
 
-      <h2 style={{ fontSize: 18, marginTop: 28 }}>Coda</h2>
-      {azioni.length === 0 && !errore && <p>Nessuna proposta. Arriveranno dopo raccolta, scansione e diagnosi.</p>}
+      <h2 style={{ fontSize: 18, marginTop: 28 }}>Coda ({coda.length})</h2>
+      <p style={{ fontSize: 14, color: '#4A524E' }}>
+        Titolo e descrizione: correggi il testo e Approva. robots.txt: Approva lo pubblica (WordPress col plugin, oppure richiesta su seo/robots.txt). Le note (link interni, dati strutturati, sitemap HTML) non hanno Approva: chiudile dopo averle lette.
+      </p>
+      {coda.length === 0 && !errore && <p>Niente da fare. Le proposte arrivano dopo raccolta, scansione e diagnosi.</p>}
+      {coda.map((a) => (
+        <SchedaAzione
+          key={a.id}
+          azione={{
+            ...a,
+            creata_il: a.creata_il ? new Date(a.creata_il).toISOString() : null,
+            applicata_il: a.applicata_il ? new Date(a.applicata_il).toISOString() : null,
+          }}
+          sitoId={s.id}
+        />
+      ))}
 
-      {azioni.map((a) => {
-        const applicabile = CAMPI_SCRIVIBILI.has(a.campo) && !!(a.valore_nuovo ?? '').trim()
-        return (
-          <article
-            key={a.id}
-            style={{
-              border: '1px solid #DDE1DC',
-              borderRadius: 6,
-              padding: 16,
-              marginBottom: 12,
-              background: '#fff',
-            }}
-          >
-            <div style={{ fontSize: 12, color: '#7C857F' }}>
-              {a.regola} · {a.campo} · {a.stato} · {a.bersaglio}
-            </div>
-            <p style={{ margin: '8px 0' }}>{a.motivo}</p>
-            <p style={{ fontSize: 14 }}>
-              <strong>Ora:</strong> {a.valore_vecchio || '(vuoto)'}
-            </p>
-            <p style={{ fontSize: 14 }}>
-              <strong>Proposto:</strong> {a.valore_nuovo || '(manca il testo: il generatore non ha ancora scritto)'}
-            </p>
-            {a.guadagno_stimato != null && (
-              <p style={{ fontSize: 13, color: '#4A524E' }}>Stima: circa {a.guadagno_stimato} clic in piu nel periodo.</p>
-            )}
-            {a.stato === 'proposta' || a.stato === 'approvata' ? (
-              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                {applicabile && (
-                  <form method="POST" action={`/api/azioni/applica?sito=${s.id}`}>
-                    <input type="hidden" name="id" value={a.id} />
-                    <button type="submit" style={bottonePrimario}>
-                      Approva e applica
-                    </button>
-                  </form>
-                )}
-                <form method="POST" action="/api/azioni/rifiuta">
-                  <input type="hidden" name="id" value={a.id} />
-                  <button type="submit" style={bottoneSecondario}>
-                    Rifiuta
-                  </button>
-                </form>
-              </div>
-            ) : null}
-            {a.stato === 'applicata' && (
-              <form method="POST" action="/api/azioni/annulla" style={{ marginTop: 10 }}>
-                <input type="hidden" name="id" value={a.id} />
-                <button type="submit" style={bottoneSecondario}>
-                  Annulla (rimetti il valore precedente)
-                </button>
-              </form>
-            )}
-            {a.riferimento_esterno && (
-              <p style={{ fontSize: 13 }}>
-                <a href={a.riferimento_esterno}>{a.riferimento_esterno}</a>
-              </p>
-            )}
-          </article>
-        )
-      })}
+      <h2 style={{ fontSize: 18, marginTop: 36 }}>Storico ({storico.length})</h2>
+      <p style={{ fontSize: 14, color: '#4A524E' }}>
+        Tutto quello che hai approvato, rifiutato o annullato resta qui. Niente sparisce.
+      </p>
+      {storico.length === 0 && !errore && <p>Ancora vuoto: dopo il primo Approva o Rifiuta comparira qui.</p>}
+      {storico.map((a) => (
+        <SchedaAzione
+          key={a.id}
+          azione={{
+            ...a,
+            creata_il: a.creata_il ? new Date(a.creata_il).toISOString() : null,
+            applicata_il: a.applicata_il ? new Date(a.applicata_il).toISOString() : null,
+          }}
+          sitoId={s.id}
+        />
+      ))}
     </Telaio>
   )
 }

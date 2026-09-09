@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS azioni (
   sito_id       VARCHAR(64)  NOT NULL,
   regola        VARCHAR(64)  NOT NULL,
   bersaglio     VARCHAR(768) NOT NULL,   -- url o identificatore prodotto
-  campo         VARCHAR(64)  NOT NULL,   -- titolo | descrizione | alt | jsonld | robots | slug
+  campo         VARCHAR(64)  NOT NULL,   -- titolo | descrizione | alt | jsonld | robots | sitemap | slug
   valore_vecchio TEXT        NULL,
   valore_nuovo  TEXT         NOT NULL,
   motivo        TEXT         NOT NULL,
@@ -208,6 +208,20 @@ CREATE TABLE IF NOT EXISTS grants_impostazioni (
   chiave        VARCHAR(64)  NOT NULL,
   valore        VARCHAR(255) NOT NULL,
   PRIMARY KEY (chiave)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Fotografia di robots.txt e sitemap (quale URL e davvero XML).
+CREATE TABLE IF NOT EXISTS tecnici (
+  sito_id        VARCHAR(64)  NOT NULL,
+  tipo           ENUM('robots','sitemap') NOT NULL,
+  url            VARCHAR(768) NOT NULL,
+  stato_http     SMALLINT     NULL,
+  content_type   VARCHAR(128) NULL,
+  e_xml          TINYINT(1)   NOT NULL DEFAULT 0,
+  corpo          MEDIUMTEXT   NULL,
+  extra          JSON         NULL,
+  aggiornato_il  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (sito_id, tipo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Se il database esiste gia, allarga il tipo chiave: CREATE TABLE IF NOT EXISTS non lo fa.

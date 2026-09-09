@@ -15,8 +15,8 @@ Vincoli:
 - Siti Biography Library: nessuno script di misura (niente Analytics, GTM, pixel).
   Search Console a DNS e Cloud dell associazione vanno bene. Conversioni Grants
   solo da modulo del sito e upload notturno, mai CSV a mano.
-- I siti su repository si modificano solo tramite richiesta di modifica sul file
-  seo/contenuti.json, mai sul codice.
+- I siti su repository si modificano solo tramite richiesta di modifica su file
+  di dati in seo/ (contenuti.json, robots.txt), mai sul codice.
 
 Stile:
 - Commenti, nomi di variabili e messaggi in italiano.

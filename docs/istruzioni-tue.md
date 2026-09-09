@@ -1,6 +1,6 @@
 # Istruzioni tue (senza programmare)
 
-Aggiornato il 9 settembre 2026. Il codice sta su GitHub; tu fai i passi nel browser. Se una schermata ha un nome un po’ diverso, fermati e manda uno screenshot con l’indirizzo in alto.
+Aggiornato il 10 settembre 2026. Il codice sta su GitHub; tu fai i passi nel browser. Se una schermata ha un nome un po’ diverso, fermati e manda uno screenshot con l’indirizzo in alto.
 
 Due tipi di lavoro:
 
@@ -189,6 +189,22 @@ Una volta sola, su WordPress di biographylibrary.org:
 3. Password applicativa `WP_BL_*` come al capitolo 5.
 
 Niente JavaScript Google. Se un visitatore arriva da un annuncio, il plugin tiene il `gclid`. Quando invia un modulo di contatto, la riga finisce nel pannello e poi su Ads.
+
+---
+
+## 5c. robots.txt (WordPress)
+
+Una volta sola, sugli stessi tre WordPress (Aelle, brignole.ch, Biography Library):
+
+1. Plugin → Aggiungi → Carica plugin. Zip della cartella `plugin-wp/regia-robots`. Attiva **Regia robots**.
+2. L utente della password applicativa deve essere **Amministratore** (per i titoli basta un redattore; per robots.txt no).
+3. Se in File Manager, nella cartella del sito, c e un file chiamato `robots.txt`, **cancellalo**. Altrimenti Rank Math e il plugin non contano: Google legge quel file e basta.
+
+Dopo scansione e diagnosi, in coda compare una scheda robots.txt se manca la riga Sitemap, se punta a un dominio sbagliato, o se c e Crawl-delay (Biography Library oggi). Approva. Se la sitemap del sito e una pagina HTML (brignole.ch con LiteSpeed), la scheda e solo una nota: in Rank Math accendi Sitemap, e in LiteSpeed escludi `sitemap*.xml` dalla cache. Quella non si applica da sola.
+
+Sui siti Node, Approva apre una richiesta su `seo/robots.txt` (non sul codice). Finche il sito non legge quel file, copia il testo anche nel robots.txt in vetrina (File Manager o `public/robots.txt`).
+
+Poi riapri la migrazione del punto 2 (Database pronto): serve la tabella nuova `tecnici`.
 
 ---
 

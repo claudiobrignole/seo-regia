@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { applicaAzione } from '@/lib/esecutori/applica'
 import { aggiornaValoreNuovo, caricaAzione } from '@/lib/registro'
 import { tornaAlSito } from '@/lib/azioni-http'
+import { vistaSito } from '@/lib/azioni-viste'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,15 +11,18 @@ export async function POST(req: NextRequest) {
   const dalModulo = !tipo.includes('application/json')
   let id = 0
   let testo: string | null = null
+  let vista: string | undefined
   if (dalModulo) {
     const modulo = await req.formData()
     id = Number(modulo.get('id'))
     const grezzo = modulo.get('valore_nuovo')
     testo = typeof grezzo === 'string' ? grezzo : null
+    vista = vistaSito(modulo.get('vista'))
   } else {
-    const b = (await req.json()) as { id?: number; valore_nuovo?: string }
+    const b = (await req.json()) as { id?: number; valore_nuovo?: string; vista?: string }
     id = Number(b.id)
     testo = b.valore_nuovo ?? null
+    vista = b.vista
   }
   if (!id) return NextResponse.json({ errore: 'manca id' }, { status: 400 })
 
@@ -28,11 +32,11 @@ export async function POST(req: NextRequest) {
   try {
     if (testo != null && testo.trim()) await aggiornaValoreNuovo(id, testo.trim())
     const r = await applicaAzione(id)
-    if (dalModulo) return tornaAlSito(req, a.sito_id, 'applicata')
+    if (dalModulo) return tornaAlSito(req, a.sito_id, 'applicata', vista)
     return NextResponse.json({ ok: true, ...r })
   } catch (e) {
     const messaggio = (e as Error).message
-    if (dalModulo) return tornaAlSito(req, a.sito_id, 'fallita')
+    if (dalModulo) return tornaAlSito(req, a.sito_id, 'fallita', vista)
     const status = /non trovata/.test(messaggio) ? 404 : /gia in stato|Manca il testo|solo un avviso/.test(messaggio) ? 409 : 500
     return NextResponse.json({ errore: messaggio }, { status })
   }

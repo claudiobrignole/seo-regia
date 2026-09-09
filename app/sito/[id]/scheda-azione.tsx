@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { bottonePrimario, bottoneSecondario } from '@/app/componenti/telaio'
 import type { Azione } from '@/lib/registro'
-
-const CAMPI_SCRIVIBILI = new Set(['titolo', 'descrizione', 'seo_prodotto', 'robots'])
+import { CAMPI_DA_MODIFICARE, type VistaSito } from '@/lib/azioni-viste'
 
 const ETICHETTA_STATO: Record<string, string> = {
   proposta: 'Da fare',
@@ -32,9 +31,17 @@ function quando(v: Date | string | null | undefined): string {
   return d.toLocaleString('it-CH', { dateStyle: 'short', timeStyle: 'short' })
 }
 
-export function SchedaAzione({ azione, sitoId }: { azione: Azione; sitoId: string }) {
+export function SchedaAzione({
+  azione,
+  sitoId,
+  vista,
+}: {
+  azione: Azione
+  sitoId: string
+  vista: VistaSito
+}) {
   const [attesa, setAttesa] = useState<'applica' | 'rifiuta' | 'annulla' | null>(null)
-  const scrivibile = CAMPI_SCRIVIBILI.has(azione.campo)
+  const scrivibile = CAMPI_DA_MODIFICARE.has(azione.campo)
   const inCoda = azione.stato === 'proposta' || azione.stato === 'approvata' || azione.stato === 'fallita'
   const etichettaStato = ETICHETTA_STATO[azione.stato] ?? azione.stato
   const etichettaCampo = ETICHETTA_CAMPO[azione.campo] ?? azione.campo
@@ -106,6 +113,7 @@ export function SchedaAzione({ azione, sitoId }: { azione: Azione; sitoId: strin
               onSubmit={() => setAttesa('applica')}
             >
               <input type="hidden" name="id" value={azione.id} />
+              <input type="hidden" name="vista" value={vista} />
               <label style={{ display: 'block', fontSize: 13, marginBottom: 4 }}>
                 {robots ? 'robots.txt da pubblicare (modificalo se serve)' : 'Testo da pubblicare (modificalo se serve)'}
               </label>
@@ -130,6 +138,7 @@ export function SchedaAzione({ azione, sitoId }: { azione: Azione; sitoId: strin
           )}
           <form method="POST" action="/api/azioni/rifiuta" onSubmit={() => setAttesa('rifiuta')}>
             <input type="hidden" name="id" value={azione.id} />
+            <input type="hidden" name="vista" value={vista} />
             <button type="submit" style={bottoneSecondario} disabled={!!attesa}>
               {scrivibile ? 'Rifiuta' : 'Ho letto, chiudi'}
             </button>
@@ -140,6 +149,7 @@ export function SchedaAzione({ azione, sitoId }: { azione: Azione; sitoId: strin
       {azione.stato === 'applicata' && (
         <form method="POST" action="/api/azioni/annulla" style={{ marginTop: 10 }} onSubmit={() => setAttesa('annulla')}>
           <input type="hidden" name="id" value={azione.id} />
+          <input type="hidden" name="vista" value="storico" />
           <button type="submit" style={bottoneSecondario} disabled={!!attesa}>
             {attesa === 'annulla' ? 'Sto annullando...' : 'Annulla (rimetti il valore precedente)'}
           </button>

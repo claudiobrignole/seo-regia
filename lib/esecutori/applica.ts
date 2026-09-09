@@ -12,8 +12,7 @@ import { scriviSeo, leggiSeo, scriviRobots } from '@/lib/esecutori/wordpress'
 import { proponiModifica, proponiFileNellaCartellaSeo, leggiFileSeo } from '@/lib/esecutori/github'
 import { scriviSeoProdotto, leggiSeoProdotto } from '@/lib/esecutori/ecwid'
 import { leggiRobotsPubblico } from '@/lib/scansione/tecnici'
-
-const CAMPI_SCRIVIBILI = new Set(['titolo', 'descrizione', 'seo_prodotto', 'robots'])
+import { CAMPI_DA_MODIFICARE } from '@/lib/azioni-viste'
 
 function campoSeo(campo: string): 'titolo' | 'descrizione' {
   return campo === 'descrizione' ? 'descrizione' : 'titolo'
@@ -93,7 +92,7 @@ export async function applicaAzione(id: number): Promise<{ riferimento?: string 
   if (a.stato !== 'proposta' && a.stato !== 'approvata' && a.stato !== 'fallita') {
     throw new Error(`azione gia in stato ${a.stato}`)
   }
-  if (!CAMPI_SCRIVIBILI.has(a.campo)) {
+  if (!CAMPI_DA_MODIFICARE.has(a.campo)) {
     throw new Error(`Il campo ${a.campo} e solo un avviso: non si applica da qui.`)
   }
   if (!(a.valore_nuovo ?? '').trim()) {

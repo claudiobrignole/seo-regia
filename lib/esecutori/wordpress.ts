@@ -47,10 +47,51 @@ function usaRankMath(s: Sito): boolean {
   return s.scrittura.tipo === 'wordpress' && s.scrittura.seoPlugin === 'rank-math'
 }
 
+/** Basi REST che non sono articoli o pagine: una 404 qui non deve far fallire la scrittura. */
+const BASI_NON_CONTENUTO = new Set([
+  'types',
+  'statuses',
+  'global-styles',
+  'templates',
+  'template-parts',
+  'navigation',
+  'font-families',
+  'font-faces',
+  'font-collections',
+  'media',
+  'blocks',
+  'block-types',
+  'block-renderer',
+  'block-patterns',
+  'pattern-directory',
+  'menu-items',
+  'menus',
+  'users',
+  'comments',
+  'taxonomies',
+  'search',
+  'settings',
+  'themes',
+  'plugins',
+  'sidebars',
+  'widgets',
+  'widget-types',
+])
+
+async function elencoPerSlug(s: Sito, tipo: string, slug: string): Promise<{ id: number }[]> {
+  try {
+    const trovati = await chiama(s, `wp/v2/${tipo}?slug=${encodeURIComponent(slug)}`)
+    return Array.isArray(trovati) ? trovati : []
+  } catch {
+    return []
+  }
+}
+
 /** Trova il contenuto a partire dall indirizzo pubblico, inclusa la home. */
 export async function trovaContenuto(s: Sito, url: string): Promise<{ id: number; tipo: string } | null> {
   const u = new URL(url)
   const pezzi = u.pathname.split('/').filter(Boolean)
+  const tipi = await basiRest(s)
 
   if (pezzi.length === 0) {
     try {
@@ -60,14 +101,45 @@ export async function trovaContenuto(s: Sito, url: string): Promise<{ id: number
     } catch {
       /* l utente applicazione potrebbe non leggere le impostazioni */
     }
-    return null
+    return (await trovaDaHtml(s, url, tipi)) ?? null
   }
 
   const slug = pezzi[pezzi.length - 1]
-  const tipi = await basiRest(s)
   for (const tipo of tipi) {
-    const trovati = await chiama(s, `wp/v2/${tipo}?slug=${encodeURIComponent(slug)}`)
-    if (Array.isArray(trovati) && trovati.length) return { id: trovati[0].id, tipo }
+    const trovati = await elencoPerSlug(s, tipo, slug)
+    if (trovati.length) return { id: trovati[0].id, tipo }
+  }
+  return trovaDaHtml(s, url, tipi)
+}
+
+async function trovaDaHtml(
+  s: Sito,
+  url: string,
+  tipi: string[]
+): Promise<{ id: number; tipo: string } | null> {
+  try {
+    const res = await fetch(url, {
+      redirect: 'follow',
+      headers: { 'User-Agent': 'RegiaSEO/1.0 (+pannello interno Brignole)' },
+    })
+    if (!res.ok) return null
+    const html = await res.text()
+    const id =
+      Number(html.match(/[?&]p=(\d+)/)?.[1]) ||
+      Number(html.match(/\bpostid-(\d+)\b/)?.[1]) ||
+      Number(html.match(/\bpage-id-(\d+)\b/)?.[1]) ||
+      0
+    if (!id) return null
+    for (const tipo of tipi) {
+      try {
+        const dato = await chiama(s, `wp/v2/${tipo}/${id}`)
+        if (dato?.id) return { id: Number(dato.id), tipo }
+      } catch {
+        /* tipo sbagliato per questo id */
+      }
+    }
+  } catch {
+    return null
   }
   return null
 }
@@ -78,7 +150,7 @@ async function basiRest(s: Sito): Promise<string[]> {
     const basi = Object.values(tipi as Record<string, { rest_base?: string; rest_namespace?: string }>)
       .filter((t) => (t.rest_namespace ?? 'wp/v2') === 'wp/v2' && t.rest_base)
       .map((t) => t.rest_base as string)
-      .filter((b) => b !== 'types' && b !== 'statuses')
+      .filter((b) => !BASI_NON_CONTENUTO.has(b))
     const preferiti = ['pages', 'posts', ...basi.filter((b) => b !== 'pages' && b !== 'posts')]
     return [...new Set(preferiti)]
   } catch {

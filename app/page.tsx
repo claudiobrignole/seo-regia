@@ -98,62 +98,6 @@ export default async function Pannello() {
         </div>
       )}
 
-      {briefing && !briefing.errore && (
-        <>
-          {nienteUrgente && (
-            <p className="al-muted">Questa settimana niente di urgente. Sotto, se ci sono, le cose da fare quando puoi.</p>
-          )}
-
-          {briefing.urgente.length > 0 && (
-            <>
-              <h2>Da fare adesso</h2>
-              {briefing.urgente.map((v, i) => (
-                <VoceRegista key={`u-${v.href}-${i}`} voce={v} />
-              ))}
-            </>
-          )}
-
-          {briefing.importante.length > 0 && (
-            <>
-              <h2>Da fare</h2>
-              {briefing.importante.map((v, i) => (
-                <VoceRegista key={`i-${v.href}-${i}`} voce={v} />
-              ))}
-            </>
-          )}
-
-          {briefing.mostraMedie && briefing.media.length > 0 && (
-            <>
-              <h2>Quando puoi</h2>
-              {briefing.media.map((v, i) => (
-                <VoceRegista key={`m-${v.href}-${i}`} voce={v} />
-              ))}
-            </>
-          )}
-          {!briefing.mostraMedie && briefing.media.length > 0 && (
-            <p className="al-muted">
-              Altre note stanno nelle schede dei siti: prima le cose urgenti e importanti.
-            </p>
-          )}
-        </>
-      )}
-
-      {lezioni.length > 0 && (
-        <>
-          <h2>Cosa abbiamo imparato</h2>
-          {lezioni.map((l, i) => (
-            <article key={`${l.href}-${i}`} className="al-scheda">
-              <p className="al-muted">{l.nomeSito}</p>
-              <p className="al-bersaglio">{l.bersaglio}</p>
-              <p>{l.testo}</p>
-              <a className="al-voce-href" href={l.href}>
-                Storico
-              </a>
-            </article>
-          ))}
-        </>
-      )}
-
       <h2>Siti</h2>
       <table className="al-tabella">
         <thead>
@@ -215,6 +159,58 @@ export default async function Pannello() {
             </li>
           ))}
         </ul>
+      )}
+
+      {briefing && !briefing.errore && (
+        <>
+          {nienteUrgente && (
+            <p className="al-muted">Questa settimana niente di urgente. Il resto, se c e, sta nelle schede dei siti.</p>
+          )}
+
+          {briefing.urgente.length > 0 && (
+            <>
+              <h2>Da fare adesso</h2>
+              <div className="al-griglia-voci">
+                {briefing.urgente.map((v, i) => (
+                  <VoceRegista key={`u-${v.href}-${i}`} voce={v} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {briefing.importante.length > 0 && (
+            <>
+              <h2>Da fare</h2>
+              <div className="al-griglia-voci">
+                {briefing.importante.map((v, i) => (
+                  <VoceRegista key={`i-${v.href}-${i}`} voce={v} />
+                ))}
+              </div>
+            </>
+          )}
+          {briefing.nascoste > 0 && (
+            <p className="al-muted">
+              Altre {briefing.nascoste} {briefing.nascoste === 1 ? 'proposta sta' : 'proposte stanno'} nelle schede
+              dei siti: qui solo le piu urgenti.
+            </p>
+          )}
+        </>
+      )}
+
+      {lezioni.length > 0 && (
+        <>
+          <h2>Cosa abbiamo imparato</h2>
+          {lezioni.map((l, i) => (
+            <article key={`${l.href}-${i}`} className="al-scheda">
+              <p className="al-muted">{l.nomeSito}</p>
+              <p className="al-bersaglio">{l.bersaglio}</p>
+              <p>{l.testo}</p>
+              <a className="al-voce-href" href={l.href}>
+                Storico
+              </a>
+            </article>
+          ))}
+        </>
       )}
     </Telaio>
   )

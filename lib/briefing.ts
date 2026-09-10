@@ -16,6 +16,10 @@ export type VoceBriefing = {
   origine: 'azione' | 'verdetto' | 'grants' | 'lezione'
 }
 
+/** In home solo queste: il resto resta nella scheda del sito. */
+const MAX_HOME_URGENTE = 8
+const MAX_HOME_IMPORTANTE = 8
+
 export type Lezione = {
   sitoId: string
   nomeSito: string
@@ -67,11 +71,24 @@ function comeSaprai(regola: string): string {
 function livelloAzione(regola: string, campo: string, guadagno: number | null): Livello {
   if (regola === 'robots-sitemap' && campo === 'robots') return 'urgente'
   if (regola === 'merchant') return 'urgente'
-  if (regola === 'posizione') return 'urgente'
-  if (regola === 'ctr-basso' || regola === 'ai-overview' || regola === 'cannibalizzazione') return 'importante'
+  if (regola === 'ctr-basso' || regola === 'ai-overview' || regola === 'cannibalizzazione' || regola === 'posizione') {
+    return 'importante'
+  }
   if ((guadagno ?? 0) >= 50) return 'importante'
   if (regola === 'vitali') return 'media'
   return 'media'
+}
+
+function hrefAzione(sitoId: string, id: number, vista: 'modificare' | 'note' | 'storico'): string {
+  return `/sito/${sitoId}?vista=${vista}&azione=${id}#azione-${id}`
+}
+
+function priorita(v: VoceBriefing): number {
+  if (v.origine === 'grants') return 400
+  if (v.origine === 'lezione') return 350
+  if (v.origine === 'verdetto') return 300
+  if (v.titolo.toLowerCase().includes('robots')) return 250
+  return v.guadagnoStimato ?? 0
 }
 
 type RigaAzione = {
@@ -96,11 +113,10 @@ type RigaVerdetto = {
 export async function vociBriefing(): Promise<{
   urgente: VoceBriefing[]
   importante: VoceBriefing[]
-  media: VoceBriefing[]
-  mostraMedie: boolean
+  nascoste: number
   errore: string | null
 }> {
-  const vuoto = { urgente: [] as VoceBriefing[], importante: [] as VoceBriefing[], media: [] as VoceBriefing[], mostraMedie: true, errore: null as string | null }
+  const vuoto = { urgente: [] as VoceBriefing[], importante: [] as VoceBriefing[], nascoste: 0, errore: null as string | null }
 
   try {
     const azioni = await query<RigaAzione>(
@@ -120,7 +136,7 @@ export async function vociBriefing(): Promise<{
         livello,
         sitoId: a.sito_id,
         nomeSito: nomeSito(a.sito_id),
-        href: `/sito/${a.sito_id}?vista=${scrivibile ? 'modificare' : 'note'}`,
+        href: hrefAzione(a.sito_id, a.id, scrivibile ? 'modificare' : 'note'),
         titolo: scrivibile ? `Modifica ${a.campo}` : 'Nota da leggere',
         motivo: a.motivo,
         comeSaprai: comeSaprai(a.regola),
@@ -184,12 +200,13 @@ export async function vociBriefing(): Promise<{
 
     try {
       const peggio = await query<{
+        azione_id: number
         sito_id: string
         bersaglio: string
         clic_prima: number | null
         clic_dopo: number | null
       }>(
-        `SELECT a.sito_id, a.bersaglio, v.clic_prima, v.clic_dopo
+        `SELECT a.id AS azione_id, a.sito_id, a.bersaglio, v.clic_prima, v.clic_dopo
            FROM verifiche v
            INNER JOIN azioni a ON a.id = v.azione_id
           WHERE v.esito = 'peggiorata'
@@ -201,7 +218,7 @@ export async function vociBriefing(): Promise<{
           livello: 'urgente',
           sitoId: r.sito_id,
           nomeSito: nomeSito(r.sito_id),
-          href: `/sito/${r.sito_id}?vista=storico`,
+          href: hrefAzione(r.sito_id, r.azione_id, 'storico'),
           titolo: 'Dopo la modifica i clic sono scesi',
           motivo:
             `Su ${r.bersaglio} i clic sono scesi da ${Number(r.clic_prima ?? 0)} a ${Number(r.clic_dopo ?? 0)} in due settimane. ` +
@@ -248,11 +265,13 @@ export async function vociBriefing(): Promise<{
       /* citazioni non ancora raccolte */
     }
 
-    const urgente = voci.filter((v) => v.livello === 'urgente')
-    const importante = voci.filter((v) => v.livello === 'importante')
-    const media = voci.filter((v) => v.livello === 'media')
-    const mostraMedie = urgente.length + importante.length < 10
-    return { urgente, importante, media, mostraMedie, errore: null }
+    const urgenteTutte = voci.filter((v) => v.livello === 'urgente').sort((a, b) => priorita(b) - priorita(a))
+    const importanteTutte = voci.filter((v) => v.livello === 'importante').sort((a, b) => priorita(b) - priorita(a))
+    const mediaN = voci.filter((v) => v.livello === 'media').length
+    const urgente = urgenteTutte.slice(0, MAX_HOME_URGENTE)
+    const importante = importanteTutte.slice(0, MAX_HOME_IMPORTANTE)
+    const nascoste = urgenteTutte.length - urgente.length + importanteTutte.length - importante.length + mediaN
+    return { urgente, importante, nascoste, errore: null }
   } catch (e) {
     return { ...vuoto, errore: (e as Error).message }
   }

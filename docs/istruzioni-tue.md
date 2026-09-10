@@ -175,8 +175,11 @@ Analytics: **solo Brignole.** Amministrazione → Accesso proprietà → Lettore
 
 **GitHub:** due token a grana fine, non uno solo. GitHub li lega a un proprietario: o il tuo account o un’organizzazione.
 
-- Repo tuoi (TagTales, kizunama, luna-nihongo, strangeglyph): [token a grana fine](https://github.com/settings/tokens?type=beta) sul tuo utente. Contenuti: lettura e scrittura. Hostinger: `GITHUB_TOKEN`.
-- Repo associazione (`biographylibrary/Biography-Library`): altro token, proprietario l’organizzazione Biography Library. Hostinger: `GITHUB_TOKEN_BL`.
+- Repo tuoi (TagTales, kizunama, luna-nihongo, strangeglyph): [token a grana fine](https://github.com/settings/tokens?type=beta) sul tuo utente. Hostinger: `GITHUB_TOKEN`.
+  - Resource owner: il tuo utente.
+  - Repository access: solo quei quattro repository.
+  - Permissions (Repository permissions): **Contents** Read and write, **Pull requests** Read and write. Senza Pull requests, Approva scrive il ramo e poi fallisce con 403.
+- Repo associazione (`biographylibrary/Biography-Library`): altro token, proprietario l’organizzazione Biography Library. Stessi due permessi. Hostinger: `GITHUB_TOKEN_BL`.
 
 Non usare un token “classic” con accesso a tutto, e non mettere il token Brignole nella casella dell’associazione. Se uno dei due scappa, lo revochi senza toccare l’altro.
 

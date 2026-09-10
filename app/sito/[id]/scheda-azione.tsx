@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Azione } from '@/lib/registro'
 import { CAMPI_DA_MODIFICARE, type VistaSito } from '@/lib/azioni-viste'
 
@@ -41,10 +41,12 @@ export function SchedaAzione({
   azione,
   sitoId,
   vista,
+  evidenziata = false,
 }: {
   azione: Azione
   sitoId: string
   vista: VistaSito
+  evidenziata?: boolean
 }) {
   const [attesa, setAttesa] = useState<'applica' | 'rifiuta' | 'annulla' | null>(null)
   const scrivibile = CAMPI_DA_MODIFICARE.has(azione.campo)
@@ -54,8 +56,17 @@ export function SchedaAzione({
   const robots = azione.campo === 'robots'
   const fallita = azione.stato === 'fallita'
 
+  useEffect(() => {
+    if (!evidenziata) return
+    document.getElementById(`azione-${azione.id}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }, [evidenziata, azione.id])
+
   return (
-    <article className={fallita ? 'al-scheda al-scheda-fallita' : 'al-scheda'}>
+    <article
+      id={`azione-${azione.id}`}
+      className={`${fallita ? 'al-scheda al-scheda-fallita' : 'al-scheda'}${evidenziata ? ' al-scheda-evidenziata' : ''}`}
+      style={evidenziata ? { scrollMarginTop: 16 } : undefined}
+    >
       <div className="al-muted">
         {etichettaStato} • {azione.regola} • {etichettaCampo}
         {quando(azione.creata_il) ? ` • ${quando(azione.creata_il)}` : ''}

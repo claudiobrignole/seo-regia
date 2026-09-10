@@ -10,7 +10,7 @@ export function VoceRegista({ voce }: { voce: VoceBriefing }) {
   const etichetta =
     voce.livello === 'urgente' ? 'Urgente' : voce.livello === 'importante' ? 'Importante' : 'Quando puoi'
   return (
-    <article className="al-scheda">
+    <article className="al-scheda al-voce">
       <span className={tag}>{etichetta}</span>
       <p className="al-muted" style={{ marginTop: 10 }}>
         {voce.nomeSito}
@@ -18,7 +18,7 @@ export function VoceRegista({ voce }: { voce: VoceBriefing }) {
       <p>
         <strong>{voce.titolo}</strong>
       </p>
-      <p className="al-bersaglio">{voce.motivo}</p>
+      <p className="al-voce-motivo">{voce.motivo}</p>
       {voce.guadagnoStimato != null && (
         <p className="al-muted">Stima: circa {voce.guadagnoStimato} clic in piu nel periodo.</p>
       )}

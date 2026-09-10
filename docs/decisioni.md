@@ -114,9 +114,10 @@ Colori, caratteri e pezzi dal Design System Aelle (sabbia, inchiostro, arancio
 Brignole. I due banchi Ads restano due schermate.
 
 ## 2026-09-10, briefing a lunghezza variabile
-La home elenca prima l urgente, poi l importante. Niente tetto fisso. Le medie
-restano sotto, o solo nella scheda sito se le altre sono tante. Le verifiche a
-14 giorni si vedono in home e in Storico.
+La home elenca prima l urgente (robots, Merchant, Grants, Ads da fermare,
+lezione peggiorata), poi al massimo otto importanti. Caduta di posizione e
+titoli deboli stanno tra le importanti, non tutte in «adesso». Le medie restano
+solo nella scheda sito. Apri porta alla scheda di quella proposta.
 
 ## 2026-09-10, Overview, CrUX, Merchant, citazioni
 Le AI Overview si leggono dalla Search Console (anche per query), non servono

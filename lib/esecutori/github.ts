@@ -41,8 +41,42 @@ async function gh<T>(s: Sito, percorso: string, opzioni: RequestInit = {}): Prom
       ...(opzioni.headers ?? {}),
     },
   })
-  if (!res.ok) throw new Error(`GitHub ${percorso}: ${res.status} ${await res.text()}`)
+  if (!res.ok) {
+    const corpo = await res.text()
+    throw new Error(`GitHub ${percorso}: ${res.status} ${corpo}`)
+  }
   return (await res.json()) as T
+}
+
+async function apriRichiesta(
+  s: Sito,
+  repo: string,
+  ramo: string,
+  ramoBase: string,
+  titolo: string,
+  descrizione: string
+): Promise<string> {
+  try {
+    const pr = await gh<{ html_url: string }>(s, `/repos/${repo}/pulls`, {
+      method: 'POST',
+      body: JSON.stringify({ title: titolo, head: ramo, base: ramoBase, body: descrizione }),
+    })
+    return pr.html_url
+  } catch (e) {
+    const grezzo = (e as Error).message
+    if (grezzo.includes('403') || grezzo.includes('Resource not accessible')) {
+      const quale =
+        s.identita === 'biography-library' ? 'GITHUB_TOKEN_BL' : 'GITHUB_TOKEN'
+      throw new Error(
+        `Il token ${quale} puo scrivere i file ma non aprire la richiesta su ${repo}. ` +
+          `Su https://github.com/settings/tokens?type=beta apri quel token: Accesso ai repository deve includere ${repo}, ` +
+          `permessi Contents = Read and write e Pull requests = Read and write. Salva. ` +
+          `Se hai creato un token nuovo, incollalo in Hostinger e riavvia. Poi Approva di nuovo. ` +
+          `Ramo gia sul repository: https://github.com/${repo}/compare/${ramoBase}...${ramo}`
+      )
+    }
+    throw e
+  }
 }
 
 export type VoceSeo = { titolo?: string; descrizione?: string; jsonld?: unknown }
@@ -96,12 +130,8 @@ export async function proponiModifica(
     }),
   })
 
-  const pr = await gh<{ html_url: string }>(s, `/repos/${repo}/pulls`, {
-    method: 'POST',
-    body: JSON.stringify({ title: titoloRichiesta, head: ramo, base: ramoBase, body: descrizione }),
-  })
-
-  return pr.html_url
+  const pr = await apriRichiesta(s, repo, ramo, ramoBase, titoloRichiesta, descrizione)
+  return pr
 }
 
 /**
@@ -148,9 +178,5 @@ export async function proponiFileNellaCartellaSeo(
     }),
   })
 
-  const pr = await gh<{ html_url: string }>(s, `/repos/${repo}/pulls`, {
-    method: 'POST',
-    body: JSON.stringify({ title: titoloRichiesta, head: ramo, base: ramoBase, body: descrizione }),
-  })
-  return pr.html_url
+  return apriRichiesta(s, repo, ramo, ramoBase, titoloRichiesta, descrizione)
 }

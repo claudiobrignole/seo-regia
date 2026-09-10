@@ -51,7 +51,7 @@ export default async function PaginaSito({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ esito?: string; ok?: string; vista?: string }>
+  searchParams: Promise<{ esito?: string; ok?: string; vista?: string; azione?: string }>
 }) {
   const { id } = await params
   const q = await searchParams
@@ -59,6 +59,8 @@ export default async function PaginaSito({
   if (!s) notFound()
 
   const vista: VistaSito = vistaSito(q.vista)
+  const azioneId = Number(q.azione)
+  const evidenziataId = Number.isFinite(azioneId) && azioneId > 0 ? azioneId : null
   const esito = q.esito || (q.ok === 'applicata' || q.ok === 'rifiutata' || q.ok === 'annullata' ? q.ok : undefined)
   const banner = esito ? BANNER[esito] : undefined
 
@@ -118,6 +120,19 @@ export default async function PaginaSito({
   const storico = azioni.filter((a) => !IN_CODA.has(a.stato))
   const elenco =
     vista === 'note' ? note : vista === 'storico' ? storico : daModificare
+  const scelta = evidenziataId ? elenco.find((a) => a.id === evidenziataId) : undefined
+  const elencoOrdinato = scelta ? [scelta, ...elenco.filter((a) => a.id !== scelta.id)] : elenco
+  const altrove =
+    evidenziataId && !scelta
+      ? [...daModificare, ...note, ...storico].find((a) => a.id === evidenziataId)
+      : undefined
+  const vistaAltrove: VistaSito | null = altrove
+    ? !IN_CODA.has(altrove.stato)
+      ? 'storico'
+      : CAMPI_DA_MODIFICARE.has(altrove.campo)
+        ? 'modificare'
+        : 'note'
+    : null
   const zero = clic === 0 && impressioni === 0
 
   return (
@@ -194,8 +209,23 @@ export default async function PaginaSito({
           {vista === 'storico' && 'Ancora vuoto: dopo il primo Approva o Rifiuta comparira qui.'}
         </p>
       )}
-      {elenco.map((a) => (
-        <SchedaAzione key={a.id} azione={perScheda(a)} sitoId={s.id} vista={vista} />
+      {altrove && vistaAltrove && (
+        <p className="al-muted">
+          Quella proposta sta in{' '}
+          <Link href={`/sito/${s.id}?vista=${vistaAltrove}&azione=${altrove.id}#azione-${altrove.id}`}>
+            {vistaAltrove === 'note' ? 'Note' : vistaAltrove === 'storico' ? 'Storico' : 'Da modificare'}
+          </Link>
+          .
+        </p>
+      )}
+      {elencoOrdinato.map((a) => (
+        <SchedaAzione
+          key={a.id}
+          azione={perScheda(a)}
+          sitoId={s.id}
+          vista={vista}
+          evidenziata={scelta?.id === a.id}
+        />
       ))}
     </Telaio>
   )

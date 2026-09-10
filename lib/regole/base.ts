@@ -1,14 +1,16 @@
 import { query } from '@/lib/db'
 import type { Regola, Proposta } from './tipi'
 import type { Sito } from '@/siti.config'
+import { urlConImpressioni } from './soglie'
 
-/** Titoli e descrizioni mancanti o duplicati: il minimo sindacale. */
+/** Titoli e descrizioni mancanti o duplicati, sulle pagine gia viste. */
 export const regolaMetaMancanti: Regola = {
   nome: 'meta-mancanti',
   descrizione: 'Pagine senza titolo, senza descrizione, o con titoli identici fra loro',
 
   async esegui(s: Sito): Promise<Proposta[]> {
     const proposte: Proposta[] = []
+    const viste = await urlConImpressioni(s.id, 10)
 
     const senzaDescrizione = await query<{ url: string; titolo: string | null }>(
       `SELECT url, titolo FROM pagine
@@ -17,7 +19,13 @@ export const regolaMetaMancanti: Regola = {
         LIMIT 200`,
       [s.id]
     )
-    for (const p of senzaDescrizione) {
+    const descOrdinate = senzaDescrizione
+      .map((p) => ({ ...p, impressioni: viste.get(p.url) ?? 0 }))
+      .sort((a, b) => b.impressioni - a.impressioni)
+      .filter((p) => p.impressioni >= 10 || viste.size === 0)
+      .slice(0, 40)
+
+    for (const p of descOrdinate) {
       proposte.push({
         regola: 'meta-mancanti',
         bersaglio: p.url,
@@ -40,6 +48,7 @@ export const regolaMetaMancanti: Regola = {
     )
     for (const t of titoliDoppi) {
       for (const url of t.urls.split(' | ').slice(1)) {
+        if (viste.size && !viste.has(url)) continue
         proposte.push({
           regola: 'meta-mancanti',
           bersaglio: url,
@@ -63,24 +72,28 @@ export const regolaPagineOrfane: Regola = {
   descrizione: 'Pagine nella sitemap che nessun link interno raggiunge',
 
   async esegui(s: Sito): Promise<Proposta[]> {
+    const viste = await urlConImpressioni(s.id, 10)
     const orfane = await query<{ url: string; titolo: string | null }>(
       `SELECT url, titolo FROM pagine
         WHERE sito_id = ? AND stato_http = 200 AND link_entranti = 0
         LIMIT 100`,
       [s.id]
     )
-    return orfane.map((p) => ({
-      regola: 'pagine-orfane',
-      bersaglio: p.url,
-      campo: 'slug' as const,
-      valoreVecchio: null,
-      valoreNuovo: '',
-      motivo:
-        'Nessun link interno porta a questa pagina. Va collegata da un articolo pertinente, ' +
-        'oppure tolta dalla sitemap se non serve piu.',
-      guadagnoStimato: null,
-      rischio: 'da_approvare' as const,
-    }))
+    return orfane
+      .filter((p) => viste.has(p.url) || /\/$/.test(p.url))
+      .slice(0, 20)
+      .map((p) => ({
+        regola: 'pagine-orfane',
+        bersaglio: p.url,
+        campo: 'slug' as const,
+        valoreVecchio: null,
+        valoreNuovo: '',
+        motivo:
+          'Nessun link interno porta a questa pagina. Va collegata da un articolo pertinente, ' +
+          'oppure tolta dalla sitemap se non serve piu.',
+        guadagnoStimato: null,
+        rischio: 'da_approvare' as const,
+      }))
   },
 }
 
@@ -90,21 +103,25 @@ export const regolaDatiStrutturati: Regola = {
   descrizione: 'Pagine senza dati strutturati',
 
   async esegui(s: Sito): Promise<Proposta[]> {
+    const viste = await urlConImpressioni(s.id, 80)
     const senza = await query<{ url: string }>(
       `SELECT url FROM pagine
         WHERE sito_id = ? AND stato_http = 200 AND ha_jsonld = 0 AND parole > 250
         LIMIT 100`,
       [s.id]
     )
-    return senza.map((p) => ({
-      regola: 'dati-strutturati',
-      bersaglio: p.url,
-      campo: 'jsonld' as const,
-      valoreVecchio: null,
-      valoreNuovo: '',
-      motivo: 'Contenuto lungo senza dati strutturati: motori e assistenti lo interpretano a fatica.',
-      guadagnoStimato: null,
-      rischio: 'sicura' as const,
-    }))
+    return senza
+      .filter((p) => viste.has(p.url))
+      .slice(0, 15)
+      .map((p) => ({
+        regola: 'dati-strutturati',
+        bersaglio: p.url,
+        campo: 'jsonld' as const,
+        valoreVecchio: null,
+        valoreNuovo: '',
+        motivo: 'Contenuto lungo senza dati strutturati: motori e assistenti lo interpretano a fatica.',
+        guadagnoStimato: null,
+        rischio: 'sicura' as const,
+      }))
   },
 }

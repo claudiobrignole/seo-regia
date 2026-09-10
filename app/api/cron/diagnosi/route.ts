@@ -5,6 +5,7 @@ import { REGOLE } from '@/lib/regole'
 import { proponi } from '@/lib/registro'
 import { SITI, sito } from '@/siti.config'
 import { compoTesto } from '@/lib/regole/testi'
+import { compoIstruzione } from '@/lib/regole/lacune'
 import { generaBozzeMancanti } from '@/lib/ads/bozza'
 import { emettiVerdetti } from '@/lib/ads/verdetto'
 
@@ -13,7 +14,8 @@ export const dynamic = 'force-dynamic'
 
 const CAMPI_TESTO = new Set(['titolo', 'descrizione', 'seo_prodotto'])
 const LIMITE_MS = 40_000
-const MAX_TESTI = 4
+const MAX_TESTI = 6
+const MAX_ISTRUZIONI = 2
 
 export async function GET(req: NextRequest) {
   const negato = verificaChiaveCron(req)
@@ -30,6 +32,7 @@ export async function GET(req: NextRequest) {
   const esecuzione = await iniziaEsecuzione('diagnosi')
   let proposte = 0
   let testiFatti = 0
+  let istruzioniFatte = 0
   const problemi: string[] = []
   const inizio = Date.now()
 
@@ -52,6 +55,17 @@ export async function GET(req: NextRequest) {
                 testiFatti++
               } catch (e) {
                 problemi.push(`testi/${s.id}/${regola.nome}: ${(e as Error).message}`)
+              }
+            }
+          }
+          if (p.campo === 'istruzione' && !(p.valoreNuovo ?? '').trim()) {
+            if (istruzioniFatte < MAX_ISTRUZIONI && testiFatti < MAX_TESTI && Date.now() - inizio < LIMITE_MS) {
+              try {
+                p.valoreNuovo = await compoIstruzione(s, p)
+                istruzioniFatte++
+                testiFatti++
+              } catch (e) {
+                problemi.push(`istruzioni/${s.id}: ${(e as Error).message}`)
               }
             }
           }

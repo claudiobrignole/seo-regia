@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { bottonePrimario, bottoneSecondario } from '@/app/componenti/telaio'
 import type { Azione } from '@/lib/registro'
 import { CAMPI_DA_MODIFICARE, type VistaSito } from '@/lib/azioni-viste'
 
@@ -22,6 +21,13 @@ const ETICHETTA_CAMPO: Record<string, string> = {
   sitemap: 'sitemap',
   slug: 'collegamento interno',
   jsonld: 'dati strutturati',
+  istruzione: 'istruzione',
+  h1: 'titolo in pagina',
+  canonical: 'canonical',
+  spessore: 'testo troppo corto',
+  lingua: 'lingua',
+  prodotto: 'scheda Merchant',
+  vitali: 'vitali Chrome',
 }
 
 function quando(v: Date | string | null | undefined): string {
@@ -46,57 +52,60 @@ export function SchedaAzione({
   const etichettaStato = ETICHETTA_STATO[azione.stato] ?? azione.stato
   const etichettaCampo = ETICHETTA_CAMPO[azione.campo] ?? azione.campo
   const robots = azione.campo === 'robots'
+  const fallita = azione.stato === 'fallita'
 
   return (
-    <article
-      style={{
-        border: azione.stato === 'fallita' ? '1px solid #A8431C' : '1px solid #DDE1DC',
-        borderRadius: 6,
-        padding: 16,
-        marginBottom: 12,
-        background: '#fff',
-      }}
-    >
-      <div style={{ fontSize: 12, color: '#7C857F' }}>
-        {etichettaStato} · {azione.regola} · {etichettaCampo}
-        {quando(azione.creata_il) ? ` · ${quando(azione.creata_il)}` : ''}
+    <article className={fallita ? 'al-scheda al-scheda-fallita' : 'al-scheda'}>
+      <div className="al-muted">
+        {etichettaStato} • {azione.regola} • {etichettaCampo}
+        {quando(azione.creata_il) ? ` • ${quando(azione.creata_il)}` : ''}
       </div>
-      <p style={{ margin: '8px 0', wordBreak: 'break-all' }}>{azione.bersaglio}</p>
-      <p style={{ margin: '8px 0' }}>{azione.motivo}</p>
-      <p style={{ fontSize: 14 }}>
+      <p className="al-bersaglio">{azione.bersaglio}</p>
+      <p>{azione.motivo}</p>
+      <p>
         <strong>Ora sul sito:</strong> {azione.valore_vecchio || '(vuoto)'}
       </p>
       {!scrivibile && inCoda && (
-        <p style={{ fontSize: 14, background: '#EDEFEC', padding: 10, borderRadius: 4 }}>
+        <p className="al-nota-box">
           Questa e una nota, non un testo da pubblicare. Il pannello non puo scriverla da solo sul sito
           (serve un link in un articolo, o i dati strutturati nel tema). Chiudila se l hai letta, oppure
           sistemala a mano e poi chiudila.
         </p>
       )}
       {scrivibile && inCoda && (
-        <p style={{ fontSize: 13, color: '#4A524E' }}>
+        <p className="al-muted">
           Puoi correggere il testo sotto, poi Approva. Resta in questa pagina: vedrai se e andata a buon fine.
         </p>
       )}
       {azione.guadagno_stimato != null && (
-        <p style={{ fontSize: 13, color: '#4A524E' }}>Stima: circa {azione.guadagno_stimato} clic in piu nel periodo.</p>
+        <p className="al-muted">Stima: circa {azione.guadagno_stimato} clic in piu nel periodo.</p>
       )}
       {azione.stato === 'fallita' && azione.errore && (
-        <p style={{ fontSize: 14, color: '#A8431C' }}>
+        <p style={{ color: 'var(--status-danger)' }}>
           <strong>Perche non e riuscita:</strong> {azione.errore}
         </p>
       )}
       {azione.riferimento_esterno && (
-        <p style={{ fontSize: 13 }}>
+        <p className="al-muted">
           Richiesta: <a href={azione.riferimento_esterno}>{azione.riferimento_esterno}</a>
         </p>
       )}
       {azione.stato === 'applicata' && quando(azione.applicata_il) && (
-        <p style={{ fontSize: 13, color: '#4A524E' }}>Applicata il {quando(azione.applicata_il)}</p>
+        <p className="al-muted">Applicata il {quando(azione.applicata_il)}</p>
+      )}
+      {azione.verifica_esito && azione.verifica_esito !== 'dati_insufficienti' && (
+        <p className="al-lezione">
+          {azione.verifica_esito === 'migliorata' &&
+            `Dopo due settimane i clic sono saliti da ${azione.verifica_clic_prima ?? 0} a ${azione.verifica_clic_dopo ?? 0}. Questo schema ha funzionato.`}
+          {azione.verifica_esito === 'peggiorata' &&
+            `Dopo due settimane i clic sono scesi da ${azione.verifica_clic_prima ?? 0} a ${azione.verifica_clic_dopo ?? 0}. Non ripetere questo schema.`}
+          {azione.verifica_esito === 'invariata' &&
+            `Dopo due settimane i clic sono restati sostanzialmente uguali (${azione.verifica_clic_prima ?? 0} poi ${azione.verifica_clic_dopo ?? 0}).`}
+        </p>
       )}
 
       {attesa && (
-        <p style={{ fontSize: 14, fontWeight: 600, color: '#1F6F5C' }}>
+        <p className="al-attesa">
           {attesa === 'applica' && 'Sto applicando sul sito. Non chiudere la pagina.'}
           {attesa === 'rifiuta' && 'Sto chiudendo la proposta.'}
           {attesa === 'annulla' && 'Sto rimettendo il valore precedente.'}
@@ -104,7 +113,7 @@ export function SchedaAzione({
       )}
 
       {inCoda && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div className="al-riga-azioni">
           {scrivibile && (
             <form
               method="POST"
@@ -114,33 +123,27 @@ export function SchedaAzione({
             >
               <input type="hidden" name="id" value={azione.id} />
               <input type="hidden" name="vista" value={vista} />
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 4 }}>
-                {robots ? 'robots.txt da pubblicare (modificalo se serve)' : 'Testo da pubblicare (modificalo se serve)'}
+              <label className="al-label">
+                {robots ? 'robots.txt da pubblicare' : 'Testo da pubblicare'}
               </label>
               <textarea
                 name="valore_nuovo"
+                className={robots ? 'al-area al-campo-mono' : 'al-area'}
                 defaultValue={azione.valore_nuovo ?? ''}
                 rows={robots ? 14 : 3}
                 required
                 disabled={!!attesa}
-                style={{
-                  width: '100%',
-                  font: robots ? '13px ui-monospace, Menlo, monospace' : 'inherit',
-                  padding: 8,
-                  borderRadius: 4,
-                  border: '1px solid #C4CAC3',
-                }}
               />
-              <button type="submit" style={{ ...bottonePrimario, marginTop: 8 }} disabled={!!attesa}>
-                {attesa === 'applica' ? 'Sto applicando...' : 'Approva e applica'}
+              <button type="submit" className="al-btn al-btn-primary" style={{ marginTop: 8 }} disabled={!!attesa}>
+                {attesa === 'applica' ? 'Attendi' : 'Approva'}
               </button>
             </form>
           )}
           <form method="POST" action="/api/azioni/rifiuta" onSubmit={() => setAttesa('rifiuta')}>
             <input type="hidden" name="id" value={azione.id} />
             <input type="hidden" name="vista" value={vista} />
-            <button type="submit" style={bottoneSecondario} disabled={!!attesa}>
-              {scrivibile ? 'Rifiuta' : 'Ho letto, chiudi'}
+            <button type="submit" className="al-btn al-btn-outline" disabled={!!attesa}>
+              {scrivibile ? 'Rifiuta' : 'Chiudi'}
             </button>
           </form>
         </div>
@@ -150,8 +153,8 @@ export function SchedaAzione({
         <form method="POST" action="/api/azioni/annulla" style={{ marginTop: 10 }} onSubmit={() => setAttesa('annulla')}>
           <input type="hidden" name="id" value={azione.id} />
           <input type="hidden" name="vista" value="storico" />
-          <button type="submit" style={bottoneSecondario} disabled={!!attesa}>
-            {attesa === 'annulla' ? 'Sto annullando...' : 'Annulla (rimetti il valore precedente)'}
+          <button type="submit" className="al-btn al-btn-outline" disabled={!!attesa}>
+            {attesa === 'annulla' ? 'Attendi' : 'Annulla'}
           </button>
         </form>
       )}

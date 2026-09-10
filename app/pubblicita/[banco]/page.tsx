@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { query } from '@/lib/db'
-import { Telaio, avviso, bottonePrimario } from '@/app/componenti/telaio'
+import { Telaio } from '@/app/componenti/telaio'
 import type { Identita } from '@/lib/raccolta/google'
 import type { BozzaContenuto } from '@/lib/ads/bozza'
 
@@ -36,10 +36,7 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
   let ultimaCaricata: string | null = null
 
   try {
-    campagne = await query(
-      `SELECT * FROM campagne WHERE identita = ? ORDER BY nome`,
-      [cfg.identita]
-    )
+    campagne = await query(`SELECT * FROM campagne WHERE identita = ? ORDER BY nome`, [cfg.identita])
     giorni = await query(
       `SELECT campagna_google_id,
               SUM(clic) AS clic, SUM(impressioni) AS impressioni, SUM(costo) AS costo, SUM(conversioni) AS conversioni
@@ -48,10 +45,7 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
         GROUP BY campagna_google_id`,
       [cfg.identita]
     )
-    bozze = await query(
-      `SELECT * FROM campagne_bozze WHERE identita = ? ORDER BY id DESC LIMIT 20`,
-      [cfg.identita]
-    )
+    bozze = await query(`SELECT * FROM campagne_bozze WHERE identita = ? ORDER BY id DESC LIMIT 20`, [cfg.identita])
     verdetti = await query(
       `SELECT v.* FROM campagne_verdetti v
         INNER JOIN (
@@ -64,9 +58,7 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
       const g = await query(`SELECT * FROM adgrants_stato ORDER BY mese DESC LIMIT 1`)
       grants = g[0] ?? null
       try {
-        codaConversioni = await query(
-          `SELECT stato, COUNT(*) AS n FROM grants_conversioni GROUP BY stato`
-        )
+        codaConversioni = await query(`SELECT stato, COUNT(*) AS n FROM grants_conversioni GROUP BY stato`)
         const u = await query<{ quando: Date | string }>(
           `SELECT quando FROM grants_conversioni WHERE stato = 'caricata' ORDER BY caricata_il DESC LIMIT 1`
         )
@@ -85,20 +77,21 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
   return (
     <Telaio titolo={cfg.titolo} sottotitolo={cfg.sottotitolo}>
       {errore && (
-        <div style={avviso}>
+        <div className="al-avviso">
           <strong>Dati non ancora disponibili.</strong>
-          <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+          <p style={{ margin: '8px 0 0' }}>
             {errore}. Se manca la tabella, lancia di nuovo la migrazione. Se manca il token Ads, vedi le istruzioni tue.
           </p>
         </div>
       )}
 
       {cfg.identita === 'biography-library' && (
-        <div style={{ background: '#EDEFEC', padding: 16, borderRadius: 6, marginBottom: 24, fontSize: 14 }}>
+        <div className="al-scheda">
           <strong>Conversioni, senza Analytics sul sito</strong>
           <p style={{ margin: '8px 0 0' }}>
             Le carica il lavoro notturno dai moduli di biographylibrary.org. Non caricare file CSV in Google Ads.
-            {codaConversioni.length === 0 && ' Ancora nessuna riga: manca il plugin, o nessuno ha inviato un modulo dopo un clic Grants.'}
+            {codaConversioni.length === 0 &&
+              ' Ancora nessuna riga: manca il plugin, o nessuno ha inviato un modulo dopo un clic Grants.'}
             {codaConversioni.map((c) => ` ${c.stato}: ${c.n}.`).join('')}
             {ultimaCaricata ? ` Ultima caricata su Google: ${ultimaCaricata}.` : ''}
           </p>
@@ -106,34 +99,28 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
       )}
 
       {grants && (
-        <div
-          style={{
-            background: grants.conforme ? '#E7F0EA' : '#F6E7DF',
-            padding: 16,
-            borderRadius: 6,
-            marginBottom: 24,
-          }}
-        >
+        <div className={grants.conforme ? 'al-grants-ok' : 'al-grants-no'}>
           <strong>Grants, mese {grants.mese}</strong>
-          <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+          <p style={{ margin: '8px 0 0' }}>
             Tasso di clic {grants.ctr != null ? `${(Number(grants.ctr) * 100).toFixed(2)} per cento` : 'n.d.'},
-            conversioni {grants.conversioni}. {grants.conforme ? 'Dentro le regole, per ora.' : 'C e un allarme: agisci prima che lo noti Google.'}
+            conversioni {grants.conversioni}.{' '}
+            {grants.conforme ? 'Dentro le regole, per ora.' : 'C e un allarme: agisci prima che lo noti Google.'}
           </p>
         </div>
       )}
 
-      <h2 style={{ fontSize: 18 }}>Campagne lette da Google</h2>
+      <h2>Campagne lette da Google</h2>
       {campagne.length === 0 && !errore && (
         <p>Nessuna campagna in questo banco. E giusto: l altro banco e un account diverso.</p>
       )}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, marginBottom: 32 }}>
+      <table className="al-tabella">
         <thead>
-          <tr style={{ background: '#EDEFEC', textAlign: 'left' }}>
-            <th style={{ padding: 8 }}>Nome</th>
-            <th style={{ padding: 8 }}>Stato</th>
-            <th style={{ padding: 8 }}>Clic 30g</th>
-            <th style={{ padding: 8 }}>{cfg.identita === 'biography-library' ? 'Quota usata' : 'Spesa'}</th>
-            <th style={{ padding: 8 }}>Consiglio</th>
+          <tr>
+            <th>Nome</th>
+            <th>Stato</th>
+            <th>Clic 30g</th>
+            <th>{cfg.identita === 'biography-library' ? 'Quota usata' : 'Spesa'}</th>
+            <th>Consiglio</th>
           </tr>
         </thead>
         <tbody>
@@ -141,17 +128,17 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
             const g = perCamp.get(String(c.google_id))
             const v = perVerdetto.get(String(c.google_id))
             return (
-              <tr key={c.google_id} style={{ borderBottom: '1px solid #DDE1DC' }}>
-                <td style={{ padding: 8 }}>{c.nome}</td>
-                <td style={{ padding: 8 }}>{c.stato}</td>
-                <td style={{ padding: 8 }}>{g ? Number(g.clic).toLocaleString('it-CH') : '—'}</td>
-                <td style={{ padding: 8 }}>{g ? Number(g.costo).toFixed(2) : '—'}</td>
-                <td style={{ padding: 8, fontSize: 13 }}>
+              <tr key={c.google_id}>
+                <td>{c.nome}</td>
+                <td>{c.stato}</td>
+                <td className="al-numeri">{g ? Number(g.clic).toLocaleString('it-CH') : '—'}</td>
+                <td className="al-numeri">{g ? Number(g.costo).toFixed(2) : '—'}</td>
+                <td>
                   {v ? (
                     <>
                       <strong>{v.consiglio}</strong>
-                      <div>{v.pro}</div>
-                      <div>{v.contro}</div>
+                      <div className="al-muted">{v.pro}</div>
+                      <div className="al-muted">{v.contro}</div>
                     </>
                   ) : (
                     'Ancora nessun verdetto'
@@ -163,8 +150,8 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
         </tbody>
       </table>
 
-      <h2 style={{ fontSize: 18 }}>Bozze da creare a mano su Google Ads</h2>
-      <p style={{ fontSize: 14, color: '#4A524E' }}>
+      <h2>Bozze da creare a mano su Google Ads</h2>
+      <p className="al-muted">
         Il pannello non schiaccia Pubblica. Copi questi testi nell account{' '}
         {cfg.identita === 'biography-library' ? 'Grants (Gmail associazione)' : 'a pagamento (Gmail Brignole)'}.
       </p>
@@ -176,31 +163,43 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
           c = null
         }
         return (
-          <article key={b.id} style={{ border: '1px solid #DDE1DC', borderRadius: 6, padding: 16, margin: '12px 0', background: '#fff' }}>
-            <h3 style={{ marginTop: 0 }}>{b.titolo}</h3>
-            <p style={{ fontSize: 13 }}>Stato: {b.stato} · sito {b.sito_id}</p>
+          <article key={b.id} className="al-scheda">
+            <h3>{b.titolo}</h3>
+            <p className="al-muted">
+              Stato: {b.stato} • sito {b.sito_id}
+            </p>
             {c && (
               <div style={{ fontSize: 14, whiteSpace: 'pre-wrap' }}>
                 <p>Obiettivo: {c.obiettivo}</p>
-                <p>Rete: {c.rete} · Budget al giorno: {c.budgetGiornaliero}</p>
+                <p>
+                  Rete: {c.rete} • Budget al giorno: {c.budgetGiornaliero}
+                </p>
                 <p>{c.motivoBudget}</p>
                 <p>Atterraggio: {c.atterraggio}</p>
-                <p>Lingue: {(c.lingue ?? []).join(', ')} · Zone: {(c.zone ?? []).join(', ')}</p>
+                <p>
+                  Lingue: {(c.lingue ?? []).join(', ')} • Zone: {(c.zone ?? []).join(', ')}
+                </p>
                 <p>Parole: {(c.parole ?? []).map((x) => `${x.testo} (${x.tipo})`).join('; ')}</p>
                 <p>Esclusioni: {(c.esclusioni ?? []).join('; ')}</p>
-                <p>Titoli:{'\n'}{(c.titoli ?? []).join('\n')}</p>
-                <p>Descrizioni:{'\n'}{(c.descrizioni ?? []).join('\n')}</p>
+                <p>
+                  Titoli:{'\n'}
+                  {(c.titoli ?? []).join('\n')}
+                </p>
+                <p>
+                  Descrizioni:{'\n'}
+                  {(c.descrizioni ?? []).join('\n')}
+                </p>
               </div>
             )}
             {b.stato === 'bozza' && (
               <form method="POST" action="/api/campagne/collega" style={{ marginTop: 12 }}>
                 <input type="hidden" name="id" value={b.id} />
                 <input type="hidden" name="banco" value={banco} />
-                <label style={{ fontSize: 13 }}>
-                  ID campagna su Google, dopo che l hai creata:{' '}
-                  <input name="google_id" required placeholder="1234567890" style={{ padding: 6 }} />
+                <label className="al-label">
+                  ID campagna su Google, dopo che l hai creata
                 </label>
-                <button type="submit" style={{ ...bottonePrimario, marginLeft: 8 }}>
+                <input className="al-campo" name="google_id" required placeholder="1234567890" style={{ maxWidth: 240 }} />
+                <button type="submit" className="al-btn al-btn-primary" style={{ marginTop: 8 }}>
                   Collega
                 </button>
               </form>

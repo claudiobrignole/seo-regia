@@ -130,13 +130,27 @@ export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<n
 export async function raccogliAI(s: Sito, da: string, a: string): Promise<number> {
   if (!s.searchConsole) return 0
   const api = google.searchconsole({ version: 'v1', auth: auth(s.identita) as any })
+  let n = 0
+  n += await salvaAI(api, s, da, a, ['date', 'page'], 'pagina')
+  n += await salvaAI(api, s, da, a, ['date', 'query'], 'query')
+  return n
+}
+
+async function salvaAI(
+  api: any,
+  s: Sito,
+  da: string,
+  a: string,
+  dimensioni: Array<'date' | 'page' | 'query'>,
+  tipoChiave: 'pagina' | 'query'
+): Promise<number> {
   try {
     const res = await api.searchanalytics.query({
-      siteUrl: s.searchConsole,
+      siteUrl: s.searchConsole!,
       requestBody: {
         startDate: da,
         endDate: a,
-        dimensions: ['date', 'page'],
+        dimensions: dimensioni,
         rowLimit: 5000,
         dimensionFilterGroups: [
           { filters: [{ dimension: 'searchAppearance', operator: 'equals', expression: 'AI_OVERVIEW' }] },
@@ -147,14 +161,14 @@ export async function raccogliAI(s: Sito, da: string, a: string): Promise<number
     let n = 0
     for (const r of res.data.rows ?? []) {
       const giorno = r.keys?.[0] ?? a
-      const pagina = r.keys?.[1] ?? ''
-      if (!pagina) continue
+      const chiave = r.keys?.[1] ?? ''
+      if (!chiave) continue
       await salvaMisura({
         sitoId: s.id,
         fonte: 'search-console-ai',
         giorno,
-        chiave: pagina,
-        tipoChiave: 'pagina',
+        chiave,
+        tipoChiave,
         clic: r.clicks ?? 0,
         impressioni: r.impressions ?? 0,
         posizione: r.position ?? null,
@@ -164,7 +178,7 @@ export async function raccogliAI(s: Sito, da: string, a: string): Promise<number
     }
     return n
   } catch (e) {
-    console.warn(`[ai] ${s.id}: rapporto non disponibile`, (e as Error).message)
+    console.warn(`[ai] ${s.id}/${tipoChiave}: rapporto non disponibile`, (e as Error).message)
     return 0
   }
 }

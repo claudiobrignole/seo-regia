@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS misure (
   id            BIGINT AUTO_INCREMENT PRIMARY KEY,
   sito_id       VARCHAR(64)  NOT NULL,
-  fonte         VARCHAR(32)  NOT NULL,   -- search-console | analytics | ecwid | merchant | ads
+  fonte         VARCHAR(32)  NOT NULL,   -- search-console | search-console-ai | analytics | ecwid | merchant | ads | crux | citazioni-llm
   giorno        DATE         NOT NULL,
   chiave        VARCHAR(512) NOT NULL,   -- url della pagina, oppure la query, oppure lo sku
   tipo_chiave   VARCHAR(32)  NOT NULL,   -- pagina | query | pagina_query | prodotto | sito

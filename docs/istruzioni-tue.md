@@ -49,7 +49,9 @@ Non collegare l’account Grants sotto il manager Brignole “così si vede tutt
    Se compare **chiave non valida**: la parola nell indirizzo non e identica a CRON_CHIAVE (spazi, virgolette, o caratteri come # & +). Usa una chiave solo di lettere e numeri, salva, riavvia, riprova.  
    Se compare **Il database non risponde** oppure Chrome dice errore 500: la chiave e ok, sbagliano i valori `DB_`. Vedi il punto 3, salva, **riavvia** l applicazione Node, riprova lo stesso indirizzo.
 
-Le altre variabili (Google, WordPress, Ecwid, GitHub, Ads) si aggiungono dopo, senza rifare il sito. Se manca un banco Ads, l’altro deve funzionare lo stesso.
+Le altre variabili (Google, WordPress, Ecwid, GitHub, Ads, opzionale `CRUX_API_KEY`) si aggiungono dopo, senza rifare il sito. Se manca un banco Ads, l’altro deve funzionare lo stesso.
+
+Quando entri, la home non e una tabella da esperto: prima **Da fare adesso**, poi **Da fare**, poi **Quando puoi** se non ci sono troppe cose urgenti. Ogni riga dice perche e come saprai se ha funzionato. I due banchi pubblicita restano due link, mai una cassa unica.
 
 ---
 
@@ -147,7 +149,7 @@ Due progetti Cloud, due file JSON. Analytics **solo** sui siti Brignole.
 1. [console.cloud.google.com](https://console.cloud.google.com) con la Gmail giusta.
 2. Nuovo progetto: `regia-seo-brignole` oppure `regia-seo-biography`.
 3. Libreria, abilita:
-  - Brignole: Search Console API, Analytics Data API, Google Ads API.
+  - Brignole: Search Console API, Analytics Data API, Google Ads API. Opzionale: Chrome UX Report API.
   - Associazione: Search Console API, Google Ads API. **Niente** Analytics Data API.
 4. Credenziali → Account di servizio → nome `regia-seo` → Chiavi → JSON. Il file non va su GitHub.
 5. Incolla il JSON in `GOOGLE_SERVICE_ACCOUNT_JSON` o `BL_SERVICE_ACCOUNT_JSON`.
@@ -162,6 +164,10 @@ Associazione: biographylibrary.org.
 Se lunanihongo.com non è ancora una proprietà di dominio: Aggiungi proprietà → Dominio → record DNS TXT su Hostinger → Verifica.
 
 Analytics: **solo Brignole.** Amministrazione → Accesso proprietà → Lettore, stessa email, solo sulle proprietà giuste. Analytics non conta il traffico di ricerca (cookie). **Non** creare una proprietà Analytics per Biography Library e **non** installare plugin Analytics, GTM o pixel su biographylibrary.org.
+
+**Opzionale, vitali Chrome:** nello stesso progetto Cloud Brignole accendi Chrome UX Report API, crea una chiave API, mettila in `CRUX_API_KEY`. Senza, la raccolta salta e il pannello non si rompe. Non e uno script sul sito.
+
+**Opzionale, Merchant Aelle:** in Merchant Center 5717230535 invita l email `...iam.gserviceaccount.com` del JSON Brignole. Senza invito, la raccolta Merchant salta.
 
 ---
 
@@ -241,7 +247,7 @@ Verifica (puo restituire zero: non ci sono ancora modifiche applicate da quattor
 
 Deve comparire del testo JSON, non “chiave non valida”.
 
-### Poi, la sveglia su Hostinger (dieci righe, non una)
+### Poi, la sveglia su Hostinger (dieci righe, piu una opzionale)
 
 1. hPanel → sito `seo.brignole.ch` → Dashboard.
 2. Nella barra a sinistra cerca **Cron Jobs** (a volte **Lavori Cron**).
@@ -282,6 +288,12 @@ La scansione e **un sito per notte**: Aelle da sola non sta in tre minuti, si ri
 **Solo lunedi, ore 5:00** (minuto 0, ora 5, giorno della settimana 1):
 
 `curl -fsS "https://seo.brignole.ch/api/cron/verifica?chiave=INCOLLA_LA_CHIAVE"`
+
+**Opzionale, ogni giorno ore 5:30** (minuto 30, ora 5), sondaggio citazioni (campione, non ChatGPT pubblico):
+
+`curl -fsS "https://seo.brignole.ch/api/cron/citazioni?chiave=INCOLLA_LA_CHIAVE"`
+
+Senza questa riga il resto del pannello gira lo stesso.
 
 Salva dopo ogni riga. Se Hostinger rifiuta il comando (“caratteri non ammessi”), manda uno screenshot: a volte vuole il tipo Custom, o un file `.sh`. Non serve il Terminale del Mac.
 

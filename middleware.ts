@@ -13,6 +13,12 @@ const APERTE = ['/accesso', '/api/accesso', '/api/cron', '/api/setup']
 
 export async function middleware(req: NextRequest) {
   const percorso = req.nextUrl.pathname
+  if (
+    percorso.startsWith('/font/') ||
+    percorso.startsWith('/marchio/')
+  ) {
+    return NextResponse.next()
+  }
   if (APERTE.some((p) => percorso === p || percorso.startsWith(p + '/'))) {
     return NextResponse.next()
   }

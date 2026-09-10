@@ -28,7 +28,7 @@ Gira su Hostinger Business, piano che supporta Node.
 
 - `siti.config.ts` — i siti del perimetro. Aggiungerne uno è una voce qui, non codice.
 - `lib/raccolta/` — Search Console, Analytics, Ecwid, Google Ads in lettura.
-- `lib/modelli/` — Claude, Gemini, Mistral (e Grok se c e la chiave). Solo testi.
+- `lib/modelli/` — testi: oggi solo Claude. Gemini, Mistral e Grok restano nel codice, spenti.
 - `lib/ads/` — bozze, verdetti, e (solo Grants) caricamento conversioni dai moduli.
 - `plugin-wp/regia-bl-grants/` — plugin WordPress Biography Library, senza script Google.
 - `plugin-wp/regia-robots/` — lascia scrivere robots.txt al pannello (Rank Math o filtro).
@@ -77,6 +77,11 @@ delle rotte protette da chiave:
     curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/diagnosi
     curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/verifica
 
+Opzionale, sondaggio citazioni (campione di Claude, non indice
+pubblico):
+
+    curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/citazioni
+
 La scansione va un sito per notte: con la pausa fra le pagine, farli tutti
 insieme supera qualunque limite di tempo.
 
@@ -98,6 +103,7 @@ Vedi `docs/stato.md`: dice cosa è fatto, cosa manca e in che ordine, più i
 numeri da cui nasce la regola principale. È il primo file da leggere quando si
 riapre il progetto dopo una pausa.
 
-In breve: il codice del ciclo e al posto (testi, coda, due banchi Ads, conversioni
-Grants automatiche). Manca il resto del collegamento operativo. Vedi
-`docs/istruzioni-tue.md` e `docs/stato.md`.
+In breve: il ciclo e al posto, la home e un briefing (urgente, importante, quando
+puoi) con lezioni a 14 giorni. Pannello in sabbia/inchiostro/arancio, logo B
+Brignole. Manca il resto del collegamento operativo. Vedi `docs/istruzioni-tue.md`
+e `docs/stato.md`.

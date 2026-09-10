@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { query } from '@/lib/db'
 import { SITI } from '@/siti.config'
-import { Telaio, avviso, esitoOk } from '@/app/componenti/telaio'
+import { Telaio } from '@/app/componenti/telaio'
 import type { Azione } from '@/lib/registro'
 import { SchedaAzione } from './scheda-azione'
 import { CAMPI_DA_MODIFICARE, vistaSito, type VistaSito } from '@/lib/azioni-viste'
@@ -46,18 +46,6 @@ function perScheda(a: Azione): Azione {
   }
 }
 
-function schedaTab(attiva: boolean) {
-  return {
-    display: 'inline-block',
-    padding: '10px 16px',
-    fontSize: 15,
-    color: attiva ? '#161A18' : '#4A524E',
-    textDecoration: 'none',
-    borderBottom: attiva ? '2px solid #161A18' : '2px solid transparent',
-    fontWeight: attiva ? 600 : 400,
-  } as const
-}
-
 export default async function PaginaSito({
   params,
   searchParams,
@@ -78,13 +66,27 @@ export default async function PaginaSito({
   let errore: string | null = null
   let clic = 0
   let impressioni = 0
+  let clicAi = 0
+  let impressioniAi = 0
   try {
-    azioni = await query<Azione>(
-      `SELECT * FROM azioni WHERE sito_id = ?
-        ORDER BY FIELD(stato,'fallita','proposta','approvata','applicata','rifiutata','annullata'), id DESC
-        LIMIT 400`,
-      [s.id]
-    )
+    try {
+      azioni = await query<Azione>(
+        `SELECT a.*, v.esito AS verifica_esito, v.clic_prima AS verifica_clic_prima, v.clic_dopo AS verifica_clic_dopo
+           FROM azioni a
+           LEFT JOIN verifiche v ON v.azione_id = a.id AND v.giorni = 14
+          WHERE a.sito_id = ?
+          ORDER BY FIELD(a.stato,'fallita','proposta','approvata','applicata','rifiutata','annullata'), a.id DESC
+          LIMIT 400`,
+        [s.id]
+      )
+    } catch {
+      azioni = await query<Azione>(
+        `SELECT * FROM azioni WHERE sito_id = ?
+          ORDER BY FIELD(stato,'fallita','proposta','approvata','applicata','rifiutata','annullata'), id DESC
+          LIMIT 400`,
+        [s.id]
+      )
+    }
     const tot = await query<{ clic: number; impressioni: number }>(
       `SELECT COALESCE(SUM(clic),0) AS clic, COALESCE(SUM(impressioni),0) AS impressioni
          FROM misure WHERE sito_id = ? AND fonte = 'search-console' AND tipo_chiave = 'pagina'
@@ -93,6 +95,19 @@ export default async function PaginaSito({
     )
     clic = Number(tot[0]?.clic ?? 0)
     impressioni = Number(tot[0]?.impressioni ?? 0)
+    try {
+      const ai = await query<{ clic: number; impressioni: number }>(
+        `SELECT COALESCE(SUM(clic),0) AS clic, COALESCE(SUM(impressioni),0) AS impressioni
+           FROM misure WHERE sito_id = ? AND fonte = 'search-console-ai' AND tipo_chiave = 'pagina'
+            AND giorno >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`,
+        [s.id]
+      )
+      clicAi = Number(ai[0]?.clic ?? 0)
+      impressioniAi = Number(ai[0]?.impressioni ?? 0)
+    } catch {
+      clicAi = 0
+      impressioniAi = 0
+    }
   } catch (e) {
     errore = (e as Error).message
   }
@@ -108,66 +123,65 @@ export default async function PaginaSito({
   return (
     <Telaio titolo={s.nome} sottotitolo={`${s.dominio}. Automazione ${s.automazioneAttiva ? 'attiva' : 'spenta'}.`}>
       {banner && (
-        <div style={banner.ok ? esitoOk : avviso} role="status">
+        <div className={banner.ok ? 'al-esito' : 'al-avviso'} role="status">
           <strong>{banner.ok ? 'Fatto.' : 'Non e andata a buon fine.'}</strong>
-          <p style={{ margin: '8px 0 0', fontSize: 14 }}>{banner.testo}</p>
+          <p style={{ margin: '8px 0 0' }}>{banner.testo}</p>
         </div>
       )}
 
       {errore && (
-        <div style={avviso}>
+        <div className="al-avviso">
           <strong>Il database non risponde ancora.</strong>
-          <p style={{ margin: '8px 0 0', fontSize: 14 }}>{errore}</p>
+          <p style={{ margin: '8px 0 0' }}>{errore}</p>
         </div>
       )}
 
-      <p style={{ fontSize: 15 }}>
+      <p>
         Ultimi 30 giorni, Search Console: {clic.toLocaleString('it-CH')} clic, {impressioni.toLocaleString('it-CH')}{' '}
         impressioni.
         {zero ? ' Zero dati: se il sito e nuovo o non promosso, e normale, non e un guasto.' : ''}
       </p>
-      {s.note && <p style={{ fontSize: 14, color: '#4A524E' }}>{s.note}</p>}
+      <p className="al-muted">
+        {impressioniAi > 0
+          ? `Risposte generate da Google: ${impressioniAi.toLocaleString('it-CH')} sguardi, ${clicAi.toLocaleString('it-CH')} clic.`
+          : 'Google non ha ancora messo questo sito nelle risposte generate, o il rapporto non e disponibile.'}
+      </p>
+      {s.note && <p className="al-muted">{s.note}</p>}
       {s.scrittura.tipo === 'github' && (
-        <p style={{ fontSize: 14, color: '#4A524E' }}>
+        <p className="al-muted">
           Questo sito si aggiorna con una richiesta su GitHub, sui file in seo/ (contenuti.json e robots.txt). Approva apre
           la richiesta: la vetrina cambia solo quando il sito legge quel file.
         </p>
       )}
 
-      <nav
-        aria-label="Schede del sito"
-        style={{
-          display: 'flex',
-          gap: 4,
-          marginTop: 28,
-          borderBottom: '1px solid #DDE1DC',
-          flexWrap: 'wrap',
-        }}
-      >
-        <Link href={`/sito/${s.id}?vista=modificare`} style={schedaTab(vista === 'modificare')} aria-current={vista === 'modificare' ? 'page' : undefined}>
+      <nav className="al-tabs" aria-label="Schede del sito">
+        <Link
+          href={`/sito/${s.id}?vista=modificare`}
+          aria-current={vista === 'modificare' ? 'page' : undefined}
+        >
           Da modificare ({daModificare.length})
         </Link>
-        <Link href={`/sito/${s.id}?vista=note`} style={schedaTab(vista === 'note')} aria-current={vista === 'note' ? 'page' : undefined}>
+        <Link href={`/sito/${s.id}?vista=note`} aria-current={vista === 'note' ? 'page' : undefined}>
           Note ({note.length})
         </Link>
-        <Link href={`/sito/${s.id}?vista=storico`} style={schedaTab(vista === 'storico')} aria-current={vista === 'storico' ? 'page' : undefined}>
+        <Link href={`/sito/${s.id}?vista=storico`} aria-current={vista === 'storico' ? 'page' : undefined}>
           Storico ({storico.length})
         </Link>
       </nav>
 
       {vista === 'modificare' && (
-        <p style={{ fontSize: 14, color: '#4A524E', marginTop: 16 }}>
+        <p className="al-muted" style={{ marginTop: 16 }}>
           Titolo, descrizione, scheda prodotto, robots.txt: correggi se serve e Approva.
         </p>
       )}
       {vista === 'note' && (
-        <p style={{ fontSize: 14, color: '#4A524E', marginTop: 16 }}>
-          Avvisi che il pannello non puo scrivere da solo (link interni, dati strutturati, sitemap HTML). Chiudili dopo
-          averli letti.
+        <p className="al-muted" style={{ marginTop: 16 }}>
+          Avvisi che il pannello non puo scrivere da solo (link interni, H1, Merchant, vitali Chrome, istruzioni). Chiudili
+          dopo averli letti.
         </p>
       )}
       {vista === 'storico' && (
-        <p style={{ fontSize: 14, color: '#4A524E', marginTop: 16 }}>
+        <p className="al-muted" style={{ marginTop: 16 }}>
           Tutto quello che hai approvato, rifiutato o annullato. Niente sparisce. Da qui puoi ancora Annulla su una
           modifica applicata.
         </p>

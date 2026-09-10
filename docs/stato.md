@@ -1,4 +1,4 @@
-# Dove siamo, al 9 settembre 2026
+# Dove siamo, al 10 settembre 2026
 
 Questo file esiste per chi riapre il progetto: io, Claude Code, Cursor, o Claudio
 fra tre settimane. Dice a che punto è il lavoro e cosa viene dopo, senza dover
@@ -20,6 +20,12 @@ associazione: `docs/google-ads-api-tool-biography-library.pdf`.
 
 Guida clic per clic: `docs/istruzioni-tue.md`. Siti Node: `docs/siti-node.md`.
 
+Home: briefing unico (urgente, importante, quando puoi) e lezioni dalle
+verifiche a 14 giorni. Pannello in sabbia/inchiostro/arancio, logo B Brignole,
+font Shamgod e Karla. Regole in piu: Overview, cannibalizzazione, H1/canonical,
+lacune come istruzioni, caduta di posizione, vitali, Merchant. Raccolta CrUX
+e Merchant se ci sono chiave e invito. Cron citazioni a parte, opzionale.
+
 ## Da fare, in ordine
 
 Fase 1 Brignole, **già fatto:** Hostinger Node, GitHub, database pronto, manager
@@ -27,7 +33,10 @@ Ads senza Grants, PDF token caricato, variabili `GOOGLE_ADS_*`, API Cloud accese
 
 **Resto Fase 1 (tu):** JSON account di servizio in Hostinger, inviti Search Console
 e Analytics sui siti commerciali, sola lettura in Ads Brignole, password WP Aelle
-e brignole.ch, Ecwid, GitHub, cron. Token Basic in attesa da Google.
+e brignole.ch, Ecwid, GitHub, cron. Token Basic in attesa da Google. Opzionale:
+`CRUX_API_KEY` (Chrome UX Report API nel progetto Cloud Brignole) e invito
+dell account di servizio al Merchant Center 5717230535. Cron citazioni solo
+se vuoi il sondaggio marca.
 
 Poi: prima raccolta e scansione `sito=aelle`. Lettura `seo/contenuti.json` nei
 siti Node (StrangeGlyph per il meccanismo). Prova titolo home brignole.ch e Annulla.

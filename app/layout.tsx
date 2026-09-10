@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import './stili/aelle.css'
 
 export const metadata = {
   title: 'Regia SEO',
@@ -9,18 +10,7 @@ export const metadata = {
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="it">
-      <body
-        style={{
-          margin: 0,
-          background: '#F6F7F5',
-          color: '#161A18',
-          fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
-          fontSize: 15,
-          lineHeight: 1.55,
-        }}
-      >
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

@@ -1,7 +1,11 @@
 /**
- * Un solo punto per chiedere un testo a Claude, Gemini o Mistral.
- * Si cambia cervello con MODELLO_TESTI. Grok si aggiunge quando c e la chiave.
+ * Un solo punto per chiedere un testo. Oggi solo Claude (Sonnet 5).
+ * Gemini, Mistral e Grok restano nel file, spenti, se un giorno servono.
  */
+
+function quale(): string {
+  return (process.env.MODELLO_TESTI ?? 'claude').toLowerCase()
+}
 
 function quale(): string {
   return (process.env.MODELLO_TESTI ?? 'claude').toLowerCase()
@@ -30,15 +34,22 @@ async function claude(sistema: string, utente: string): Promise<string> {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: process.env.MODELLO_CLAUDE ?? 'claude-sonnet-4-5',
-      max_tokens: 800,
+      model: process.env.MODELLO_CLAUDE ?? 'claude-sonnet-5',
+      // L API lo pretende. Non e un tetto sui testi: 8192 sta largo per bozze Ads e istruzioni.
+      max_tokens: 8192,
+      // Sonnet 5 accende il thinking da solo: per titoli e bozze lo spegniamo.
+      thinking: { type: 'disabled' },
       system: sistema,
       messages: [{ role: 'user', content: utente }],
     }),
   })
   const corpo = await res.json()
   if (!res.ok) throw new Error(`Claude: ${res.status} ${corpo?.error?.message ?? ''}`)
-  const testo = corpo.content?.map((c: { text?: string }) => c.text ?? '').join('') ?? ''
+  const testo =
+    corpo.content
+      ?.filter((c: { type?: string }) => !c.type || c.type === 'text')
+      .map((c: { text?: string }) => c.text ?? '')
+      .join('') ?? ''
   if (!testo.trim()) throw new Error('Claude ha risposto vuoto')
   return testo.trim()
 }

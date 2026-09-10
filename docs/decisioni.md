@@ -108,3 +108,25 @@ Rank Math, escludi sitemap*.xml da LiteSpeed). Sui siti Node la scrittura e
 Su WordPress Approva chiama il plugin `plugin-wp/regia-robots`; se c e un file
 fisico in radice, Rank Math non vale e va cancellato dal File Manager.
 
+## 2026-09-10, pannello in faccia Aelle, logo B Brignole
+Colori, caratteri e pezzi dal Design System Aelle (sabbia, inchiostro, arancio
+#FF4F00, Shamgod e Karla). Nessun logo Aelle nel pannello: in testata il B
+Brignole. I due banchi Ads restano due schermate.
+
+## 2026-09-10, briefing a lunghezza variabile
+La home elenca prima l urgente, poi l importante. Niente tetto fisso. Le medie
+restano sotto, o solo nella scheda sito se le altre sono tante. Le verifiche a
+14 giorni si vedono in home e in Storico.
+
+## 2026-09-10, Overview, CrUX, Merchant, citazioni
+Le AI Overview si leggono dalla Search Console (anche per query), non servono
+file magici. CrUX e Merchant sono sola lettura: se manca la chiave o l invito,
+la raccolta salta. Le citazioni LLM sono un campione di Claude (stesso modello dei testi),
+non l indice pubblico di ChatGPT.
+
+## 2026-09-10, una sola AI: Claude
+Titoli, descrizioni, istruzioni, bozze Ads e sondaggio citazioni passano tutti
+da Claude Sonnet 5. Gemini, Mistral e Grok restano nel codice ma non si usano.
+Niente rotazione e niente secondo cervello finche non lo chiediamo.
+
+

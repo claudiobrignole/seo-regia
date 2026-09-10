@@ -35,6 +35,9 @@ export type Azione = {
   errore?: string | null
   creata_il?: Date | string | null
   applicata_il?: Date | string | null
+  verifica_esito?: string | null
+  verifica_clic_prima?: number | null
+  verifica_clic_dopo?: number | null
 }
 
 export async function proponi(a: Omit<Azione, 'id' | 'stato'>): Promise<number> {

@@ -331,12 +331,13 @@ b {
 .al-griglia-voci {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-  margin-bottom: var(--space-8);
+  gap: var(--space-6);
+  row-gap: var(--space-8);
+  margin-bottom: var(--space-12);
 }
 .al-griglia-voci .al-scheda {
   margin-bottom: 0;
-  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -350,16 +351,23 @@ b {
 }
 .al-voce .al-voce-href {
   margin-top: auto;
-  padding-top: var(--space-3);
+  padding-top: var(--space-5);
+  padding-bottom: 2px;
+}
+.al-griglia-coda {
+  margin-top: 0;
+  margin-bottom: var(--space-8);
 }
 @media (min-width: 768px) {
   .al-griglia-voci {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-8);
   }
 }
 @media (min-width: 1100px) {
   .al-griglia-voci {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-8);
   }
 }
 .al-scheda-fallita {

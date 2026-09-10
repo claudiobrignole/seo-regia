@@ -189,7 +189,7 @@ export default async function Pannello() {
             </>
           )}
           {briefing.nascoste > 0 && (
-            <p className="al-muted">
+            <p className="al-muted al-griglia-coda">
               Altre {briefing.nascoste} {briefing.nascoste === 1 ? 'proposta sta' : 'proposte stanno'} nelle schede
               dei siti: qui solo le piu urgenti.
             </p>

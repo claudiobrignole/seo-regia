@@ -7,10 +7,6 @@ function quale(): string {
   return (process.env.MODELLO_TESTI ?? 'claude').toLowerCase()
 }
 
-function quale(): string {
-  return (process.env.MODELLO_TESTI ?? 'claude').toLowerCase()
-}
-
 export async function completa(sistema: string, utente: string): Promise<string> {
   const m = quale()
   if (m === 'gemini') return gemini(sistema, utente)

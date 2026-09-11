@@ -1,4 +1,4 @@
-# Dove siamo, al 10 settembre 2026
+# Dove siamo, all 11 settembre 2026
 
 Questo file esiste per chi riapre il progetto: io, Claude Code, Cursor, o Claudio
 fra tre settimane. Dice a che punto è il lavoro e cosa viene dopo, senza dover
@@ -18,7 +18,9 @@ Biography Library: niente Analytics sul sito. Conversioni Grants dal plugin
 Documento token Brignole: `docs/google-ads-api-tool-brignole.pdf`. Documento token
 associazione: `docs/google-ads-api-tool-biography-library.pdf`.
 
-Guida clic per clic: `docs/istruzioni-tue.md`. Siti Node: `docs/siti-node.md`.
+Guida clic per clic: `docs/istruzioni-tue.md`. Passi rimasti a Claudio:
+`docs/passi-rimasti.md`. Prova autonoma per un agente: `docs/istruzioni-claude.md`
+(`npm run verifica`). Siti Node: `docs/siti-node.md`.
 
 Home: briefing unico (urgente, importante, quando puoi) e lezioni dalle
 verifiche a 14 giorni. Pannello in sabbia/inchiostro/arancio, logo B Brignole,
@@ -28,22 +30,21 @@ e Merchant se ci sono chiave e invito. Cron citazioni a parte, opzionale.
 
 ## Da fare, in ordine
 
-Fase 1 Brignole, **già fatto:** Hostinger Node, GitHub, database pronto, manager
-Ads senza Grants, PDF token caricato, variabili `GOOGLE_ADS_*`, API Cloud accese.
+Lista clic per clic di ciò che resta a Claudio: `docs/passi-rimasti.md`.
 
-**Resto Fase 1 (tu):** JSON account di servizio in Hostinger, inviti Search Console
-e Analytics sui siti commerciali, sola lettura in Ads Brignole, password WP Aelle
-e brignole.ch, Ecwid, GitHub, cron. Token Basic in attesa da Google. Opzionale:
-`CRUX_API_KEY` (Chrome UX Report API nel progetto Cloud Brignole) e invito
-dell account di servizio al Merchant Center 5717230535. Cron citazioni solo
-se vuoi il sondaggio marca.
+**Già fatto (11 settembre):** codice in produzione, Database pronto, plugin
+Regia robots sui tre WordPress, Regia BL Grants sul sito associazione, 27
+variabili Hostinger (token Ads ancora di prova).
 
-Poi: prima raccolta e scansione `sito=aelle`. Lettura `seo/contenuti.json` nei
-siti Node (StrangeGlyph per il meccanismo). Prova titolo home brignole.ch e Annulla.
+**Resto, tu nel browser:** `BL_SERVICE_ACCOUNT_JSON` (progetto Cloud
+associazione), inviti Search Console / Analytics Brignole / Ads sola lettura
+Brignole e Standard Grants, prove raccolta e scansione Aelle, undici sveglie
+Cron (compreso il controllo impianto). Token Basic in attesa da Google.
 
-**Fase 5 Biography Library (tu, dopo il plugin in repo):** niente GA/pixel sul
-sito, installa il plugin, Console DNS, Cloud senza Analytics, manager Grants,
-token con il PDF associazione, account di servizio **Standard**, `WP_BL_*`.
+Opzionale: `CRUX_API_KEY`, invito Merchant Center 5717230535, cron citazioni.
+
+Poi, in Cursor sui siti Node: lettura `seo/contenuti.json` (prima StrangeGlyph).
+Prova titolo home brignole.ch e Annulla.
 
 **Campagne:** quando Claudio sceglie. Ipotesi Grants su Biography Library, spesa
 Brignole su Aelle Store. Non mescolare i due account.

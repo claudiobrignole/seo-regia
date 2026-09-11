@@ -250,12 +250,12 @@ Verifica (puo restituire zero: non ci sono ancora modifiche applicate da quattor
 
 Deve comparire del testo JSON, non “chiave non valida”.
 
-### Poi, la sveglia su Hostinger (dieci righe, piu una opzionale)
+### Poi, la sveglia su Hostinger (undici righe, piu una opzionale)
 
 1. hPanel → sito `seo.brignole.ch` → Dashboard.
 2. Nella barra a sinistra cerca **Cron Jobs** (a volte **Lavori Cron**).
 3. Tipo: **Custom** (non PHP).
-4. Crea **dieci** lavori, uno alla volta. Incolla il comando intero nella casella Command / Comando. L orario di Hostinger e UTC: le tre di notte UTC sono le cinque in Svizzera d estate.
+4. Crea **undici** lavori, uno alla volta. Incolla il comando intero nella casella Command / Comando. L orario di Hostinger e UTC: le tre di notte UTC sono le cinque in Svizzera d estate.
 
 La scansione e **un sito per notte**: Aelle da sola non sta in tre minuti, si riprende la settimana dopo. Non mettere tutti i siti nella stessa sveglia.
 
@@ -291,6 +291,10 @@ La scansione e **un sito per notte**: Aelle da sola non sta in tre minuti, si ri
 **Solo lunedi, ore 5:00** (minuto 0, ora 5, giorno della settimana 1):
 
 `curl -fsS "https://seo.brignole.ch/api/cron/verifica?chiave=INCOLLA_LA_CHIAVE"`
+
+**Ogni giorno, ore 5:15** (minuto 15, ora 5): controllo impianto (Search Console, WordPress, GitHub, Ads). I risultati stanno nel pannello, voce Impianto:
+
+`curl -fsS "https://seo.brignole.ch/api/cron/impianto?chiave=INCOLLA_LA_CHIAVE"`
 
 **Opzionale, ogni giorno ore 5:30** (minuto 30, ora 5), sondaggio citazioni (campione, non ChatGPT pubblico):
 

@@ -1,6 +1,7 @@
 import { query } from '@/lib/db'
 import { SITI } from '@/siti.config'
 import { CAMPI_DA_MODIFICARE } from '@/lib/azioni-viste'
+import { ultimaPassata } from '@/lib/impianto/salva'
 
 export type Livello = 'urgente' | 'importante' | 'media'
 
@@ -13,7 +14,7 @@ export type VoceBriefing = {
   motivo: string
   comeSaprai: string
   guadagnoStimato: number | null
-  origine: 'azione' | 'verdetto' | 'grants' | 'lezione'
+  origine: 'azione' | 'verdetto' | 'grants' | 'lezione' | 'impianto'
 }
 
 /** In home solo queste: il resto resta nella scheda del sito. */
@@ -84,6 +85,7 @@ function hrefAzione(sitoId: string, id: number, vista: 'modificare' | 'note' | '
 }
 
 function priorita(v: VoceBriefing): number {
+  if (v.origine === 'impianto') return 500
   if (v.origine === 'grants') return 400
   if (v.origine === 'lezione') return 350
   if (v.origine === 'verdetto') return 300
@@ -128,6 +130,32 @@ export async function vociBriefing(): Promise<{
     )
 
     const voci: VoceBriefing[] = []
+
+    try {
+      const imp = await ultimaPassata()
+      if (imp && Number(imp.n_fallito) > 0) {
+        const elenco = imp.esiti
+          .filter((e) => e.esito === 'fallito')
+          .map((e) => e.titolo)
+          .slice(0, 6)
+        voci.push({
+          livello: 'urgente',
+          sitoId: 'brignole',
+          nomeSito: 'Impianto',
+          href: '/impianto',
+          titolo:
+            Number(imp.n_fallito) === 1
+              ? 'Un controllo notturno e fallito'
+              : `${imp.n_fallito} controlli notturni sono falliti`,
+          motivo: `${elenco.join('; ')}. Apri Impianto: ogni riga dice l errore e cosa fare.`,
+          comeSaprai: 'La sveglia /api/cron/impianto ripete i controlli ogni notte. Puoi anche lanciare Controlla adesso.',
+          guadagnoStimato: null,
+          origine: 'impianto',
+        })
+      }
+    } catch {
+      /* tabelle impianto ancora assenti */
+    }
 
     for (const a of azioni) {
       const scrivibile = CAMPI_DA_MODIFICARE.has(a.campo)

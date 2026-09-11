@@ -420,6 +420,9 @@ b {
   border-bottom: 1px solid var(--line-subtle);
   vertical-align: top;
 }
+.al-tabella tr.al-riga-fallita td {
+  background: color-mix(in oklab, var(--al-orange-500) 8%, var(--surface-card));
+}
 .al-numeri {
   font-variant-numeric: tabular-nums;
 }

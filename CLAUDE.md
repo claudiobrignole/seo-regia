@@ -41,6 +41,8 @@ Gira su Hostinger Business, piano che supporta Node.
 - `db/schema.sql` — lo schema. Si applica con `npm run db:migra`.
 - `docs/decisioni.md` — perché le cose sono come sono, con la data.
 - `docs/istruzioni-tue.md` — passi nel browser, per chi non programma.
+- `docs/istruzioni-claude.md` — come un agente prova da solo che le funzioni
+  rispondono. Comando: `npm run verifica` (ciclo notturno: `--cron`).
 
 ## Credenziali
 
@@ -77,6 +79,11 @@ delle rotte protette da chiave:
     curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/diagnosi
     curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/verifica
 
+Controllo quotidiano dell impianto (Search Console, WordPress, GitHub, Ads),
+i risultati stanno in /impianto:
+
+    curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/impianto
+
 Opzionale, sondaggio citazioni (campione di Claude, non indice
 pubblico):
 
@@ -102,6 +109,10 @@ insieme supera qualunque limite di tempo.
 Vedi `docs/stato.md`: dice cosa è fatto, cosa manca e in che ordine, più i
 numeri da cui nasce la regola principale. È il primo file da leggere quando si
 riapre il progetto dopo una pausa.
+
+Per **controllare e provare** l’impianto (raccolta, identità, WordPress,
+GitHub, pannello): `docs/istruzioni-claude.md` e `npm run verifica`.
+Nel pannello: voce **Impianto** (`/impianto`), sveglia `/api/cron/impianto`.
 
 In breve: il ciclo e al posto, la home e un briefing (urgente, importante, quando
 puoi) con lezioni a 14 giorni. Pannello in sabbia/inchiostro/arancio, logo B

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
-    "db:migra": "node scripts/migra.mjs"
+    "db:migra": "node scripts/migra.mjs",
+    "verifica": "node scripts/verifica-impianto.mjs"
   },
   "dependencies": {
     "next": "15.5.21",

@@ -224,5 +224,28 @@ CREATE TABLE IF NOT EXISTS tecnici (
   PRIMARY KEY (sito_id, tipo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Controllo quotidiano dell impianto: permessi Google, WordPress, GitHub, Ads.
+CREATE TABLE IF NOT EXISTS impianto_passate (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  iniziata_il   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finita_il     TIMESTAMP NULL,
+  n_ok          INT NOT NULL DEFAULT 0,
+  n_fallito     INT NOT NULL DEFAULT 0,
+  n_atteso      INT NOT NULL DEFAULT 0,
+  KEY idx_quando (iniziata_il)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS impianto_esiti (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  passata_id    BIGINT NOT NULL,
+  codice        VARCHAR(16) NOT NULL,
+  titolo        VARCHAR(255) NOT NULL,
+  esito         ENUM('ok','fallito','atteso') NOT NULL,
+  dettaglio     TEXT NOT NULL,
+  cosa_fare     TEXT NULL,
+  KEY idx_passata (passata_id),
+  KEY idx_esito (esito)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Se il database esiste gia, allarga il tipo chiave: CREATE TABLE IF NOT EXISTS non lo fa.
 ALTER TABLE misure MODIFY tipo_chiave VARCHAR(32) NOT NULL;

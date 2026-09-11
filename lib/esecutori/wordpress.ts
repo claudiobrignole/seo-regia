@@ -13,8 +13,10 @@ import type { Sito } from '@/siti.config'
 function credenziali(s: Sito) {
   if (s.scrittura.tipo !== 'wordpress') throw new Error(`${s.id} non e un sito WordPress`)
   const p = s.scrittura.prefissoCredenziali
-  const utente = process.env[`${p}_UTENTE`]
-  const password = process.env[`${p}_PASSWORD_APP`]
+  const utente = process.env[`${p}_UTENTE`]?.trim()
+  // WordPress mostra la password a gruppi di quattro con spazi: il server li ignora.
+  // Li togliamo qui, cosi Hostinger o .env.local possono tenerli o no.
+  const password = process.env[`${p}_PASSWORD_APP`]?.replace(/\s+/g, '')
   if (!utente || !password) {
     throw new Error(
       `Mancano ${p}_UTENTE o ${p}_PASSWORD_APP nelle variabili d ambiente. ` +

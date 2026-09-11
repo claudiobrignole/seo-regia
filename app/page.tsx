@@ -3,6 +3,7 @@ import { SITI } from '@/siti.config'
 import { Telaio } from '@/app/componenti/telaio'
 import { VoceRegista } from '@/app/componenti/voce-regista'
 import { lezioniRecenti, vociBriefing } from '@/lib/briefing'
+import { ultimaPassata } from '@/lib/impianto/salva'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -67,6 +68,7 @@ export default async function Pannello() {
   const perAi = new Map(overview.map((d) => [d.sito_id, d]))
   const briefing = errore ? null : await vociBriefing()
   const lezioni = errore ? [] : await lezioniRecenti()
+  const impianto = errore ? null : await ultimaPassata()
   let esecuzioni: Esecuzione[] = []
   if (!errore) {
     try {
@@ -94,6 +96,22 @@ export default async function Pannello() {
           <p style={{ margin: '8px 0 0' }}>
             Riempi i valori DB_ e apri <code>/api/setup/migra?chiave=LA_CHIAVE</code>. Dettaglio tecnico:{' '}
             {errore}
+          </p>
+        </div>
+      )}
+
+      {impianto && Number(impianto.n_fallito) > 0 && (
+        <div className="al-avviso">
+          <strong>
+            {Number(impianto.n_fallito) === 1
+              ? 'L impianto ha un problema.'
+              : `L impianto ha ${impianto.n_fallito} problemi.`}
+          </strong>
+          <p style={{ margin: '8px 0 0' }}>
+            Il controllo notturno ha trovato errori. Ogni riga dice cosa non risponde e cosa fare.{' '}
+            <Link href="/impianto" style={{ fontWeight: 700 }}>
+              Apri Impianto
+            </Link>
           </p>
         </div>
       )}

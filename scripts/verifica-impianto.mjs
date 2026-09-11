@@ -712,15 +712,15 @@ async function main() {
   if (presente('ECWID_TOKEN') && presente('ECWID_STORE_ID')) {
     try {
       const store = env.ECWID_STORE_ID
-      const r = await httpJson(
-        `https://app.ecwid.com/api/v3/${store}/profile?token=${encodeURIComponent(env.ECWID_TOKEN)}`
-      )
+      const r = await httpJson(`https://app.ecwid.com/api/v3/${store}/profile`, {
+        headers: { Authorization: `Bearer ${env.ECWID_TOKEN}` },
+      })
       registra(
         'F4',
         r.status === 200 ? 'ok' : 'fallito',
         'Ecwid',
         r.status === 200 ? `negozio ${r.json?.account?.accountName || store}` : `HTTP ${r.status}`,
-        'Token API Ecwid store 127192517'
+        r.status === 200 ? '' : 'Stesso secret_ dell app Ecwid, store 127192517, intestazione Authorization'
       )
     } catch (e) {
       registra('F4', 'saltato', 'Ecwid', e.message, '')

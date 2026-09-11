@@ -421,15 +421,17 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
   if (presente('ECWID_TOKEN') && presente('ECWID_STORE_ID')) {
     try {
       const store = process.env.ECWID_STORE_ID
-      const r = await fetch(
-        `https://app.ecwid.com/api/v3/${store}/profile?token=${encodeURIComponent(process.env.ECWID_TOKEN ?? '')}`
-      )
+      const r = await fetch(`https://app.ecwid.com/api/v3/${store}/profile`, {
+        headers: { Authorization: `Bearer ${process.env.ECWID_TOKEN ?? ''}` },
+      })
       metti(
         'F4',
         'Ecwid',
         r.status === 200 ? 'ok' : 'fallito',
         r.status === 200 ? `negozio ${store}` : `HTTP ${r.status}`,
-        'Nuovo token API Ecwid, store 127192517, lettura catalogo e ordini'
+        r.status === 200
+          ? ''
+          : 'Il token va nell intestazione Authorization, non nell indirizzo. Stesso secret_ dell app Ecwid, store 127192517'
       )
     } catch (e) {
       metti('F4', 'Ecwid', 'fallito', (e as Error).message, '')

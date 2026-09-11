@@ -1,4 +1,5 @@
 import { salvaMisura } from '@/lib/db'
+import { credenzialiEcwid } from '@/lib/ecwid/credenziali'
 
 /**
  * Ecwid conosce TUTTI gli ordini, indipendentemente dal consenso ai cookie.
@@ -9,10 +10,9 @@ import { salvaMisura } from '@/lib/db'
 const BASE = 'https://app.ecwid.com/api/v3'
 
 function credenziali() {
-  const storeId = process.env.ECWID_STORE_ID
-  const token = process.env.ECWID_TOKEN
-  if (!storeId || !token) throw new Error('Mancano ECWID_STORE_ID o ECWID_TOKEN in .env.local')
-  return { storeId, token }
+  const c = credenzialiEcwid()
+  if ('manca' in c) throw new Error('Mancano ECWID_STORE_ID o ECWID_TOKEN in .env.local')
+  return c
 }
 
 async function chiama<T>(percorso: string, parametri: Record<string, string> = {}): Promise<T> {

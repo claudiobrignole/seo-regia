@@ -5,6 +5,7 @@ import { auth, type Identita } from '@/lib/raccolta/google'
 import { banco, bancoPronto, gaql } from '@/lib/ads/chiamata'
 import { chiamaWordpress } from '@/lib/esecutori/wordpress'
 import { giornoIso } from '@/lib/date'
+import { avvisoTokenEcwid, credenzialiEcwid, leggiProfiloEcwid } from '@/lib/ecwid/credenziali'
 import type { ControlloImpianto, EsitoImpianto } from './tipi'
 
 function presente(nome: string): boolean {
@@ -418,33 +419,30 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
     metti('F2', 'GitHub Biography Library', 'atteso', 'manca GITHUB_TOKEN_BL', '')
   }
 
-  if (presente('ECWID_TOKEN') && presente('ECWID_STORE_ID')) {
-    try {
-      const store = process.env.ECWID_STORE_ID
-      const r = await fetch(`https://app.ecwid.com/api/v3/${store}/profile`, {
-        headers: { Authorization: `Bearer ${process.env.ECWID_TOKEN ?? ''}` },
-      })
-      let dettaglio = `HTTP ${r.status}`
-      if (r.status === 200) {
-        dettaglio = `negozio ${store}`
-      } else {
-        const corpo = accorcia(await r.text(), 180)
-        dettaglio = corpo ? `HTTP ${r.status}: ${corpo}` : `HTTP ${r.status}`
-      }
-      metti(
-        'F4',
-        'Ecwid',
-        r.status === 200 ? 'ok' : 'fallito',
-        dettaglio,
-        r.status === 200
-          ? ''
-          : 'Dopo il rilascio del codice: Impianto → Controlla adesso. Se resta 403, in Hostinger ECWID_TOKEN deve essere il secret_ (non il token pubblico), poi riavvia'
-      )
-    } catch (e) {
-      metti('F4', 'Ecwid', 'fallito', (e as Error).message, '')
-    }
+  const ecwid = credenzialiEcwid()
+  if ('manca' in ecwid) {
+    metti('F4', 'Ecwid', 'atteso', ecwid.manca, 'Variabili ECWID_STORE_ID e ECWID_TOKEN')
   } else {
-    metti('F4', 'Ecwid', 'atteso', 'mancano ECWID_TOKEN o ECWID_STORE_ID', '')
+    const avviso = avvisoTokenEcwid(ecwid.token)
+    if (avviso) {
+      metti('F4', 'Ecwid', 'fallito', `token ${ecwid.token.startsWith('public_') ? 'pubblico' : 'non secret_'}`, avviso)
+    } else {
+      try {
+        const r = await leggiProfiloEcwid()
+        const ok = r.status === 200
+        metti(
+          'F4',
+          'Ecwid',
+          ok ? 'ok' : 'fallito',
+          ok ? `negozio ${ecwid.storeId}` : `HTTP ${r.status}${r.corpo ? ': ' + accorcia(r.corpo, 160) : ''}`,
+          ok
+            ? ''
+            : 'Premi Controlla adesso dopo il deploy. Se resta 403: in Hostinger togli virgolette e spazi da ECWID_TOKEN (Show secret token), salva, riavvia'
+        )
+      } catch (e) {
+        metti('F4', 'Ecwid', 'fallito', (e as Error).message, 'Riprova Controlla adesso. Se dura troppo, Hostinger ha tagliato')
+      }
+    }
   }
 
   for (const identita of ['brignole', 'biography-library'] as const) {

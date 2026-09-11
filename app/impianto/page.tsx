@@ -9,7 +9,12 @@ function quando(v: Date | string | null | undefined): string {
   return s.length >= 16 ? s.slice(0, 16).replace('T', ' ') : s
 }
 
-export default async function PaginaImpianto() {
+export default async function PaginaImpianto({
+  searchParams,
+}: {
+  searchParams: Promise<{ errore?: string }>
+}) {
+  const q = await searchParams
   const passata = await ultimaPassata()
 
   return (
@@ -21,7 +26,21 @@ export default async function PaginaImpianto() {
         <button type="submit" className="al-btn al-btn-primary">
           Controlla adesso
         </button>
+        <p className="al-muted" style={{ marginTop: 8 }}>
+          Dopo un deploy premi qui e aspetta, anche un minuto. La tabella e l ultima passata salvata:
+          non si aggiorna da sola.
+        </p>
       </form>
+
+      {q.errore && (
+        <div className="al-avviso" style={{ marginBottom: 24 }}>
+          <strong>Il controllo non e arrivato in fondo.</strong>
+          <p style={{ margin: '8px 0 0' }}>
+            Hostinger ha tagliato o un servizio non ha risposto. Riprova Controlla adesso. Finche non
+            finisce, restano i risultati vecchi.
+          </p>
+        </div>
+      )}
 
       {!passata && (
         <p className="al-sezione-vuota">

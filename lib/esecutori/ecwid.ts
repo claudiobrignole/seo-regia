@@ -1,4 +1,5 @@
 import type { Prodotto } from '@/lib/raccolta/ecwid'
+import { credenzialiEcwid } from '@/lib/ecwid/credenziali'
 
 /**
  * Nel confronto prezzi contano le prime parole del titolo, e la forma che
@@ -10,10 +11,9 @@ import type { Prodotto } from '@/lib/raccolta/ecwid'
 const BASE = 'https://app.ecwid.com/api/v3'
 
 function credenziali() {
-  const storeId = process.env.ECWID_STORE_ID
-  const token = process.env.ECWID_TOKEN
-  if (!storeId || !token) throw new Error('Mancano ECWID_STORE_ID o ECWID_TOKEN in .env.local')
-  return { storeId, token }
+  const c = credenzialiEcwid()
+  if ('manca' in c) throw new Error('Mancano ECWID_STORE_ID o ECWID_TOKEN in .env.local')
+  return c
 }
 
 export async function leggiSeoProdotto(id: number): Promise<{ titolo: string | null; descrizione: string | null }> {

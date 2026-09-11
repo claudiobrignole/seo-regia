@@ -9,7 +9,9 @@ export async function POST(req: NextRequest) {
   try {
     await eseguiESalva()
   } catch {
-    /* la pagina mostra l errore o l assenza di passata */
+    const verso = urlPubblica(req, '/impianto')
+    verso.searchParams.set('errore', '1')
+    return Response.redirect(verso, 303)
   }
   const verso = urlPubblica(req, '/impianto')
   return Response.redirect(verso, 303)

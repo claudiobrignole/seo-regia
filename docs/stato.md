@@ -62,9 +62,10 @@ Portare il tasso di clic dallo 0,8 al due per cento significa passare da 757 a
 circa 1.900 visite senza pubblicare una riga nuova. E da qui che nasce la regola
 `ctr-basso.ts`, ed e la ragione per cui questo progetto esiste.
 
-## Le cinque cose che non vanno dimenticate
+## Le cose che non vanno dimenticate
 
 Il registro viene prima dell automazione. Analytics non conta il traffico e va
 filtrato per nome host; sui siti Biography Library non si installa. Due identita
 Google, mai mescolate. Due banchi pubblicita: spesa Brignole e quota Grants non
-si sommano mai. Conversioni Grants automatiche, niente CSV a mano.
+si sommano mai. Conversioni Grants automatiche, niente CSV a mano. Archivio
+Aelle 1991-2001: titoli originali della rivista, non si toccano.

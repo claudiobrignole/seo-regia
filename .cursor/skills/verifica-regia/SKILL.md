@@ -5,7 +5,7 @@ description: Controlla e prova il pannello Regia SEO in autonomia. Usa quando Cl
 
 # Verifica Regia SEO
 
-Segui `docs/istruzioni-claude.md` dall'alto in basso. Non violare i cinque vincoli in `CLAUDE.md`.
+Segui `docs/istruzioni-claude.md` dall'alto in basso. Non violare i vincoli in `CLAUDE.md` (registro, Analytics, due identita, due banchi Ads, niente tracker su Biography Library, archivio Aelle 1991-2001 intoccabile).
 
 ## Comandi
 

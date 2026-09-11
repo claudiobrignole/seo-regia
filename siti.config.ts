@@ -46,7 +46,7 @@ export const SITI: Sito[] = [
     automazioneAttiva: false,
     scrittura: { tipo: 'wordpress', base: 'https://aelle.hiphop', prefissoCredenziali: 'WP_AELLE', seoPlugin: 'rank-math' },
     identita: 'brignole',
-    note: 'Archivio 1991-2001. Il negozio Ecwid e incorporato qui, con due sezioni: Aelle e Tag Tales.',
+    note: 'Archivio 1991-2001: titoli originali della rivista, non si toccano (lib/siti/archivio-aelle.ts). Il negozio Ecwid e incorporato qui, con due sezioni: Aelle e Tag Tales.',
   },
   {
     id: 'aelle-store',

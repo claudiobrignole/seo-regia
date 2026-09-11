@@ -13,6 +13,7 @@ import { proponiModifica, proponiFileNellaCartellaSeo, leggiFileSeo } from '@/li
 import { scriviSeoProdotto, leggiSeoProdotto } from '@/lib/esecutori/ecwid'
 import { leggiRobotsPubblico } from '@/lib/scansione/tecnici'
 import { CAMPI_DA_MODIFICARE } from '@/lib/azioni-viste'
+import { propostaIntoccabile } from '@/lib/siti/archivio-aelle'
 
 function campoSeo(campo: string): 'titolo' | 'descrizione' {
   return campo === 'descrizione' ? 'descrizione' : 'titolo'
@@ -97,6 +98,11 @@ export async function applicaAzione(id: number): Promise<{ riferimento?: string 
   }
   if (!(a.valore_nuovo ?? '').trim()) {
     throw new Error('Manca il testo nuovo. Aspetta che il generatore lo componga, oppure scrivilo tu.')
+  }
+  if (await propostaIntoccabile(a.sito_id, a.bersaglio, a.campo)) {
+    throw new Error(
+      'Questo e un articolo dell archivio 1991-2001: il titolo originale della rivista non si tocca. Chiudi la scheda, non Approvare.'
+    )
   }
 
   try {

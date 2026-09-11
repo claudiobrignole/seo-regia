@@ -2,7 +2,7 @@ Progetto: pannello di regia SEO per i siti di Claudio Brignole.
 Stack: Next.js 15 (App Router), TypeScript, MySQL su Hostinger.
 
 Leggi CLAUDE.md prima di modificare qualcosa: contiene la mappa del progetto e
-i tre vincoli che non vanno violati.
+i vincoli che non vanno violati.
 
 Vincoli:
 - Il registro (lib/registro) viene prima dell'automazione. Nessuna scrittura su
@@ -17,6 +17,8 @@ Vincoli:
   solo da modulo del sito e upload notturno, mai CSV a mano.
 - I siti su repository si modificano solo tramite richiesta di modifica su file
   di dati in seo/ (contenuti.json, robots.txt), mai sul codice.
+- Archivio Aelle 1991-2001: titolo, descrizione e H1 originali della rivista.
+  Non si propongono testi nuovi su quegli articoli (lib/siti/archivio-aelle.ts).
 
 Stile:
 - Commenti, nomi di variabili e messaggi in italiano.

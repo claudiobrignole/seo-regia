@@ -424,14 +424,21 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
       const r = await fetch(`https://app.ecwid.com/api/v3/${store}/profile`, {
         headers: { Authorization: `Bearer ${process.env.ECWID_TOKEN ?? ''}` },
       })
+      let dettaglio = `HTTP ${r.status}`
+      if (r.status === 200) {
+        dettaglio = `negozio ${store}`
+      } else {
+        const corpo = accorcia(await r.text(), 180)
+        dettaglio = corpo ? `HTTP ${r.status}: ${corpo}` : `HTTP ${r.status}`
+      }
       metti(
         'F4',
         'Ecwid',
         r.status === 200 ? 'ok' : 'fallito',
-        r.status === 200 ? `negozio ${store}` : `HTTP ${r.status}`,
+        dettaglio,
         r.status === 200
           ? ''
-          : 'Il token va nell intestazione Authorization, non nell indirizzo. Stesso secret_ dell app Ecwid, store 127192517'
+          : 'Dopo il rilascio del codice: Impianto → Controlla adesso. Se resta 403, in Hostinger ECWID_TOKEN deve essere il secret_ (non il token pubblico), poi riavvia'
       )
     } catch (e) {
       metti('F4', 'Ecwid', 'fallito', (e as Error).message, '')

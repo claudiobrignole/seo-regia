@@ -8,7 +8,7 @@ Non è la guida per Claudio (`istruzioni-tue.md`, `passi-rimasti.md`).
 Non è la mappa del codice (`CLAUDE.md`). Qui c’è solo: cosa lanciare, cosa
 deve tornare, cosa è un fallimento vero, cosa è atteso.
 
-Prima di toccare codice o siti, leggi `CLAUDE.md` (cinque vincoli) e
+Prima di toccare codice o siti, leggi `CLAUDE.md` (vincoli) e
 `docs/stato.md`.
 
 ## Quando usarlo
@@ -38,6 +38,8 @@ Non dire “tutto ok” senza i risultati. Ogni riga ha un esito e un dato.
    = caricamento conversioni dai moduli (`lib/ads/carica-conversioni.ts`).
 5. **Siti Node:** si scrive solo `seo/contenuti.json` e `seo/robots.txt`, mai
    il codice. In prova **non** aprire PR a caso sui repo satellite.
+6. **Archivio Aelle 1991-2001:** titolo, descrizione e H1 originali. Non
+   Approvare e non chiedere a Claude un titolo nuovo su quegli articoli.
 
 Altri divieti in prova:
 

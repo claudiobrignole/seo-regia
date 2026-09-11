@@ -130,4 +130,18 @@ Titoli, descrizioni, istruzioni, bozze Ads e sondaggio citazioni passano tutti
 da Claude Sonnet 5. Gemini, Mistral e Grok restano nel codice ma non si usano.
 Niente rotazione e niente secondo cervello finche non lo chiediamo.
 
+## 2026-09-12, titoli originali dell archivio Aelle
+Gli articoli 1991-2001 sono testi della rivista, non schede SEO. Titolo,
+descrizione e H1 restano identici (italiano e inglese). La diagnosi non li
+propone, Approva si ferma, le schede gia in coda su quei campi si chiudono.
+Le interviste nuove e il negozio restano nel ciclo. Codice:
+`lib/siti/archivio-aelle.ts`. Per Claude: skill `.cursor/skills/aelle-archivio/`.
+
+## 2026-09-12, testi in coda vuoti
+La diagnosi crea molte schede e Claude ne riempie poche per passata (limite
+di tempo Hostinger). Prima si riempiono le schede gia vuote, poi se ne creano
+di nuove. Non si rigenera un testo gia presente. Il campo vuoto in scheda
+non e un bug: o e una nota (niente da pubblicare) o il testo arriva la notte
+dopo.
+
 

@@ -55,6 +55,7 @@ export function SchedaAzione({
   const etichettaCampo = ETICHETTA_CAMPO[azione.campo] ?? azione.campo
   const robots = azione.campo === 'robots'
   const fallita = azione.stato === 'fallita'
+  const testoNuovo = (azione.valore_nuovo ?? '').trim()
 
   useEffect(() => {
     if (!evidenziata) return
@@ -85,7 +86,9 @@ export function SchedaAzione({
       )}
       {scrivibile && inCoda && (
         <p className="al-muted">
-          Puoi correggere il testo sotto, poi Approva. Resta in questa pagina: vedrai se e andata a buon fine.
+          {testoNuovo
+            ? 'Puoi correggere il testo sotto, poi Approva. Resta in questa pagina: vedrai se e andata a buon fine.'
+            : 'Il testo lo scrive Claude poche schede per notte. Puoi scriverlo tu sotto, oppure aspettare la prossima diagnosi. Approva si accende quando c e un testo.'}
         </p>
       )}
       {azione.guadagno_stimato != null && (
@@ -144,8 +147,18 @@ export function SchedaAzione({
                 rows={robots ? 14 : 3}
                 required
                 disabled={!!attesa}
+                placeholder={
+                  robots
+                    ? undefined
+                    : 'Vuoto: Claude lo riempie nelle prossime diagnosi, oppure scrivilo tu.'
+                }
               />
-              <button type="submit" className="al-btn al-btn-primary" style={{ marginTop: 8 }} disabled={!!attesa}>
+              <button
+                type="submit"
+                className="al-btn al-btn-primary"
+                style={{ marginTop: 8 }}
+                disabled={!!attesa}
+              >
                 {attesa === 'applica' ? 'Attendi' : 'Approva'}
               </button>
             </form>

@@ -3,7 +3,7 @@
 Pannello che misura, diagnostica e corregge il SEO dei siti di Claudio Brignole.
 Gira su Hostinger Business, piano che supporta Node.
 
-## Le cinque cose da sapere prima di toccare qualsiasi cosa
+## Le cose da sapere prima di toccare qualsiasi cosa
 
 1. **Il registro viene prima dell'automazione.** Nessuna modifica automatica si
    accende se non è possibile annullarla. Ogni scrittura salva il valore
@@ -23,6 +23,11 @@ Gira su Hostinger Business, piano che supporta Node.
    DNS, Cloud serve al pannello. L unica scrittura su Google Ads e il caricamento
    notturno delle conversioni dai moduli del sito (`lib/ads/carica-conversioni.ts`).
    Il banco Brignole resta sola lettura. Nessun CSV a mano.
+6. **Archivio Aelle 1991-2001: titoli originali.** Gli articoli della rivista
+   storica (categoria WordPress `archivio`, elenchi `/archivio/` e `/en/archive/`)
+   non si riscrivono: titolo, descrizione e H1 restano quelli di stampa.
+   Codice: `lib/siti/archivio-aelle.ts`. Interviste e articoli nuovi si possono
+   proporre. Il negozio Ecwid no, non e archivio.
 
 ## Dove sta cosa
 

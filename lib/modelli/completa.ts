@@ -15,7 +15,25 @@ export async function completa(sistema: string, utente: string): Promise<string>
   return claude(sistema, utente)
 }
 
-async function claude(sistema: string, utente: string): Promise<string> {
+/** Una battuta della chat interna. Ruoli in italiano: nel database sono cosi. */
+export type Battuta = { ruolo: 'claudio' | 'claude'; testo: string }
+
+/**
+ * La chat interna passa sempre da Claude, anche se MODELLO_TESTI dice altro:
+ * gli altri modelli restano spenti e non hanno mai visto una conversazione.
+ * Se un giorno si accendono, il punto da cambiare e solo questa funzione.
+ */
+export async function conversa(sistema: string, battute: Battuta[]): Promise<string> {
+  if (battute.length === 0) throw new Error('Nessuna domanda da mandare a Claude')
+  return claude(
+    sistema,
+    battute.map((b) => ({ role: b.ruolo === 'claudio' ? 'user' : 'assistant', content: b.testo }))
+  )
+}
+
+type MessaggioClaude = { role: 'user' | 'assistant'; content: string }
+
+async function claude(sistema: string, utente: string | MessaggioClaude[]): Promise<string> {
   const chiave = process.env.ANTHROPIC_API_KEY
   if (!chiave) {
     throw new Error(
@@ -36,7 +54,7 @@ async function claude(sistema: string, utente: string): Promise<string> {
       // Sonnet 5 accende il thinking da solo: per titoli e bozze lo spegniamo.
       thinking: { type: 'disabled' },
       system: sistema,
-      messages: [{ role: 'user', content: utente }],
+      messages: typeof utente === 'string' ? [{ role: 'user', content: utente }] : utente,
     }),
   })
   const corpo = await res.json()

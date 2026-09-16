@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import type { Azione } from '@/lib/registro'
 import { CAMPI_DA_MODIFICARE, type VistaSito } from '@/lib/azioni-viste'
+import { ChatClaude } from '@/app/componenti/chat-claude'
 
 const ETICHETTA_STATO: Record<string, string> = {
   proposta: 'Da fare',
@@ -42,11 +43,14 @@ export function SchedaAzione({
   sitoId,
   vista,
   evidenziata = false,
+  battuteChat = 0,
 }: {
   azione: Azione
   sitoId: string
   vista: VistaSito
   evidenziata?: boolean
+  /** Quante battute ha gia questa proposta: si vede sul pulsante. */
+  battuteChat?: number
 }) {
   const [attesa, setAttesa] = useState<'applica' | 'rifiuta' | 'annulla' | null>(null)
   const scrivibile = CAMPI_DA_MODIFICARE.has(azione.campo)
@@ -182,6 +186,27 @@ export function SchedaAzione({
           </button>
         </form>
       )}
+
+      <ChatClaude
+        ambito="azione"
+        riferimento={String(azione.id)}
+        battute={battuteChat}
+        ancora={`azione-${azione.id}`}
+        suggerimenti={spunti(azione, scrivibile, inCoda)}
+      />
     </article>
   )
+}
+
+/** Le domande che quasi sempre servono, cosi non si parte dal foglio bianco. */
+function spunti(azione: Azione, scrivibile: boolean, inCoda: boolean): string[] {
+  const base = ['Perche il pannello propone questo, in due righe']
+  if (!inCoda) return [...base, 'Com e andata dopo che l ho approvata']
+  if (!scrivibile) return [...base, 'Cosa devo fare a mano, passo per passo']
+  const testo = (azione.valore_nuovo ?? '').trim()
+  return [
+    ...base,
+    testo ? 'Cosa cambia per chi cerca, rispetto a quello che c e ora' : 'Scrivi tu il testo che manca',
+    'Fammelo piu semplice e piu corto',
+  ]
 }

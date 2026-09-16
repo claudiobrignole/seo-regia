@@ -7,6 +7,10 @@ i vincoli che non vanno violati.
 Vincoli:
 - Il registro (lib/registro) viene prima dell'automazione. Nessuna scrittura su
   un sito senza salvare il valore precedente.
+- La chat interna (lib/chat) propone e Claudio conferma con un pulsante. Nessuna
+  mossa parte da sola, e le mosse possibili le decide il dossier dell'oggetto,
+  non la domanda. Le indicazioni della memoria (lib/memoria) entrano nelle
+  istruzioni dei testi futuri: non sono un diario.
 - Analytics non conta il traffico: il consenso ai cookie lo blocca. Traffico di
   ricerca dalla Search Console, vendite da Ecwid.
 - Filtrare sempre Analytics per nome host: la proprietà riceve dati falsi.

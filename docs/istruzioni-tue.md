@@ -260,6 +260,16 @@ segreto nella barra del browser.
 
 Le azioni che restano a te, una per documento, stanno in `docs/tuo/00-indice.md`.
 
+### E c e la chat, su ogni proposta
+
+Sempre dal 16 settembre, sotto ogni proposta, ogni campagna e ogni bozza c e
+**Chiedi a Claude**: chiedi perche il pannello propone quella cosa, o dettagli che
+la scheda non dice. Se gli chiedi di cambiare il testo non lo cambia da solo:
+propone, e tu premi il pulsante. Quando gli dai una regola ti propone di
+ricordarla, e da quel momento vale per tutti i testi che scrive di notte: la voce
+**Memoria** le tiene tutte, e da li si archiviano. Guida:
+`docs/tuo/06-chat-memoria.md`.
+
 ### Poi, la sveglia su Hostinger (undici righe, piu una opzionale)
 
 I Cron Jobs di Hostinger si creano sul **dominio principale `brignole.ch`**, non sull applicazione Node `seo.brignole.ch`. Lì la voce non c e, ed e normale.

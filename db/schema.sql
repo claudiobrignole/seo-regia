@@ -247,5 +247,49 @@ CREATE TABLE IF NOT EXISTS impianto_esiti (
   KEY idx_esito (esito)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Chat interna. Una conversazione per oggetto: si riapre la scheda e si ritrova
+-- quello che ci si era detti, altrimenti ogni domanda ricomincia da zero.
+CREATE TABLE IF NOT EXISTS conversazioni (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  ambito        ENUM('azione','campagna','bozza') NOT NULL,
+  riferimento   VARCHAR(64)  NOT NULL,  -- id azione, identita:id campagna, id bozza
+  sito_id       VARCHAR(64)  NULL,
+  identita      ENUM('brignole','biography-library') NULL,
+  aperta_il     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ultimo_il     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_conv (ambito, riferimento),
+  KEY idx_sito (sito_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- mosse: le modifiche che Claude propone, in attesa del pulsante di Claudio.
+-- Nessuna parte da sola, e ognuna resta scritta anche dopo che e stata fatta.
+CREATE TABLE IF NOT EXISTS messaggi (
+  id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+  conversazione_id BIGINT     NOT NULL,
+  ruolo            ENUM('claudio','claude') NOT NULL,
+  testo            MEDIUMTEXT NOT NULL,
+  mosse            JSON       NULL,
+  quando           TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_conv (conversazione_id, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- La memoria: le indicazioni e le decisioni di Claudio. Le righe attive entrano
+-- nelle istruzioni di ogni testo che Claude scrive dopo, altrimenti sarebbe un
+-- diario e la stessa correzione andrebbe ripetuta ogni notte.
+CREATE TABLE IF NOT EXISTS memoria (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  ambito        ENUM('tutti','sito','pagina') NOT NULL DEFAULT 'tutti',
+  sito_id       VARCHAR(64)  NULL,
+  bersaglio     VARCHAR(768) NULL,
+  testo         TEXT         NOT NULL,
+  origine       ENUM('chat','mano') NOT NULL DEFAULT 'chat',
+  messaggio_id  BIGINT       NULL,
+  stato         ENUM('attiva','archiviata') NOT NULL DEFAULT 'attiva',
+  quando        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  archiviata_il TIMESTAMP    NULL,
+  KEY idx_attiva (stato, ambito),
+  KEY idx_sito (sito_id, stato)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Se il database esiste gia, allarga il tipo chiave: CREATE TABLE IF NOT EXISTS non lo fa.
 ALTER TABLE misure MODIFY tipo_chiave VARCHAR(32) NOT NULL;

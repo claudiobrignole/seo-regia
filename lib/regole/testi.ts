@@ -1,5 +1,6 @@
 import { query } from '@/lib/db'
 import { completa, jsonDaRisposta } from '@/lib/modelli/completa'
+import { bloccoIndicazioni } from '@/lib/memoria'
 import type { Proposta } from './tipi'
 import type { Sito } from '@/siti.config'
 
@@ -46,12 +47,17 @@ export async function compoTesto(s: Sito, p: Proposta): Promise<string> {
   const ricerche = await queryDellaPagina(s.id, p.bersaglio)
   const lingua = foto?.lingua || s.lingue[0] || 'it'
 
+  // Le indicazioni decise in chat entrano qui: senza questo, una correzione fatta
+  // a mano il lunedi tornerebbe identica il martedi notte.
+  const indicazioni = await bloccoIndicazioni(s.id, p.bersaglio)
+
   const sistema =
     `Scrivi testi SEO in ${lingua} per il sito ${s.nome} (${s.dominio}). ` +
     `Rispondi SOLO con un JSON {"titolo":"...","descrizione":"..."}. ` +
     `Niente trattino lungo. Non inventare nomi, date, sconti o fatti. ` +
     `Tieni i nomi propri gia presenti. Titolo max 60 caratteri, descrizione max 155. ` +
-    `Se le ricerche sono vuote, usa titolo e H1 della pagina, senza promettere traffico.`
+    `Se le ricerche sono vuote, usa titolo e H1 della pagina, senza promettere traffico.` +
+    indicazioni
 
   const utente = [
     `Pagina: ${p.bersaglio}`,

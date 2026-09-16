@@ -87,6 +87,28 @@ Solo se Claudio chiede esplicitamente di provare Approva e Annulla: lo script
 brignole.ch, poi Annulla nella stessa sessione). Se non c’è una proposta
 applicabile, **non** inventare scritture.
 
+Un lavoro del ciclo, senza aspettare la notte:
+
+```bash
+npm run lavoro -- raccolta
+npm run lavoro -- scansione strangeglyph
+```
+
+La chat interna su un oggetto vero. Stampa il dossier che Claude legge, le mosse
+permesse e quelle che propone. **Non** conferma niente: le mosse restano in
+attesa, come nel pannello.
+
+```bash
+npm run chat -- azione aelle "perche proponi questo titolo"
+npm run chat -- campagna brignole:1234567890 "sto spendendo bene"
+```
+
+Scrive una conversazione nel database, non tocca proposte ne siti. Per provare la
+salvaguardia dell archivio Aelle: prendi una chiave da `chiaviArchivioAelle()`,
+inserisci una proposta finta di `titolo` su quell URL, controlla che
+`contesto('azione', id).permesse` **non** contenga `cambia_testo`, poi cancella la
+riga.
+
 Tipo TypeScript, a parte:
 
 ```bash

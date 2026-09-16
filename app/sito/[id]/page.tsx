@@ -6,6 +6,7 @@ import { Telaio } from '@/app/componenti/telaio'
 import type { Azione } from '@/lib/registro'
 import { SchedaAzione } from './scheda-azione'
 import { CAMPI_DA_MODIFICARE, vistaSito, type VistaSito } from '@/lib/azioni-viste'
+import { conteggioPerAmbito } from '@/lib/chat'
 
 export const dynamic = 'force-dynamic'
 
@@ -113,6 +114,10 @@ export default async function PaginaSito({
   } catch (e) {
     errore = (e as Error).message
   }
+
+  // Quante battute ha ogni proposta: si legge sul pulsante della chat, altrimenti
+  // una conversazione avuta la settimana scorsa resta invisibile.
+  const battute = await conteggioPerAmbito('azione', s.id)
 
   const inCoda = azioni.filter((a) => IN_CODA.has(a.stato))
   const daModificare = inCoda.filter((a) => CAMPI_DA_MODIFICARE.has(a.campo))
@@ -225,6 +230,7 @@ export default async function PaginaSito({
           sitoId={s.id}
           vista={vista}
           evidenziata={scelta?.id === a.id}
+          battuteChat={battute.get(String(a.id)) ?? 0}
         />
       ))}
     </Telaio>

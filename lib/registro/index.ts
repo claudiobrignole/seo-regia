@@ -7,7 +7,10 @@ import { query, unaRiga } from '@/lib/db'
 
 export async function annota(
   sitoId: string,
-  evento: 'applicata' | 'annullata' | 'verificata' | 'errore' | 'rifiutata',
+  // testo_cambiato: la chat ha riscritto il valore proposto. Non e una scrittura
+  // sul sito, ma va nel registro comunque: fra un mese si deve poter capire
+  // perche quel titolo e diventato quello.
+  evento: 'applicata' | 'annullata' | 'verificata' | 'errore' | 'rifiutata' | 'testo_cambiato',
   azioneId: number | null,
   dettaglio?: unknown
 ) {

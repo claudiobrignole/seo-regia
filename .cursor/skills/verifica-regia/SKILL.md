@@ -12,10 +12,14 @@ Segui `docs/istruzioni-claude.md` dall'alto in basso. Non violare i vincoli in `
 ```bash
 npm run verifica
 npm run verifica -- --cron
+npm run lavoro -- raccolta
+npm run chat -- azione aelle "perche proponi questo titolo"
 npx tsc --noEmit
 ```
 
 `--cron` scrive nel database (misure, pagine, proposte), non sui siti.
+`npm run chat` scrive una conversazione e stampa le mosse proposte, senza confermarne
+nessuna: nella chat le mosse partono solo dal pulsante di Claudio.
 Non fare Approva/Annulla sui siti se Claudio non l'ha chiesto. In quel caso capitolo I del file, solo brignole.ch, poi Annulla subito.
 
 ## Uscita

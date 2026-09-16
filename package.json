@@ -10,7 +10,8 @@
     "lint": "next lint",
     "db:migra": "node scripts/migra.mjs",
     "verifica": "node scripts/verifica-impianto.mjs",
-    "lavoro": "npx --yes tsx@4.19.2 scripts/prova-lavoro.mts"
+    "lavoro": "npx --yes tsx@4.19.2 scripts/prova-lavoro.mts",
+    "chat": "npx --yes tsx@4.19.2 scripts/prova-chat.mts"
   },
   "dependencies": {
     "next": "15.5.21",

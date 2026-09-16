@@ -1,5 +1,35 @@
 # Dove siamo, al 16 settembre 2026
 
+## Chat interna e memoria, 16 settembre (sera)
+
+Su ogni proposta, campagna e bozza c e **Chiedi a Claude**. Claude legge un dossier
+con i numeri veri di quella scheda (Search Console 28 giorni, ricerche della
+pagina, titolo e H1 dalla scansione, verdetto della campagna) e risponde in
+italiano. Se gli si chiede un cambiamento **non lo fa**: propone una mossa e il
+pannello mostra un pulsante. Scelta di Claudio.
+
+- Mosse possibili: *Usa questo testo*, *Chiudi la proposta*, *Scarta la bozza*,
+  *Ricorda questa indicazione*. Sulle campagne vere solo l ultima: il banco Ads
+  resta in sola lettura.
+- Sull archivio Aelle 1991-2001 la mossa *Usa questo testo* non esiste, e il
+  dossier spiega a Claude perche. Provato inserendo una proposta finta su un
+  articolo di archivio: `cambia_testo` non compare fra le mosse permesse.
+- Un testo cambiato dalla chat va nel registro come `testo_cambiato`, con il
+  numero del messaggio da cui viene.
+- Il testo che entra nella proposta si rilegge dal messaggio salvato, non dal
+  browser. Una mossa confermata due volte viene rifiutata.
+- **Memoria** (`/memoria`): le indicazioni attive entrano nelle istruzioni di ogni
+  testo che Claude scrive di notte (titoli, descrizioni, istruzioni delle lacune,
+  bozze pubblicita). Provato: indicazione registrata dalla chat, e
+  `bloccoIndicazioni('aelle', ...)` la restituisce subito.
+- Tre tabelle nuove: `conversazioni`, `messaggi`, `memoria`. Vanno create una
+  volta con `/api/setup/migra`, altrimenti la chat lo dice e spiega come fare.
+- Da terminale: `npm run chat -- azione aelle "perche proponi questo titolo"`.
+- Il verdetto delle campagne e uscito dalla cella di tabella: ora ogni campagna ha
+  una scheda con pro, contro, motivo e la chat sotto.
+
+Per Claudio: `docs/tuo/06-chat-memoria.md`.
+
 ## Aggiornamento del 16 settembre
 
 Tutti e sei i lavori del ciclo sono stati eseguiti per davvero contro il database

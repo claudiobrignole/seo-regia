@@ -1,5 +1,6 @@
 import { query } from '@/lib/db'
 import { completa } from '@/lib/modelli/completa'
+import { bloccoIndicazioni } from '@/lib/memoria'
 import type { Regola, Proposta } from './tipi'
 import type { Sito } from '@/siti.config'
 
@@ -65,7 +66,8 @@ export async function compoIstruzione(s: Sito, p: Proposta): Promise<string> {
   const sistema =
     `Scrivi in italiano, senza trattino lungo, per ${s.nome} (${s.dominio}). ` +
     `Non inventare fatti. Non dire di pubblicare da soli. Massimo 120 parole. ` +
-    `Struttura: 1) intento (informativo o negozio) 2) se un giorno si fa la pagina, H1 proposto 3) quali URL gia sul sito collegare.`
+    `Struttura: 1) intento (informativo o negozio) 2) se un giorno si fa la pagina, H1 proposto 3) quali URL gia sul sito collegare.` +
+    (await bloccoIndicazioni(s.id))
   const utente = [
     `Ricerca senza pagina: ${p.bersaglio}`,
     `Pagine gia sul sito: ${esistenti.map((e) => `${e.titolo} (${e.url})`).join('; ') || 'ancora nessuna in scansione'}`,

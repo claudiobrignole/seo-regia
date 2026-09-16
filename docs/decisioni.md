@@ -209,3 +209,53 @@ allarga solo il danno possibile di un bersaglio sbagliato. Il controllo F0b rest
 nel pannello come **atteso**, non come fallimento: un allarme che suona per una
 cosa decisa insegna a ignorare gli allarmi. Passi per chiuderlo, se un giorno si
 vuole: `docs/tuo/05-token-github.md`.
+
+## 2026-09-16, la chat interna propone e Claudio conferma
+Ogni proposta arrivava con un `motivo` di una frase, e non c era modo di chiedere
+perche. Ora su ogni proposta, campagna e bozza c e una chat con Claude
+(`lib/chat/`). Scelta di Claudio: Claude **non** cambia niente da solo nemmeno
+quando glielo si chiede a parole. Propone una mossa, il pannello mostra un
+pulsante, e finche non lo premi non e cambiato niente. Le mosse possibili le
+decide il dossier dell oggetto, non la domanda: su un articolo dell archivio
+Aelle la mossa "cambia testo" non esiste, e Claude sa perche. Il testo che entra
+nella proposta si rilegge dal messaggio salvato, non dal browser: quello che va
+dentro e esattamente quello che Claudio ha letto. Un cambio di testo dalla chat
+finisce nel registro come `testo_cambiato`, perche fra un mese si deve poter
+capire da dove viene quel titolo.
+
+## 2026-09-16, la memoria entra nelle istruzioni, altrimenti e un diario
+Le indicazioni raccolte in chat (`lib/memoria/`, pagina `/memoria`) non servono a
+rileggere le decisioni: le righe attive vengono aggiunte alle istruzioni di ogni
+testo che Claude scrive dopo, nei titoli e nelle descrizioni (`lib/regole/testi.ts`),
+nelle istruzioni per le lacune e nelle bozze pubblicita. Senza questo, una
+correzione fatta il lunedi tornerebbe identica il martedi notte, e la chat
+servirebbe solo a sfogarsi. Tre portate: tutti i siti, un sito, un indirizzo.
+Archiviare non cancella: una decisione vecchia spiega perche a un certo punto si
+era deciso cosi. Se le tabelle non esistono ancora, `bloccoIndicazioni` torna
+vuota invece di far fallire il lavoro notturno.
+
+## 2026-09-16, la chat passa solo da Claude
+`MODELLO_TESTI` puo scegliere il modello dei testi notturni, ma la chat usa Claude
+in ogni caso: gli altri tre restano spenti nel file e non hanno mai visto una
+conversazione. Un modello che risponde bene su un titolo non risponde
+necessariamente bene su dieci battute, e non serve scoprirlo di notte.
+
+## 2026-09-16, il consiglio sulle campagne esce dalla tabella
+Il verdetto del pannello (pro, contro, motivo) stava in una cella di tabella,
+dove tre frasi non si leggono. Ora la tabella tiene solo i numeri e ogni campagna
+ha una sua scheda con il consiglio e la chat sotto. Il banco resta in sola
+lettura: dalla chat non si mette in pausa niente e non si tocca un budget, si
+capisce cosa conviene fare e lo si fa nel proprio account Google Ads.
+
+## 2026-09-16, in config.php gli apici ci vanno, nelle variabili no
+`chiama.php` diceva di incollare la chiave "senza virgolette": vero per le
+variabili d ambiente di Hostinger, falso per un file PHP. Claudio ha seguito
+l istruzione e ha scritto `'chiave' => ABC123,` senza apici, che in PHP 8 non e
+una parola ma una costante inesistente: errore fatale, il file muore prima di
+chiamare il pannello, e nel database non resta niente. Puo essere la ragione per
+cui la sveglia non produceva risultati anche dopo che i Cron Jobs erano giusti.
+Ora il `require` sta in un try/catch che stampa la riga da correggere, l esempio
+mostra la riga giusta con gli apici e dice che sono parte del PHP. La lezione piu
+generale: un messaggio che dice "senza virgolette" va scritto sapendo in che
+formato finisce il valore, perche la stessa frase e giusta in un posto e sbagliata
+tre righe piu in la.

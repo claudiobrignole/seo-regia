@@ -21,10 +21,29 @@ function svegliaRegia(string $percorso): void
         fwrite(STDERR, "Manca config.php. Copia config.example.php, rinominalo config.php, incolla CRON_CHIAVE.\n");
         exit(1);
     }
-    $config = require $configFile;
+    // La chiave senza apici e PHP sbagliato: su PHP 8 e un errore fatale e la
+    // sveglia muore qui, senza lasciare traccia da nessuna parte. Succede
+    // davvero, perche nelle variabili del pannello la chiave va messa senza
+    // virgolette e viene naturale fare lo stesso qui. Meglio dirlo.
+    try {
+        $config = require $configFile;
+    } catch (Throwable $e) {
+        fwrite(
+            STDERR,
+            "config.php non e PHP valido: " . $e->getMessage() . "\n"
+            . "La riga della chiave deve essere esattamente cosi, apici compresi:\n"
+            . "    'chiave' => 'LA_TUA_CRON_CHIAVE',\n"
+            . "Gli apici fanno parte del PHP. Nelle variabili di Hostinger non ci vanno, qui si.\n"
+        );
+        exit(1);
+    }
+    if (!is_array($config)) {
+        fwrite(STDERR, "config.php deve finire con: return ['chiave' => 'LA_TUA_CRON_CHIAVE'];\n");
+        exit(1);
+    }
     $chiave = trim((string) ($config['chiave'] ?? ''));
     if ($chiave === '' || $chiave === 'INCOLLA_LA_CHIAVE') {
-        fwrite(STDERR, "In config.php incolla la stessa CRON_CHIAVE delle variabili del pannello, senza virgolette.\n");
+        fwrite(STDERR, "In config.php metti fra gli apici la stessa CRON_CHIAVE delle variabili del pannello.\n");
         exit(1);
     }
 

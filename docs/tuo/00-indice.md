@@ -4,16 +4,23 @@ Quattro azioni. Due sono da fare oggi e durano pochi minuti, due si possono
 rimandare senza che il pannello si fermi. Ogni azione ha il suo documento, con i
 clic e con la frase che ti dice se e andata.
 
-Prima una cosa che cambia il modo di lavorare: da adesso nel pannello c e la voce
-**Sveglia**. Ogni lavoro notturno ha un pulsante **Lancia adesso**. Non devi piu
+Prima due cose che cambiano il modo di lavorare.
+
+**Sveglia.** Ogni lavoro notturno ha un pulsante **Lancia adesso**. Non devi piu
 incollare indirizzi con la chiave nel browser, ne aspettare la notte per sapere
 se qualcosa funziona: apri Sveglia, premi, leggi la risposta in italiano.
+
+**Chiedi a Claude, e la Memoria.** Sotto ogni proposta, ogni campagna e ogni bozza
+c e una casella dove chiedere perche, e farti cambiare il testo parlando. Claude
+non tocca niente da solo: propone, e tu premi un pulsante. Quando gli dai una
+regola ti propone di ricordarla, e da quel momento vale per tutti i testi che
+scrive di notte. Vedi [06-chat-memoria.md](06-chat-memoria.md).
 
 ## Oggi (dieci minuti in tutto)
 
 | | Azione | Quanto | Se non la fai |
 | --- | --- | --- | --- |
-| 1 | [Rilasciare il codice nuovo](01-rilascio.md) | 3 minuti | Resta il pannello vecchio: niente pagina Sveglia, e la raccolta continua a durare sei minuti invece di sedici secondi |
+| 1 | [Rilasciare il codice nuovo](01-rilascio.md) | 3 minuti | Resta il pannello vecchio: niente pagina Sveglia, niente chat, e la raccolta continua a durare sei minuti invece di sedici secondi |
 | 2 | [Aggiungere la sveglia della raccolta](02-sveglia-raccolta.md) | 5 minuti | I numeri restano fermi: e la ragione per cui sembrava che non funzionasse niente |
 
 ## Quando vuoi (nessuna urgenza)

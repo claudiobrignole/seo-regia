@@ -6,8 +6,10 @@ Gira su Hostinger Business, piano che supporta Node.
 ## Le cose da sapere prima di toccare qualsiasi cosa
 
 1. **Il registro viene prima dell'automazione.** Nessuna modifica automatica si
-   accende se non è possibile annullarla. Ogni scrittura salva il valore
-   precedente in `azioni.valore_vecchio` e passa da `lib/registro/`.
+ accende se non è possibile annullarla. Ogni scrittura salva il valore
+ precedente in `azioni.valore_vecchio` e passa da `lib/registro/`. Vale anche
+ per la chat: Claude propone, Claudio conferma con un pulsante, e un testo
+ cambiato dalla chat finisce nel registro come `testo_cambiato`.
 2. **Analytics non conta il traffico.** Complianz blocca i tag prima del consenso
    ai cookie, quindi Analytics vede solo chi accetta. Il traffico di ricerca si
    legge dalla Search Console, le vendite da Ecwid. Analytics serve solo per il
@@ -42,6 +44,13 @@ Gira su Hostinger Business, piano che supporta Node.
 - `lib/regole/` — le diagnosi. Una regola, un file. La più importante è `ctr-basso.ts`.
 - `lib/esecutori/` — WordPress, GitHub, Ecwid. Gli unici punti che scrivono.
 - `lib/registro/` — storico e annullamento.
+- `lib/chat/` — la chat sulla singola proposta, campagna o bozza. `contesto.ts`
+  costruisce il dossier che Claude legge e decide **quali mosse sono possibili**
+  (su un articolo dell archivio Aelle, cambiare il testo non e fra le mosse).
+  Nessuna mossa parte da sola: Claude propone, il pannello mostra un pulsante.
+- `lib/memoria/` — le indicazioni e le decisioni. `bloccoIndicazioni()` le
+  aggiunge alle istruzioni di ogni testo futuro: senza quello sarebbe un diario e
+  la stessa correzione andrebbe ripetuta ogni notte. Pagina `/memoria`.
 - `lib/lavori/` — il corpo dei lavori del ciclo, come funzioni. Due strade li
   chiamano: `app/api/cron/` con la chiave, `/api/lavori/esegui` con la sessione
   (pulsante Lancia adesso nella pagina `/sveglia`). Un lavoro che si puo lanciare
@@ -83,10 +92,16 @@ Nel pannello, voce **Sveglia** (`/sveglia`): ogni lavoro dice quando ha girato
 l ultima volta, a che ora e atteso, e ha un pulsante **Lancia adesso**. Da
 terminale la stessa cosa:
 
-    npm run lavoro -- raccolta
-    npm run lavoro -- scansione strangeglyph
+ npm run lavoro -- raccolta
+ npm run lavoro -- scansione strangeglyph
 
 Scrive nel database (misure, pagine, proposte), non sui siti.
+
+La chat si prova allo stesso modo, e stampa anche il dossier che Claude legge e le
+mosse che propone (senza confermarne nessuna):
+
+ npm run chat -- azione aelle "perche proponi questo titolo"
+ npm run chat -- bozza 3 "il budget ha senso"
 
 ## Come girano i lavori notturni
 
@@ -139,6 +154,8 @@ GitHub, pannello): `docs/istruzioni-claude.md` e `npm run verifica`.
 Nel pannello: voce **Impianto** (`/impianto`), sveglia `/api/cron/impianto`.
 
 In breve: il ciclo e al posto, la home e un briefing (urgente, importante, quando
-puoi) con lezioni a 14 giorni. Pannello in sabbia/inchiostro/arancio, logo B
-Brignole. Manca il resto del collegamento operativo. Vedi `docs/istruzioni-tue.md`
-e `docs/stato.md`.
+puoi) con lezioni a 14 giorni. Su ogni proposta, campagna e bozza si puo chiedere
+a Claude perche, e farsi cambiare il testo con un pulsante di conferma; le
+indicazioni finiscono nella Memoria e da li nei testi futuri. Pannello in
+sabbia/inchiostro/arancio, logo B Brignole. Manca il resto del collegamento
+operativo. Vedi `docs/istruzioni-tue.md` e `docs/stato.md`.

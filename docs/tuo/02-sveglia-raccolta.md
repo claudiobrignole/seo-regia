@@ -2,6 +2,46 @@
 
 **Tempo: 5 minuti.** Questa e la ragione per cui i numeri erano fermi.
 
+## Prima di tutto: controlla gli apici in config.php
+
+Trovato stasera, e da solo puo aver fermato **tutte** le sveglie, non solo la
+raccolta. Nel tuo `config.example.php` in locale la riga della chiave era scritta
+cosi, senza apici:
+
+```php
+'chiave' => LATUACHIAVE,     ← sbagliato, mancano gli apici
+```
+
+La colpa e della mia istruzione: diceva *niente virgolette*, che e vero per le
+variabili di Hostinger e falso per un file PHP. In PHP quella riga non e una
+parola, e un nome di costante che non esiste: PHP 8 si ferma con un errore fatale,
+e il file muore **prima** di chiamare il pannello. Nessuna richiesta, nessuna riga
+nel database, nessun errore visibile nel pannello. Esattamente quello che vedevi.
+
+Cosa fare, un minuto:
+
+1. File Manager di **brignole.ch**, cartella `public_html/regia-sveglia`.
+2. Apri `config.php` (quello sul server, non l esempio).
+3. La riga deve essere esattamente cosi, apici compresi:
+
+   ```php
+   'chiave' => 'LA_TUA_CRON_CHIAVE',
+   ```
+
+4. Salva.
+5. In Cron Jobs, apri una riga qualsiasi (per esempio `diagnosi.php`), premi
+   **View Output**: se prima era vuoto o parlava di una costante, ora deve
+   comparire una riga con la data e `HTTP 200`.
+
+Nel codice ho messo una rete: se il file resta sbagliato, ora View Output dice
+in italiano quale riga correggere invece di restare muto. Ma il file sul server lo
+devi correggere tu, perche il rilascio da GitHub non lo tocca (ed e giusto: dentro
+c e un segreto).
+
+Nota: la chiave vera era finita nel file di esempio, che sta su GitHub. Non e mai
+stata inviata, ho controllato lo storico e non c e. Ho rimesso il segnaposto: la
+chiave resta valida, non c e niente da cambiare.
+
 ## Cosa e successo davvero
 
 Nei Cron Jobs di `brignole.ch` hai creato dodici righe, e sono giuste. Ma manca

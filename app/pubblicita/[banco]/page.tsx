@@ -3,6 +3,8 @@ import { query } from '@/lib/db'
 import { Telaio } from '@/app/componenti/telaio'
 import type { Identita } from '@/lib/raccolta/google'
 import type { BozzaContenuto } from '@/lib/ads/bozza'
+import { conteggioPerAmbito } from '@/lib/chat'
+import { ChatClaude } from '@/app/componenti/chat-claude'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,6 +75,8 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
 
   const perCamp = new Map(giorni.map((g) => [String(g.campagna_google_id), g]))
   const perVerdetto = new Map(verdetti.map((v) => [String(v.campagna_google_id), v]))
+  const battuteCampagne = await conteggioPerAmbito('campagna')
+  const battuteBozze = await conteggioPerAmbito('bozza')
 
   return (
     <Telaio titolo={cfg.titolo} sottotitolo={cfg.sottotitolo}>
@@ -120,35 +124,72 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
             <th>Stato</th>
             <th>Clic 30g</th>
             <th>{cfg.identita === 'biography-library' ? 'Quota usata' : 'Spesa'}</th>
-            <th>Consiglio</th>
           </tr>
         </thead>
         <tbody>
           {campagne.map((c) => {
             const g = perCamp.get(String(c.google_id))
-            const v = perVerdetto.get(String(c.google_id))
             return (
               <tr key={c.google_id}>
                 <td>{c.nome}</td>
                 <td>{c.stato}</td>
                 <td className="al-numeri">{g ? Number(g.clic).toLocaleString('it-CH') : '—'}</td>
                 <td className="al-numeri">{g ? Number(g.costo).toFixed(2) : '—'}</td>
-                <td>
-                  {v ? (
-                    <>
-                      <strong>{v.consiglio}</strong>
-                      <div className="al-muted">{v.pro}</div>
-                      <div className="al-muted">{v.contro}</div>
-                    </>
-                  ) : (
-                    'Ancora nessun verdetto'
-                  )}
-                </td>
               </tr>
             )
           })}
         </tbody>
       </table>
+
+      {campagne.length > 0 && (
+        <>
+          <h2>Consiglio del pannello, campagna per campagna</h2>
+          <p className="al-muted">
+            Il pannello legge Google Ads e non ci scrive: qui si capisce cosa conviene fare, poi lo fai tu
+            nell account. Sotto ogni campagna puoi chiedere a Claude perche il consiglio e quello.
+          </p>
+          {campagne.map((c) => {
+            const v = perVerdetto.get(String(c.google_id))
+            const riferimento = `${cfg.identita}:${c.google_id}`
+            return (
+              <article key={c.google_id} className="al-scheda">
+                <h3 style={{ margin: '0 0 4px' }}>{c.nome}</h3>
+                <p className="al-muted" style={{ margin: '0 0 12px' }}>
+                  {c.stato ?? 'stato sconosciuto'} • numero {c.google_id}
+                </p>
+                {v ? (
+                  <>
+                    <p style={{ margin: '0 0 8px' }}>
+                      <strong>{v.consiglio}</strong> (a {v.giorni} giorni)
+                    </p>
+                    <p style={{ margin: '0 0 4px' }}>{v.pro}</p>
+                    <p style={{ margin: '0 0 4px' }}>{v.contro}</p>
+                    <p className="al-muted" style={{ margin: '0 0 12px' }}>
+                      {v.motivo}
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ margin: '0 0 12px' }}>
+                    Ancora nessun verdetto: serve almeno una passata di raccolta Ads con dati veri.
+                  </p>
+                )}
+                <ChatClaude
+                  ambito="campagna"
+                  riferimento={riferimento}
+                  battute={battuteCampagne.get(riferimento) ?? 0}
+                  suggerimenti={[
+                    'Questi numeri sono buoni o cattivi, per una campagna cosi',
+                    cfg.identita === 'biography-library'
+                      ? 'Rischio qualcosa con le regole del Grants'
+                      : 'Sto spendendo bene questi soldi',
+                    'Cosa cambierei per primo, e perche',
+                  ]}
+                />
+              </article>
+            )
+          })}
+        </>
+      )}
 
       <h2>Bozze da creare a mano su Google Ads</h2>
       <p className="al-muted">
@@ -204,6 +245,16 @@ export default async function PaginaPubblicita({ params }: { params: Promise<{ b
                 </button>
               </form>
             )}
+            <ChatClaude
+              ambito="bozza"
+              riferimento={String(b.id)}
+              battute={battuteBozze.get(String(b.id)) ?? 0}
+              suggerimenti={[
+                'Spiegami questa bozza come se non sapessi niente di Google Ads',
+                'Il budget proposto ha senso',
+                'Quali parole toglieresti, e perche',
+              ]}
+            />
           </article>
         )
       })}

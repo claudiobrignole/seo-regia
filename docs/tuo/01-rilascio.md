@@ -6,6 +6,8 @@ dalla pagina Sveglia, che nasce con questo rilascio.
 ## Cosa cambia dopo questo passo
 
 - Nel menu compare **Sveglia**: sei lavori, ognuno con **Lancia adesso**.
+- Nel menu compare **Memoria**, e sotto ogni proposta un **Chiedi a Claude**
+  (vedi [06-chat-memoria.md](06-chat-memoria.md)).
 - La raccolta dura sedici secondi invece di sei minuti.
 - La scansione di un sito piccolo dura due secondi invece di sessantatre.
 - Gli errori di Google Ads dicono cosa fare, non solo il numero 403.
@@ -26,13 +28,17 @@ dalla pagina Sveglia, che nasce con questo rilascio.
    invio su GitHub, salta i punti 4 e 5: il codice e gia dentro. Vai al punto 7
    e controlla.
 7. **Riavvia** l applicazione (pulsante **Restart** o **Riavvia**).
+8. Apri una volta sola questo indirizzo, con la tua chiave al posto di
+   `LA_CHIAVE`: `https://seo.brignole.ch/api/setup/migra?chiave=LA_CHIAVE`
+   Serve a creare le tre tabelle della chat e della memoria. Deve rispondere
+   **Database pronto**. Aprirlo due volte non fa danni.
 
 ## Come sai che e andata
 
 1. Apri [seo.brignole.ch](https://seo.brignole.ch) ed entra con la password del
    pannello.
-2. Nel menu in alto, fra **Siti** e **Impianto**, deve comparire **Sveglia**.
-   Se non c e, il rilascio non e passato: rifai i punti 4 a 7.
+2. Nel menu in alto, fra **Siti** e **Impianto**, devono comparire **Memoria** e
+   **Sveglia**. Se non ci sono, il rilascio non e passato: rifai i punti 4 a 7.
 3. Apri **Sveglia**. Sul lavoro **Raccolta** premi **Lancia adesso** e aspetta
    senza chiudere la scheda.
 4. Dopo una ventina di secondi deve comparire un riquadro verde con una frase

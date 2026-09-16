@@ -1,6 +1,7 @@
 import { query, unaRiga } from '@/lib/db'
 import { SITI, type Sito } from '@/siti.config'
 import { completa, jsonDaRisposta } from '@/lib/modelli/completa'
+import { bloccoIndicazioni } from '@/lib/memoria'
 import { queryDellaPagina } from '@/lib/regole/testi'
 
 export type BozzaContenuto = {
@@ -76,7 +77,9 @@ async function compoBozza(s: Sito): Promise<BozzaContenuto> {
     `Rete sempre "Ricerca". Niente trattino lungo. Non inventare sconti. ` +
     (grants
       ? `Questa e una campagna Google Ad Grants per un associazione no profit. Destinazione solo il sito dell associazione. Budget giornaliero massimo 329 se non sai il tetto attuale. Niente parole di una sola parola troppo generiche. Tasso di clic deve poter stare sopra il cinque per cento.`
-      : `Questa e una campagna a pagamento del perimetro Brignole. Non mescolare siti dell associazione Biography Library.`)
+      : `Questa e una campagna a pagamento del perimetro Brignole. Non mescolare siti dell associazione Biography Library.`) +
+    // Anche le bozze pubblicita seguono le indicazioni della memoria.
+    (await bloccoIndicazioni(s.id))
 
   const utente = [
     `Sito: ${s.nome} ${s.dominio}`,

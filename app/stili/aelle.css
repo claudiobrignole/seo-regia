@@ -561,6 +561,70 @@ b {
   color: var(--text-accent);
 }
 
+/* Chat interna. Sta dentro la scheda, staccata da una riga: e una conversazione
+   sulla proposta, non un altro pezzo di pannello. */
+.al-chat-apri {
+  margin-top: var(--space-3);
+  padding-left: 0;
+  padding-right: 0;
+}
+.al-chat {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line-subtle);
+}
+.al-chat-testa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.al-chat-chi {
+  display: block;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.al-chat-testo {
+  margin: 4px 0 0;
+  font-size: var(--fs-small);
+  white-space: pre-wrap;
+}
+.al-chat-mio,
+.al-chat-suo {
+  margin-bottom: var(--space-3);
+  padding: 10px 12px;
+}
+.al-chat-mio {
+  background: var(--surface-subtle);
+}
+.al-chat-suo {
+  background: var(--surface-card);
+  border-left: 3px solid var(--al-orange-500);
+}
+.al-chat-mossa {
+  margin-top: var(--space-3);
+  padding: 10px 12px;
+  background: var(--surface-subtle);
+  border: 1px dashed var(--line-default);
+}
+.al-chat-mossa .al-btn {
+  margin-top: var(--space-3);
+}
+.al-chat-spunti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-3);
+}
+.al-chat-spunti .al-btn {
+  font-size: var(--fs-caption);
+  padding: 6px 10px;
+}
+
 @media (max-width: 720px) {
   .al-header {
     height: auto;

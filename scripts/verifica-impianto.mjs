@@ -678,12 +678,14 @@ async function main() {
             : 'Token a grana fine: Pull requests Read and write. Poi Approva di nuovo.'
         )
       } else if (res.status === 200 && !deveEntrare) {
+        // Nota, non fallimento: scelta del 16 settembre. I due token restano
+        // larghi, e non si fa suonare un allarme per una cosa decisa.
         registra(
           id,
-          'fallito',
-          `GitHub ${repo} (deve restare fuori)`,
-          'Il token vede un repo dell altra identita',
-          'Rigenera il token a grana fine con Only select repositories: passi in docs/tuo/05-token-github.md'
+          'atteso',
+          `GitHub ${repo} (perimetro largo, nota)`,
+          'Il token vede anche un repo dell altra identita: scelta del 16 settembre',
+          'Nessuna azione. Se un giorno si vuole chiudere: docs/tuo/05-token-github.md'
         )
       } else if (!deveEntrare && (res.status === 404 || res.status === 403)) {
         registra(id, 'ok', `GitHub ${repo} isolato`, `HTTP ${res.status}: l altro token non entra`, '')

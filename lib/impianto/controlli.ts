@@ -425,8 +425,11 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
     metti('F2', 'GitHub Biography Library', 'atteso', 'manca GITHUB_TOKEN_BL', '')
   }
 
-  // Due token diversi non bastano: se quello dell associazione vede anche i
-  // repository di Brignole, un errore su un lato tocca l altro perimetro.
+  // Nota, non errore: Claudio ha scelto il 16 settembre di lasciare i due token
+  // come sono. Sono due stringhe distinte e ognuna scrive dove deve; il fatto
+  // che vedano anche l altro perimetro allarga solo il danno possibile di una
+  // richiesta sbagliata, e nessuna richiesta parte senza il suo Approva. Resta
+  // scritto perche il giorno che si decide altrimenti si sappia dove guardare.
   if (tokenGh && tokenBl) {
     try {
       const blVedeBrignole = await githubRepo(tokenBl, 'claudiobrignole/TagTales')
@@ -436,13 +439,17 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
       if (brignoleVedeBl.status === 200) sconfina.push('il token Brignole arriva su biographylibrary/Biography-Library')
       metti(
         'F0b',
-        'Token GitHub ognuno nel suo perimetro',
-        sconfina.length ? 'fallito' : 'ok',
-        sconfina.length ? sconfina.join('; ') : 'ogni token vede solo i propri repository',
-        'Rigenerali a grana fine scegliendo Only select repositories: quello Brignole sui repo Brignole, quello BL solo su Biography-Library'
+        'Perimetro dei token GitHub (nota)',
+        sconfina.length ? 'atteso' : 'ok',
+        sconfina.length
+          ? `${sconfina.join('; ')}. Scelta del 16 settembre: si lasciano cosi`
+          : 'ogni token vede solo i propri repository',
+        sconfina.length
+          ? 'Nessuna azione richiesta. Se un giorno vuoi chiudere anche questo: docs/tuo/05-token-github.md'
+          : ''
       )
     } catch (e) {
-      metti('F0b', 'Token GitHub ognuno nel suo perimetro', 'atteso', (e as Error).message, '')
+      metti('F0b', 'Perimetro dei token GitHub (nota)', 'atteso', (e as Error).message, '')
     }
   }
 
@@ -460,16 +467,21 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
       const corpo = (await res.json().catch(() => null)) as { error?: { message?: string } } | null
       const messaggio = corpo?.error?.message ?? ''
       const apiSpenta = /has not been used in project|is disabled/i.test(messaggio)
+      // Un invito che manca e un lavoro da fare, non uno stato atteso: sono due
+      // schermate diverse e il messaggio deve dire quale delle due aprire.
+      const senzaInvito = /does not have access to the account|permission|not authorized/i.test(messaggio)
       metti(
         'F5',
         'Merchant Center Aelle',
-        res.ok ? 'ok' : apiSpenta ? 'fallito' : 'atteso',
+        res.ok ? 'ok' : apiSpenta || senzaInvito ? 'fallito' : 'atteso',
         res.ok ? 'schede prodotto leggibili' : `HTTP ${res.status}: ${accorcia(messaggio, 200)}`,
         res.ok
           ? ''
           : apiSpenta
             ? 'Nel progetto Cloud Brignole accendi Content API for Shopping, poi aspetta due minuti e premi Controlla adesso'
-            : 'Nel Merchant Center 5717230535, Utenti, invita l email iam Brignole in sola lettura'
+            : senzaInvito
+              ? `Merchant Center 5717230535, Utenti e accesso: invita ${emailB} come Lettore. L API e gia accesa, manca solo questo`
+              : 'Riprova Controlla adesso: la richiesta al Merchant non e arrivata a destinazione'
       )
     } catch (e) {
       metti('F5', 'Merchant Center Aelle', 'atteso', (e as Error).message, '')

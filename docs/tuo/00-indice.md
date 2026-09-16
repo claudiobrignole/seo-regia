@@ -1,6 +1,6 @@
 # Cosa resta a te, 16 settembre 2026
 
-Cinque azioni. Due sono da fare oggi e durano pochi minuti, tre si possono
+Quattro azioni. Due sono da fare oggi e durano pochi minuti, due si possono
 rimandare senza che il pannello si fermi. Ogni azione ha il suo documento, con i
 clic e con la frase che ti dice se e andata.
 
@@ -21,8 +21,14 @@ se qualcosa funziona: apri Sveglia, premi, leggi la risposta in italiano.
 | | Azione | Quanto | Se non la fai |
 | --- | --- | --- | --- |
 | 3 | [Ads Biography Library, chiedere l accesso Basic](03-ads-biography-library.md) | 5 minuti piu attesa di Google | La schermata Pubblicita Biography Library resta vuota e le conversioni Grants non si caricano. Tutto il resto gira |
-| 4 | [Accendere la Content API del Merchant](04-merchant-content-api.md) | 2 minuti | Le schede prodotto di Aelle Store non entrano nel pannello |
-| 5 | [Restringere i due token GitHub](05-token-github.md) | 6 minuti | Funziona tutto, ma il token dell associazione puo scrivere anche sui repository tuoi: e il solo punto dove le due identita si toccano |
+| 4 | [Merchant Center di Aelle Store, l invito](04-merchant-content-api.md) | 2 minuti | Le schede prodotto di Aelle Store non entrano nel pannello. L API l hai gia accesa: resta solo l invito |
+
+## Deciso di non fare
+
+I **due token GitHub** restano larghi: ognuno vede anche i repository dell altra
+identita. Hai scelto di lasciarli cosi, e nel pannello quella riga e diventata una
+nota, non un errore: non ti chiama piu. Il perche, e i passi se un giorno cambi
+idea, stanno in [05-token-github.md](05-token-github.md).
 
 ## Cosa ho verificato io, oggi, senza disturbarti
 
@@ -37,8 +43,8 @@ Hostinger concede, e uno diceva la cosa sbagliata:
 - **Diagnosi**: gira, mette le schede in coda, scrive i testi con Claude.
 - **Verifica a 14 giorni**: gira, torna zero perche non ci sono ancora modifiche
   applicate da due settimane. Zero e il risultato giusto.
-- **Controllo impianto**: 21 righe su 25 a posto. Le due che mancano sono le
-  azioni 4 e 5 di questa lista.
+- **Controllo impianto**: 21 righe su 25 a posto. L unica rossa e l azione 4 di
+  questa lista; i token GitHub sono diventati una nota.
 - **Citazioni**: gira.
 
 **Google Ads Brignole ora funziona.** Il problema non era il token: il pannello

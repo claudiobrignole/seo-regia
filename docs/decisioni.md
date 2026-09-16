@@ -198,3 +198,14 @@ La tabella dei siti e l elenco dei lavori stavano sopra il briefing: si apriva i
 pannello e la prima cosa erano numeri da guardare, non cose da fare. Ora l ordine
 e avvisi, da fare adesso, da fare, tabella dei siti, stato della sveglia. Guardare
 i numeri non e un compito.
+
+## 2026-09-16, i due token GitHub restano larghi, ed e una nota
+Ognuno dei due token vede anche i repository dell altra identita: sono a grana
+fine ma creati senza restringere l elenco, quindi ereditano gli accessi della
+persona, che sta in entrambe le organizzazioni. Claudio ha scelto di lasciarli
+cosi. Nessuna richiesta di modifica parte senza il suo Approva, e la scheda dice
+sempre di quale sito si tratta: il token largo non fa succedere niente da solo,
+allarga solo il danno possibile di un bersaglio sbagliato. Il controllo F0b resta
+nel pannello come **atteso**, non come fallimento: un allarme che suona per una
+cosa decisa insegna a ignorare gli allarmi. Passi per chiuderlo, se un giorno si
+vuole: `docs/tuo/05-token-github.md`.

@@ -12,10 +12,13 @@ Qui ci sono file PHP, come `wp-cron.php`. La casella comando ha solo un percorso
 2. Entra in `public_html`.
 3. Carica tutta la cartella `regia-sveglia` (questi file).
 4. Dentro la cartella, copia `config.example.php` e rinomina la copia `config.php`.
-5. Apri `config.php`. Al posto di `INCOLLA_LA_CHIAVE` metti la stessa `CRON_CHIAVE` gia nelle variabili del pannello (applicazione Node seo.brignole.ch). **Lascia gli apici dove sono**, cambia solo la parola dentro. Deve restare cosi:
+5. Apri `config.php`. Al posto di `INCOLLA_LA_CHIAVE` metti la stessa `CRON_CHIAVE` gia nelle variabili del pannello (applicazione Node seo.brignole.ch). **Cambia solo la parola fra gli apici**: gli apici restano, la virgola in fondo alla riga resta, e la riga `];` sotto non si tocca. Il file intero, commenti a parte, e questo:
 
    ```php
-   'chiave' => 'LA_TUA_CRON_CHIAVE',
+   <?php
+   return [
+       'chiave' => 'LATUACHIAVEVERA',
+   ];
    ```
 
    Gli apici sono parte del PHP. Nelle variabili di Hostinger non ci vanno, qui si: senza apici e un errore fatale e la sveglia muore prima di chiamare il pannello, senza lasciare traccia in nessuna schermata.

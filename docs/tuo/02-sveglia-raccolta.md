@@ -22,11 +22,20 @@ Cosa fare, un minuto:
 
 1. File Manager di **brignole.ch**, cartella `public_html/regia-sveglia`.
 2. Apri `config.php` (quello sul server, non l esempio).
-3. La riga deve essere esattamente cosi, apici compresi:
+3. Cambia **solo la parola fra gli apici**. Tutto il resto resta come e: la
+   virgola in fondo alla riga ci vuole (in PHP una virgola prima della parentesi
+   di chiusura e permessa) e la riga `];` sotto non si tocca. Il file intero deve
+   essere questo, niente di piu:
 
    ```php
-   'chiave' => 'LA_TUA_CRON_CHIAVE',
+   <?php
+   return [
+       'chiave' => 'LATUACHIAVEVERA',
+   ];
    ```
+
+   Le righe che cominciano con `//` sono commenti: puoi lasciarle o cancellarle,
+   non cambiano niente.
 
 4. Salva.
 5. In Cron Jobs, apri una riga qualsiasi (per esempio `diagnosi.php`), premi

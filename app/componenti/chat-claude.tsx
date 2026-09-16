@@ -169,7 +169,7 @@ export function ChatClaude({
 
   if (!aperta) {
     return (
-      <button type="button" className="al-btn al-btn-ghost al-chat-apri" onClick={apri}>
+      <button type="button" className="al-btn al-btn-tenue al-chat-apri" onClick={apri}>
         Chiedi a Claude{battute > 0 ? ` (${battute} messaggi)` : ''}
       </button>
     )
@@ -179,7 +179,7 @@ export function ChatClaude({
     <section className="al-chat" aria-label="Chat con Claude">
       <div className="al-chat-testa">
         <strong>Chiedi a Claude</strong>
-        <button type="button" className="al-btn al-btn-ghost" onClick={() => setAperta(false)}>
+        <button type="button" className="al-btn al-btn-tenue" onClick={() => setAperta(false)}>
           Chiudi
         </button>
       </div>

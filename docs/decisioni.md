@@ -259,3 +259,16 @@ mostra la riga giusta con gli apici e dice che sono parte del PHP. La lezione pi
 generale: un messaggio che dice "senza virgolette" va scritto sapendo in che
 formato finisce il valore, perche la stessa frase e giusta in un posto e sbagliata
 tre righe piu in la.
+
+## 2026-09-16, il pulsante della chat c era ma era bianco su bianco
+Claudio non trovava la chat: il rilascio era passato (le classi `al-chat` erano
+nel foglio di stile pubblicato e il server mandava 82 pulsanti sulla pagina di
+Aelle), ma il pulsante usava `al-btn-ghost`, che e lo stile del menu scuro, cioe
+testo bianco e bordo bianco al 22 per cento. Su una scheda, che ha fondo bianco,
+non si vedeva niente. Da qui `al-btn-tenue`, la variante per fondo chiaro:
+inchiostro su trasparente, bordo grigio, arancio al passaggio del mouse. Ghost
+resta e serve ancora, ma solo dentro l intestazione scura.
+La lezione: uno stile che si chiama come un effetto (ghost) e non come il posto
+dove vive (fondo scuro) prima o poi finisce sul fondo sbagliato, e un pulsante
+invisibile non da errori in nessuna prova. La prova che lo prende non e la build
+ne il typecheck: e guardare la pagina.

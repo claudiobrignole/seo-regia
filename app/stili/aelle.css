@@ -311,6 +311,17 @@ b {
   color: var(--al-orange-500);
   border-color: var(--al-orange-500);
 }
+/* Come ghost, ma per il fondo chiaro delle schede: ghost e fatto per il menu
+   scuro, e su una scheda bianca diventa testo bianco su bianco. */
+.al-btn-tenue {
+  background: transparent;
+  color: var(--al-ink);
+  border: 1px solid var(--line-default);
+}
+.al-btn-tenue:not(:disabled):hover {
+  color: var(--al-orange-500);
+  border-color: var(--al-orange-500);
+}
 .al-btn-outline-light {
   background: transparent;
   color: var(--text-on-dark);
@@ -565,8 +576,6 @@ b {
    sulla proposta, non un altro pezzo di pannello. */
 .al-chat-apri {
   margin-top: var(--space-3);
-  padding-left: 0;
-  padding-right: 0;
 }
 .al-chat {
   margin-top: var(--space-4);

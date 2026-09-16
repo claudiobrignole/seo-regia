@@ -5,8 +5,10 @@ dove scrivi in italiano.
 
 ## Cosa e
 
-Sotto ogni proposta di un sito, sotto ogni campagna e sotto ogni bozza di
-pubblicita c e un pulsante **Chiedi a Claude**. Lo apri e chiedi quello che
+In fondo a ogni proposta di un sito, sotto i pulsanti **Approva** e **Rifiuta**,
+c e un pulsante **Chiedi a Claude**. Lo trovi anche sotto ogni campagna e ogni
+bozza nelle due pagine della pubblicita. Nella home non c e: quella e il
+briefing, e da li si passa con **Apri**. Lo apri e chiedi quello che
 vuoi: perche il pannello propone quella cosa, cosa cambia per chi cerca, se
 stai spendendo bene, cosa toglieresti.
 
@@ -97,8 +99,11 @@ abbonamento.
 
 ## Se qualcosa va storto
 
-**Il pulsante Chiedi a Claude non c e.** Il rilascio non e passato: rifai il
-punto 1.
+**Il pulsante Chiedi a Claude non c e.** Il primo giorno era li ma invisibile:
+scritta bianca su scheda bianca, colpa mia. Corretto il 16 settembre, quindi
+rifai il rilascio (punto 1) e lo vedi, in fondo alla scheda della proposta, sotto
+Approva e Rifiuta. Se dopo il rilascio ancora non c e, controlla di essere dentro
+un sito (**Siti**, poi il nome) e non nella home.
 
 **Dice che le tabelle della chat non ci sono.** Hai saltato il punto 2. Apri
 l indirizzo della migrazione e riprova: la domanda non si perde, la riscrivi.

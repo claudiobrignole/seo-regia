@@ -34,12 +34,16 @@ Lista clic per clic di ciò che resta a Claudio: `docs/passi-rimasti.md`.
 
 **Già fatto (11 settembre):** codice in produzione, Database pronto, plugin
 Regia robots sui tre WordPress, Regia BL Grants sul sito associazione, 27
-variabili Hostinger (token Ads ancora di prova).
+variabili Hostinger (token Ads ancora di prova). Cron Jobs creati su
+`brignole.ch` (unico posto possibile). I comandi curl con `?chiave=` non
+arrivano al pannello: Hostinger taglia `?` e `&`. Passare ai file PHP in
+`plugin-wp/regia-sveglia/`.
 
 **Resto, tu nel browser:** `BL_SERVICE_ACCOUNT_JSON` (progetto Cloud
 associazione), inviti Search Console / Analytics Brignole / Ads sola lettura
-Brignole e Standard Grants, prove raccolta e scansione Aelle, undici sveglie
-Cron (compreso il controllo impianto). Token Basic in attesa da Google.
+Brignole e Standard Grants. Sostituire i curl nei Cron Jobs di brignole.ch
+con i file PHP `plugin-wp/regia-sveglia/`. Token Ads: Explorer basta per
+Brignole in lettura; Grants resta un altro account.
 
 Opzionale: `CRUX_API_KEY`, invito Merchant Center 5717230535, cron citazioni.
 

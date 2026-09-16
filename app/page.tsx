@@ -62,6 +62,20 @@ type Esecuzione = {
   messaggio: string | null
 }
 
+function quandoLavoro(v: Date | string | null | undefined): string {
+  if (!v) return 'in corso'
+  const d = typeof v === 'string' ? new Date(v) : v
+  if (Number.isNaN(d.getTime())) return String(v)
+  return d.toLocaleString('it-CH', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+function oreDa(v: Date | string | null | undefined): number | null {
+  if (!v) return null
+  const d = typeof v === 'string' ? new Date(v) : v
+  if (Number.isNaN(d.getTime())) return null
+  return (Date.now() - d.getTime()) / 3600000
+}
+
 export default async function Pannello() {
   const { dati, overview, errore } = await riepilogo()
   const perSito = new Map(dati.map((d) => [d.sito_id, d]))
@@ -70,15 +84,21 @@ export default async function Pannello() {
   const lezioni = errore ? [] : await lezioniRecenti()
   const impianto = errore ? null : await ultimaPassata()
   let esecuzioni: Esecuzione[] = []
+  let ultimaRaccolta: Esecuzione | null = null
   if (!errore) {
     try {
       esecuzioni = await query<Esecuzione>(
-        `SELECT lavoro, iniziata_il, esito, messaggio FROM esecuzioni ORDER BY id DESC LIMIT 8`
+        `SELECT lavoro, iniziata_il, esito, messaggio FROM esecuzioni ORDER BY id DESC LIMIT 12`
       )
+      ultimaRaccolta = await query<Esecuzione>(
+        `SELECT lavoro, iniziata_il, esito, messaggio FROM esecuzioni WHERE lavoro = 'raccolta' ORDER BY id DESC LIMIT 1`
+      ).then((r) => r[0] ?? null)
     } catch {
       esecuzioni = []
     }
   }
+  const oreRaccolta = oreDa(ultimaRaccolta?.iniziata_il)
+  const svegliaFerma = !ultimaRaccolta || (oreRaccolta != null && oreRaccolta > 30)
 
   const nienteUrgente =
     briefing &&
@@ -164,6 +184,19 @@ export default async function Pannello() {
       </table>
 
       <h2>Ultimi lavori notturni</h2>
+      {svegliaFerma && (
+        <div className="al-avviso" style={{ marginBottom: 16 }}>
+          <strong>La sveglia su brignole.ch non arriva al pannello.</strong>
+          <p style={{ margin: '8px 0 0' }}>
+            {ultimaRaccolta
+              ? `Ultima raccolta ${quandoLavoro(ultimaRaccolta.iniziata_il)} (circa ${Math.round(oreRaccolta ?? 0)} ore fa).`
+              : 'Nel database non c e ancora nessuna raccolta.'}{' '}
+            I Cron Jobs stanno sul dominio principale, e va bene. Nella casella comando pero non si mette curl con
+            punto interrogativo o e commerciale: Hostinger taglia la chiave e qui non compare nulla. Serve un file
+            PHP, come wp-cron, in File Manager di brignole.ch (cartella public_html/regia-sveglia).
+          </p>
+        </div>
+      )}
       {esecuzioni.length === 0 ? (
         <p className="al-sezione-vuota">
           Ancora nessuno. Quando Hostinger chiamera le rotte, compariranno qui.
@@ -172,7 +205,7 @@ export default async function Pannello() {
         <ul style={{ paddingLeft: 18, fontSize: 14 }}>
           {esecuzioni.map((e, i) => (
             <li key={i} style={{ marginBottom: 6 }}>
-              <strong>{e.lavoro}</strong> {String(e.iniziata_il).slice(0, 16)}: {e.esito ?? 'in corso'}
+              <strong>{e.lavoro}</strong> {quandoLavoro(e.iniziata_il)}: {e.esito ?? 'in corso'}
               {e.messaggio ? `: ${e.messaggio}` : ''}
             </li>
           ))}

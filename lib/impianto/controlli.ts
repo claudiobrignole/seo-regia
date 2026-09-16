@@ -464,7 +464,7 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
         adsAtteso(msg) ? 'atteso' : 'fallito',
         msg,
         identita === 'brignole'
-          ? 'Token Basic, email iam Brignole in Ads con sola lettura'
+          ? 'Email iam Brignole in Ads (account campagne) con sola lettura'
           : 'Token Basic, email iam BL in Ads Grants con permesso Standard'
       )
     }

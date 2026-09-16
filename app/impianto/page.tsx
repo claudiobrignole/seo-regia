@@ -1,12 +1,14 @@
 import { Telaio } from '@/app/componenti/telaio'
 import { ultimaPassata } from '@/lib/impianto'
+import { PulsanteControllaImpianto } from './pulsante-controlla'
 
 export const dynamic = 'force-dynamic'
 
 function quando(v: Date | string | null | undefined): string {
   if (!v) return 'in corso'
-  const s = String(v)
-  return s.length >= 16 ? s.slice(0, 16).replace('T', ' ') : s
+  const d = typeof v === 'string' ? new Date(v) : v
+  if (Number.isNaN(d.getTime())) return 'in corso'
+  return d.toLocaleString('it-CH', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 export default async function PaginaImpianto({
@@ -22,15 +24,7 @@ export default async function PaginaImpianto({
       titolo="Impianto"
       sottotitolo="Ogni notte il pannello prova da solo se Google, WordPress, GitHub e il database rispondono. Qui vedi l errore e cosa fare."
     >
-      <form method="POST" action="/api/impianto/esegui" style={{ marginBottom: 24 }}>
-        <button type="submit" className="al-btn al-btn-primary">
-          Controlla adesso
-        </button>
-        <p className="al-muted" style={{ marginTop: 8 }}>
-          Dopo un deploy premi qui e aspetta, anche un minuto. La tabella e l ultima passata salvata:
-          non si aggiorna da sola.
-        </p>
-      </form>
+      <PulsanteControllaImpianto />
 
       {q.errore && (
         <div className="al-avviso" style={{ marginBottom: 24 }}>

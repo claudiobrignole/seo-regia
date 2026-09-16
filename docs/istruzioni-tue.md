@@ -252,57 +252,54 @@ Deve comparire del testo JSON, non “chiave non valida”.
 
 ### Poi, la sveglia su Hostinger (undici righe, piu una opzionale)
 
-1. hPanel → sito `seo.brignole.ch` → Dashboard.
-2. Nella barra a sinistra cerca **Cron Jobs** (a volte **Lavori Cron**).
-3. Tipo: **Custom** (non PHP).
-4. Crea **undici** lavori, uno alla volta. Incolla il comando intero nella casella Command / Comando. L orario di Hostinger e UTC: le tre di notte UTC sono le cinque in Svizzera d estate.
+I Cron Jobs di Hostinger si creano sul **dominio principale `brignole.ch`**, non sull applicazione Node `seo.brignole.ch`. Lì la voce non c e, ed e normale.
 
-La scansione e **un sito per notte**: Aelle da sola non sta in tre minuti, si riprende la settimana dopo. Non mettere tutti i siti nella stessa sveglia.
+Nella casella comando **non** incollare `curl` con `?chiave=` e `&`. Hostinger taglia quei caratteri: la sveglia parte a vuoto e in home non compare nulla. Si usano file PHP, come `wp-cron.php`. Guida clic per clic: `plugin-wp/regia-sveglia/LEGGIMI.md`.
 
-**Ogni giorno, ore 3:00** (minuto 0, ora 3, giorno della settimana vuoto o asterisco):
+1. File Manager di **brignole.ch** → `public_html` → carica la cartella `plugin-wp/regia-sveglia`.
+2. Copia `config.example.php` in `config.php` e incolla `CRON_CHIAVE` (la stessa delle variabili del pannello).
+3. Cron Jobs di **brignole.ch**. Cancella le righe vecchie con `curl`.
+4. Tipo: **PHP**. Crea **undici** lavori. Nella casella solo il percorso, niente curl.
 
-`curl -fsS "https://seo.brignole.ch/api/cron/raccolta?chiave=INCOLLA_LA_CHIAVE"`
+L orario e UTC: le tre di notte UTC sono le cinque in Svizzera d estate. Giorno e mese: ogni (asterisco). La scansione e **un sito per notte**.
+
+**Ogni giorno, ore 3:00** (minuto 0, ora 3):
+
+`public_html/regia-sveglia/raccolta.php`
 
 **Scansioni, ore 3:30** (minuto 30, ora 3). Cambia solo il giorno della settimana:
 
-- Lunedi (giorno 1), Aelle:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE"`
-- Martedi (2), brignole.ch:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=brignole&chiave=INCOLLA_LA_CHIAVE"`
-- Mercoledi (3), Tag Tales:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=tagtales&chiave=INCOLLA_LA_CHIAVE"`
-- Giovedi (4), Kizunama:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=kizunama&chiave=INCOLLA_LA_CHIAVE"`
-- Venerdi (5), StrangeGlyph:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=strangeglyph&chiave=INCOLLA_LA_CHIAVE"`
-- Sabato (6), Luna Nihongo:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=lunanihongo&chiave=INCOLLA_LA_CHIAVE"`
-- Domenica (0), Biography Library sito:  
-  `curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=biography-library&chiave=INCOLLA_LA_CHIAVE"`
+- Lunedi (giorno 1), Aelle: `public_html/regia-sveglia/scansione-aelle.php`
+- Martedi (2), brignole.ch: `public_html/regia-sveglia/scansione-brignole.php`
+- Mercoledi (3), Tag Tales: `public_html/regia-sveglia/scansione-tagtales.php`
+- Giovedi (4), Kizunama: `public_html/regia-sveglia/scansione-kizunama.php`
+- Venerdi (5), StrangeGlyph: `public_html/regia-sveglia/scansione-strangeglyph.php`
+- Sabato (6), Luna Nihongo: `public_html/regia-sveglia/scansione-lunanihongo.php`
+- Domenica (0), Biography Library sito: `public_html/regia-sveglia/scansione-biography-library.php`
 
 **Domenica, ore 4:00** (minuto 0, ora 4, giorno 0), Biography Library app:
 
-`curl -fsS "https://seo.brignole.ch/api/cron/scansione?sito=biography-library-app&chiave=INCOLLA_LA_CHIAVE"`
+`public_html/regia-sveglia/scansione-biography-library-app.php`
 
 **Ogni giorno, ore 4:30** (minuto 30, ora 4):
 
-`curl -fsS "https://seo.brignole.ch/api/cron/diagnosi?chiave=INCOLLA_LA_CHIAVE"`
+`public_html/regia-sveglia/diagnosi.php`
 
 **Solo lunedi, ore 5:00** (minuto 0, ora 5, giorno della settimana 1):
 
-`curl -fsS "https://seo.brignole.ch/api/cron/verifica?chiave=INCOLLA_LA_CHIAVE"`
+`public_html/regia-sveglia/verifica.php`
 
-**Ogni giorno, ore 5:15** (minuto 15, ora 5): controllo impianto (Search Console, WordPress, GitHub, Ads). I risultati stanno nel pannello, voce Impianto:
+**Ogni giorno, ore 5:15** (minuto 15, ora 5): controllo impianto. I risultati stanno nel pannello, voce Impianto:
 
-`curl -fsS "https://seo.brignole.ch/api/cron/impianto?chiave=INCOLLA_LA_CHIAVE"`
+`public_html/regia-sveglia/impianto.php`
 
-**Opzionale, ogni giorno ore 5:30** (minuto 30, ora 5), sondaggio citazioni (campione, non ChatGPT pubblico):
+**Opzionale, ogni giorno ore 5:30** (minuto 30, ora 5), sondaggio citazioni:
 
-`curl -fsS "https://seo.brignole.ch/api/cron/citazioni?chiave=INCOLLA_LA_CHIAVE"`
+`public_html/regia-sveglia/citazioni.php`
 
 Senza questa riga il resto del pannello gira lo stesso.
 
-Salva dopo ogni riga. Se Hostinger rifiuta il comando (“caratteri non ammessi”), manda uno screenshot: a volte vuole il tipo Custom, o un file `.sh`. Non serve il Terminale del Mac.
+Per provare subito: sulla sola raccolta, per una volta, orario ogni 5 minuti. Dopo 5-10 minuti, View Output deve mostrare JSON con `righe`, e in home una raccolta nuova. Poi rimetti ore 3:00.
 
 ---
 

@@ -2,6 +2,7 @@ node_modules/
 .next/
 .env
 .env.local
+plugin-wp/regia-sveglia/config.php
 *.log
 .DS_Store
 /esportazioni/*.csv

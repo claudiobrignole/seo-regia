@@ -38,7 +38,7 @@ export function bancoPronto(b: BancoAds): boolean {
   return Boolean(b.token && b.cliente)
 }
 
-async function intestazioni(b: BancoAds): Promise<Record<string, string>> {
+async function intestazioni(b: BancoAds, conManager: boolean): Promise<Record<string, string>> {
   if (!b.token || !b.cliente) {
     throw new Error(
       `Mancano il token o il numero account Ads per ${b.identita}. ` +
@@ -54,14 +54,39 @@ async function intestazioni(b: BancoAds): Promise<Record<string, string>> {
     'developer-token': b.token,
     'Content-Type': 'application/json',
   }
-  if (b.manager) headers['login-customer-id'] = b.manager
+  // login-customer-id solo se l account campagne sta sotto quel manager.
+  // Su Brignole l email iam e invitata sull account 712-100-7160: mandare il
+  // manager 150-466-0044 fa 403 USER_PERMISSION_DENIED anche con token buono.
+  if (conManager && b.manager && b.manager !== b.cliente) {
+    headers['login-customer-id'] = b.manager
+  }
   return headers
 }
 
-/** percorso: ":uploadClickConversions" oppure "/conversionActions:mutate" */
-export async function adsPost(identita: Identita, percorso: string, corpo: unknown): Promise<any> {
-  const b = banco(identita)
-  const headers = await intestazioni(b)
+function permessoNegatoComeSottoManager(json: unknown, testo: string): boolean {
+  const blob = `${JSON.stringify(json ?? {})} ${testo}`
+  return /USER_PERMISSION_DENIED|login-customer-id/i.test(blob)
+}
+
+function erroreAds(identita: Identita, status: number, json: any, testo: string): Error {
+  if (!json) {
+    return new Error(
+      `Google Ads ${identita}: risposta non JSON (HTTP ${status}). ` +
+        `In Hostinger imposta GOOGLE_ADS_API_VERSION=v23, salva, riavvia, e riprova la raccolta. ` +
+        testo.replace(/\s+/g, ' ').slice(0, 180)
+    )
+  }
+  const msg = json?.error?.message ?? JSON.stringify(json).slice(0, 400)
+  return new Error(`Google Ads ${identita}: ${status} ${msg}`)
+}
+
+async function adsPostUna(
+  b: BancoAds,
+  percorso: string,
+  corpo: unknown,
+  conManager: boolean
+): Promise<{ ok: true; json: any } | { ok: false; status: number; json: any; testo: string }> {
+  const headers = await intestazioni(b, conManager)
   const url = `https://googleads.googleapis.com/${versioneApi()}/customers/${b.cliente}${percorso}`
   const res = await fetch(url, {
     method: 'POST',
@@ -73,17 +98,23 @@ export async function adsPost(identita: Identita, percorso: string, corpo: unkno
   try {
     json = JSON.parse(testo)
   } catch {
-    throw new Error(
-      `Google Ads ${identita}: risposta non JSON (HTTP ${res.status}). ` +
-        `In Hostinger imposta GOOGLE_ADS_API_VERSION=v23, salva, riavvia, e riprova la raccolta. ` +
-        testo.replace(/\s+/g, ' ').slice(0, 180)
-    )
+    return { ok: false, status: res.status, json: null, testo }
   }
-  if (!res.ok) {
-    const msg = json?.error?.message ?? JSON.stringify(json).slice(0, 400)
-    throw new Error(`Google Ads ${identita}: ${res.status} ${msg}`)
+  if (!res.ok) return { ok: false, status: res.status, json, testo }
+  return { ok: true, json }
+}
+
+/** percorso: ":uploadClickConversions" oppure "/conversionActions:mutate" */
+export async function adsPost(identita: Identita, percorso: string, corpo: unknown): Promise<any> {
+  const b = banco(identita)
+  const prima = await adsPostUna(b, percorso, corpo, true)
+  if (prima.ok) return prima.json
+  if (b.manager && permessoNegatoComeSottoManager(prima.json, prima.testo)) {
+    const seconda = await adsPostUna(b, percorso, corpo, false)
+    if (seconda.ok) return seconda.json
+    throw erroreAds(identita, seconda.status, seconda.json, seconda.testo)
   }
-  return json
+  throw erroreAds(identita, prima.status, prima.json, prima.testo)
 }
 
 export async function gaql(b: BancoAds, sql: string): Promise<any[]> {

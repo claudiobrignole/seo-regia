@@ -76,8 +76,12 @@ da cambiare e solo questo file piu una tabella utenti.
 ## Come girano i lavori notturni
 
 Non eseguiamo Node dal pianificatore, perché su questi ambienti la
-configurazione cambia con gli aggiornamenti. Il pianificatore di hPanel chiama
-delle rotte protette da chiave:
+configurazione cambia con gli aggiornamenti. Hostinger accende i Cron Jobs solo
+sul dominio principale (`brignole.ch`), non sull app Node. Nella casella
+comando non si mette curl con `?` e `&`: Hostinger li taglia e il pannello non
+registra nulla. Si caricano i file PHP in `plugin-wp/regia-sveglia/` (tipo PHP,
+come wp-cron). Le rotte restano protette da chiave; dal browser si possono
+ancora aprire con `?chiave=` per una prova:
 
     curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/raccolta
     curl -fsS -H "x-chiave-cron: $CRON_CHIAVE" https://seo.brignole.ch/api/cron/scansione?sito=aelle

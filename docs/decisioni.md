@@ -144,4 +144,13 @@ di nuove. Non si rigenera un testo gia presente. Il campo vuoto in scheda
 non e un bug: o e una nota (niente da pubblicare) o il testo arriva la notte
 dopo.
 
+## 2026-09-16, Ads Brignole senza login-customer-id obbligatorio
+Il token Explorer e l email iam Brignole leggono l account campagne
+`712-100-7160`. `GOOGLE_ADS_MANAGER_ID` (`150-466-0044`) e il manager del
+Centro API, ma quell account campagne non sta sotto come cliente: mandare
+`login-customer-id` fa 403 anche con token e invito giusti. Si prova prima con
+il manager, se Google rifiuta si ritenta senza. Non svuotare la variabile
+manager: serve a sapere quale MCC possiede il token. Biography Library resta
+un altro banco.
+
 

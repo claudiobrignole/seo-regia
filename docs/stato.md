@@ -1,5 +1,24 @@
 # Dove siamo, al 16 settembre 2026
 
+## Le schede che non si potevano applicare, 16 settembre (notte)
+
+Delle 116 schede aperte su titolo e descrizione, **69 stavano su indirizzi senza un
+posto dove scrivere**, e si scopriva premendo Approva. Chiuse, col motivo nel
+registro; restano 47 vere. Tre famiglie: schede del negozio Ecwid (32), pagine
+tradotte da TranslatePress (33), file caricati in Media (4).
+
+Tutti e tre i siti WordPress usano TranslatePress, che non crea un contenuto per
+lingua: `/en/dj-enzo/` e la pagina italiana ridisegnata. Il controllo empirico
+(slug del contenuto contro ultimo pezzo dell indirizzo) non bastava, perche
+`brignole.ch/en/portfolio/biography-library/` ha lo stesso slug nelle due lingue e
+sarebbe passato, cambiando il titolo della pagina italiana. Ora la conoscenza e
+dichiarata in `siti.config.ts` (`traduzioni`, `percorsiNegozio`) e `lib/siti/indirizzi.ts`
+risponde a regole, ciclo notturno, esecutori e chat.
+
+Regola nuova `titoli-non-tradotti`: una nota per sito con le pagine tradotte che
+portano il titolo dell originale (33 su Aelle, zero su brignole.ch). L archivio
+1991-2001 ne resta fuori. Per Claudio: `docs/tuo/08-titoli-tradotti.md`.
+
 ## Il secondo perche di Approva, 16 settembre (notte)
 
 Col plugin installato sui tre siti, Approva diceva ancora di non essere riuscita:

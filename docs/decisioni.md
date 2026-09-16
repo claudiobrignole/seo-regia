@@ -386,3 +386,43 @@ coda sono quelle del guaio precedente, mai riprovate: quelle vanno riapprovate.
 
 La lezione, di nuovo la stessa da un altro lato: rileggere prova qualcosa solo se
 si e sicuri di stare leggendo il sito, e non qualcuno che parla per lui.
+
+## 2026-09-16, gli indirizzi che non hanno un posto dove scrivere
+Tre schede su quattro, in coda, stavano su indirizzi senza un titolo da cambiare, e
+lo si scopriva premendo Approva: 69 su 116. Tre famiglie.
+
+Le schede del negozio (`/store/...`, `/search-products/...`) le disegna Ecwid dentro
+la pagina del negozio: in WordPress non esistono, e il titolo si cambia dal sito
+Aelle Store. I file caricati in Media (i PDF del manifesto di Biography Library)
+non sono pagine. E le pagine tradotte: **tutti e tre i siti WordPress usano
+TranslatePress**, che non crea un contenuto per lingua, quindi `/en/dj-enzo/` e la
+pagina italiana ridisegnata al volo.
+
+Il controllo empirico che avevamo (lo slug del contenuto trovato combacia con
+l ultimo pezzo dell indirizzo?) non bastava. `brignole.ch/en/portfolio/biography-library/`
+si risolve in un contenuto il cui slug **combacia**, perche quella scheda si chiama
+uguale nelle due lingue: sarebbe passato, e Approva avrebbe cambiato il titolo della
+pagina italiana credendo di cambiare quello inglese. Un caso in cui indovinare
+dall indirizzo non e possibile e la conoscenza va dichiarata: `traduzioni:
+'translatepress'` e `percorsiNegozio` in `siti.config.ts`, cioe dove si aggiunge un
+sito, non nel codice.
+
+`lib/siti/indirizzi.ts` risponde a una domanda sola, e la risposta e la frase da
+mostrare a Claudio, non un codice: dice dove si cambia quel testo davvero. La
+chiedono le regole prima di proporre, il ciclo notturno prima di riempire i testi,
+l esecutore prima di scrivere, e la chat per sapere che cambiare il testo non e fra
+le mosse possibili. Lo stesso schema di `archivio-aelle.ts`, che gia funzionava.
+
+Le 69 schede sono state chiuse come rifiutate, ognuna col motivo nel registro.
+Chiudere e meglio che lasciarle rosse: una scheda che non si puo applicare, se resta
+in coda, si fa riprovare.
+
+Quello che restava da dire, lo dice una regola nuova invece di sparire:
+`titoli-non-tradotti` conta le pagine tradotte che portano il titolo dell originale
+(33 su Aelle, zero su brignole.ch, dove le traduzioni ci sono) e mette **una** nota
+per sito, non una per pagina, con dove si traducono. L archivio 1991-2001 ne resta
+fuori: quei titoli sono quelli della rivista, tradurli sarebbe riscriverli.
+
+La lezione: una proposta che non si puo applicare non e un errore da gestire al
+momento di Approva, e una proposta che non andava fatta. Il posto dove fermarla e
+la regola che la genera.

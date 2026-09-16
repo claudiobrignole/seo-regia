@@ -2,6 +2,7 @@ import { query } from '@/lib/db'
 import type { Regola, Proposta } from './tipi'
 import type { Sito } from '@/siti.config'
 import { urlConImpressioni } from './soglie'
+import { motivoNonScrivibile } from '@/lib/siti/indirizzi'
 
 /** Titoli e descrizioni mancanti o duplicati, sulle pagine gia viste. */
 export const regolaMetaMancanti: Regola = {
@@ -20,6 +21,7 @@ export const regolaMetaMancanti: Regola = {
       [s.id]
     )
     const descOrdinate = senzaDescrizione
+      .filter((p) => !motivoNonScrivibile(s, p.url, 'descrizione'))
       .map((p) => ({ ...p, impressioni: viste.get(p.url) ?? 0 }))
       .sort((a, b) => b.impressioni - a.impressioni)
       .filter((p) => p.impressioni >= 10 || viste.size === 0)
@@ -47,7 +49,13 @@ export const regolaMetaMancanti: Regola = {
       [s.id]
     )
     for (const t of titoliDoppi) {
-      for (const url of t.urls.split(' | ').slice(1)) {
+      const nostre = t.urls.split(' | ').filter((url) => !motivoNonScrivibile(s, url, 'titolo'))
+      // Un titolo che si ripete solo fra una pagina e la sua traduzione, o fra
+      // le schede del negozio, non e un doppione da riscrivere qui: la copia sta
+      // dove non possiamo scrivere, e cambiare l originale rovinerebbe una
+      // pagina che va bene. Quel caso lo racconta la regola titoli-non-tradotti.
+      if (nostre.length < 2) continue
+      for (const url of nostre.slice(1)) {
         if (viste.size && !viste.has(url)) continue
         proposte.push({
           regola: 'meta-mancanti',
@@ -55,7 +63,7 @@ export const regolaMetaMancanti: Regola = {
           campo: 'titolo',
           valoreVecchio: t.titolo,
           valoreNuovo: '',
-          motivo: `Questo titolo compare su ${t.quante} pagine diverse: Google non capisce quale mostrare.`,
+          motivo: `Questo titolo compare su ${nostre.length} pagine diverse del sito: Google non capisce quale mostrare.`,
           guadagnoStimato: null,
           rischio: 'sicura',
         })

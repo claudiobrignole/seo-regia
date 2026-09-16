@@ -1,4 +1,5 @@
 import type { Sito } from '@/siti.config'
+import { motivoNonScrivibile } from '@/lib/siti/indirizzi'
 
 /**
  * Scrittura su WordPress tramite password applicativa.
@@ -314,16 +315,14 @@ export async function scriviSeo(
   url: string,
   campi: { titolo?: string; descrizione?: string }
 ): Promise<void> {
+  // Le famiglie di indirizzi che non hanno un titolo da cambiare le conosce
+  // lib/siti/indirizzi: chiedere qui prima di provare fa uscire la frase giusta
+  // (dove si cambia quel testo davvero) invece di un no tecnico.
+  const impossibile = motivoNonScrivibile(s, url, Object.keys(campi)[0] ?? 'titolo')
+  if (impossibile) throw new Error(impossibile)
+
   const c = await trovaContenuto(s, url)
   if (!c) {
-    // Un file caricato non e una pagina: non ha un titolo SEO da nessuna parte,
-    // e continuare a proporlo fa perdere tempo. Capita con i PDF in Media.
-    if (/\/wp-content\/uploads\//.test(url) || /\.(pdf|zip|docx?|xlsx?|jpe?g|png|gif|webp|svg|mp4|mp3)$/i.test(url)) {
-      throw new Error(
-        `${url} e un file caricato in Media, non una pagina: il titolo SEO non ha dove stare. ` +
-          `Chiudi la proposta. Se quel documento deve farsi trovare, gli serve una pagina che lo presenti.`
-      )
-    }
     throw new Error(
       `Nessun contenuto WordPress corrisponde a ${url}. ` +
         `Se e la home, l utente applicazione deve poter leggere le impostazioni del sito.`

@@ -7,6 +7,7 @@ import { regolaPagina } from './pagina'
 import { regolaLacune } from './lacune'
 import { regolaPosizione } from './posizione'
 import { regolaVitali, regolaMerchant } from './vitali-merchant'
+import { regolaTitoliNonTradotti } from './traduzioni'
 import type { Regola } from './tipi'
 
 export const REGOLE: Regola[] = [
@@ -15,6 +16,7 @@ export const REGOLE: Regola[] = [
   regolaAiOverview,
   regolaPosizione,
   regolaMetaMancanti,
+  regolaTitoliNonTradotti,
   regolaCannibalizzazione,
   regolaPagina,
   regolaLacune,

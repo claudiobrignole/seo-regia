@@ -18,6 +18,22 @@ export type Sito = {
   /** nomi host accettati in lettura: serve a scartare i dati falsi */
   hostnameValidi: string[]
   lingue: string[]
+  /**
+   * Chi fa le altre lingue.
+   *
+   * TranslatePress non crea un contenuto per ogni lingua: `/en/qualcosa` e la
+   * pagina italiana ridisegnata al volo, e in WordPress non esiste. Il titolo di
+   * quegli indirizzi non sta nei campi SEO ma nell editor delle traduzioni,
+   * quindi il pannello non lo propone e non lo scrive. Con WPML o Polylang
+   * sarebbe il contrario: la traduzione e un articolo suo, e si potrebbe.
+   */
+  traduzioni?: 'translatepress'
+  /**
+   * Solo per i negozi incorporati in un altro sito: i percorsi del dominio che
+   * appartengono al negozio. Le schede prodotto sotto questi percorsi non sono
+   * pagine di WordPress, e il loro titolo si cambia da qui, non da la.
+   */
+  percorsiNegozio?: string[]
   /** true = le azioni sicure vengono applicate da sole */
   automazioneAttiva: boolean
   /** dove il pannello scrive */
@@ -45,6 +61,7 @@ export const SITI: Sito[] = [
     analyticsProperty: 'properties/547064912',
     hostnameValidi: ['aelle.hiphop', 'www.aelle.hiphop'],
     lingue: ['it', 'en'],
+    traduzioni: 'translatepress',
     automazioneAttiva: false,
     scrittura: { tipo: 'wordpress', base: 'https://aelle.hiphop', prefissoCredenziali: 'WP_AELLE' },
     identita: 'brignole',
@@ -59,6 +76,7 @@ export const SITI: Sito[] = [
     analyticsProperty: 'properties/547064912',
     hostnameValidi: ['aelle.hiphop', 'www.aelle.hiphop'],
     lingue: ['it', 'en'],
+    percorsiNegozio: ['/store/', '/search-products/'],
     automazioneAttiva: false,
     scrittura: { tipo: 'ecwid', storeId: '127192517' },
     identita: 'brignole',
@@ -73,6 +91,7 @@ export const SITI: Sito[] = [
     analyticsProperty: 'properties/525716537',
     hostnameValidi: ['brignole.ch', 'www.brignole.ch'],
     lingue: ['it', 'en', 'fr', 'de'],
+    traduzioni: 'translatepress',
     automazioneAttiva: false,
     scrittura: { tipo: 'wordpress', base: 'https://brignole.ch', prefissoCredenziali: 'WP_BRIGNOLE' },
     identita: 'brignole',
@@ -142,6 +161,7 @@ export const SITI: Sito[] = [
     analyticsProperty: null,
     hostnameValidi: ['biographylibrary.org', 'www.biographylibrary.org'],
     lingue: ['en', 'de', 'fr', 'it'],
+    traduzioni: 'translatepress',
     automazioneAttiva: false,
     scrittura: { tipo: 'wordpress', base: 'https://biographylibrary.org', prefissoCredenziali: 'WP_BL' },
     identita: 'biography-library',

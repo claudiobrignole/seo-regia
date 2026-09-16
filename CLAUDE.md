@@ -42,6 +42,10 @@ Gira su Hostinger Business, piano che supporta Node.
 - `lib/scansione/crawler.ts` — legge le pagine una per una, con pausa. Gentile per scelta.
 - `lib/scansione/tecnici.ts` — fotografia di robots.txt e sitemap XML vera.
 - `lib/regole/` — le diagnosi. Una regola, un file. La più importante è `ctr-basso.ts`.
+- `lib/siti/indirizzi.ts` — quali indirizzi non hanno un titolo da cambiare (schede
+ Ecwid dentro la pagina del negozio, pagine tradotte da TranslatePress, file di
+ Media). Lo chiedono le regole prima di proporre e gli esecutori prima di
+ scrivere. La conoscenza sta in `siti.config.ts` (`traduzioni`, `percorsiNegozio`).
 - `lib/esecutori/` — WordPress, GitHub, Ecwid. Gli unici punti che scrivono.
 - `lib/registro/` — storico e annullamento.
 - `lib/chat/` — la chat sulla singola proposta, campagna o bozza. `contesto.ts`

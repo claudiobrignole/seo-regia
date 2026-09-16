@@ -18,6 +18,7 @@ import type { Proposta } from '@/lib/regole/tipi'
 import { generaBozzeMancanti } from '@/lib/ads/bozza'
 import { emettiVerdetti } from '@/lib/ads/verdetto'
 import { chiudiProposteArchivio, propostaIntoccabile } from '@/lib/siti/archivio-aelle'
+import { chiudiProposteImpossibili, motivoNonScrivibile } from '@/lib/siti/indirizzi'
 import { eseguiESalva } from '@/lib/impianto'
 import { SITI, sito } from '@/siti.config'
 
@@ -249,6 +250,16 @@ export async function eseguiDiagnosi(sitoId?: string | null): Promise<EsitoLavor
     problemi.push(`archivio Aelle: ${(e as Error).message}`)
   }
 
+  try {
+    // Schede su indirizzi che non hanno un titolo da cambiare: schede del
+    // negozio, pagine tradotte, file caricati. Restavano in coda e si scopriva
+    // premendo Approva, una per volta.
+    const chiuse = await chiudiProposteImpossibili()
+    if (chiuse) console.info(`[diagnosi] chiuse ${chiuse} schede su indirizzi non scrivibili`)
+  } catch (e) {
+    problemi.push(`indirizzi non scrivibili: ${(e as Error).message}`)
+  }
+
   const daRiempire = await query<Azione>(
     `SELECT * FROM azioni
       WHERE stato IN ('proposta','approvata','fallita')
@@ -260,6 +271,7 @@ export async function eseguiDiagnosi(sitoId?: string | null): Promise<EsitoLavor
   for (const a of daRiempire) {
     if (testiFatti >= MAX_TESTI || Date.now() - inizio > LIMITE_MS) break
     if (await propostaIntoccabile(a.sito_id, a.bersaglio, a.campo)) continue
+    if (motivoNonScrivibile(sito(a.sito_id), a.bersaglio, a.campo)) continue
     try {
       const s = sito(a.sito_id)
       const testo = await compoTesto(s, {
@@ -292,6 +304,7 @@ export async function eseguiDiagnosi(sitoId?: string | null): Promise<EsitoLavor
       try {
         for (const p of await regola.esegui(s)) {
           if (await propostaIntoccabile(s.id, p.bersaglio, p.campo)) continue
+          if (motivoNonScrivibile(s, p.bersaglio, p.campo)) continue
           if (CAMPI_TESTO.has(p.campo) && !(p.valoreNuovo ?? '').trim()) {
             const gia = await unaRiga<{ valore_nuovo: string }>(
               `SELECT valore_nuovo FROM azioni

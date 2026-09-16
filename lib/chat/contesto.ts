@@ -4,6 +4,7 @@ import { CAMPI_DA_MODIFICARE } from '@/lib/azioni-viste'
 import { caricaAzione, type Azione } from '@/lib/registro'
 import { queryDellaPagina } from '@/lib/regole/testi'
 import { propostaIntoccabile } from '@/lib/siti/archivio-aelle'
+import { motivoNonScrivibile } from '@/lib/siti/indirizzi'
 import type { BozzaContenuto } from '@/lib/ads/bozza'
 import type { Identita } from '@/lib/raccolta/google'
 
@@ -67,6 +68,10 @@ async function contestoAzione(id: number): Promise<Contesto> {
   const inCoda = a.stato === 'proposta' || a.stato === 'approvata' || a.stato === 'fallita'
   const scrivibile = CAMPI_DA_MODIFICARE.has(a.campo)
   const bloccataArchivio = await propostaIntoccabile(a.sito_id, a.bersaglio, a.campo)
+  // Le mosse possibili le decide l oggetto: su un indirizzo senza un posto dove
+  // scrivere, cambiare il testo non e fra le mosse, e Claude deve saperlo prima
+  // di proporlo a Claudio.
+  const nonScrivibile = s ? motivoNonScrivibile(s, a.bersaglio, a.campo) : null
 
   const pagina = await unaRiga<{
     titolo: string | null
@@ -118,6 +123,10 @@ async function contestoAzione(id: number): Promise<Contesto> {
   if (bloccataArchivio) {
     divieti.push(
       'Questa e una pagina dell archivio 1991-2001 di Aelle Hip Hop Magazine: titolo, descrizione e H1 sono quelli originali della rivista e non si riscrivono per nessun motivo, nemmeno se il tasso di clic e basso. Puoi spiegare, non riscrivere.'
+    )
+  } else if (nonScrivibile) {
+    divieti.push(
+      `Questo indirizzo non ha un posto dove scrivere titolo e descrizione. ${nonScrivibile} Non proporre di cambiare il testo: spiega questo, e proponi di chiudere la scheda.`
     )
   } else if (scrivibile && inCoda) {
     permesse.push('cambia_testo')

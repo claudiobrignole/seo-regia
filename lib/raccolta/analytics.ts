@@ -1,6 +1,6 @@
 import { google } from 'googleapis'
 import { auth } from './google'
-import { salvaMisura } from '@/lib/db'
+import { salvaMisure, type Misura } from '@/lib/db'
 import type { Sito } from '@/siti.config'
 
 /**
@@ -39,7 +39,7 @@ export async function raccogliComportamento(s: Sito, da: string, a: string): Pro
     },
   })
 
-  let n = 0
+  const daScrivere: Misura[] = []
   for (const r of res.data.rows ?? []) {
     const giornoGrezzo = r.dimensionValues?.[0]?.value ?? ''
     const percorso = r.dimensionValues?.[1]?.value ?? ''
@@ -48,7 +48,7 @@ export async function raccogliComportamento(s: Sito, da: string, a: string): Pro
     const giorno = giornoGrezzo.length === 8
       ? `${giornoGrezzo.slice(0, 4)}-${giornoGrezzo.slice(4, 6)}-${giornoGrezzo.slice(6, 8)}`
       : a
-    await salvaMisura({
+    daScrivere.push({
       sitoId: s.id,
       fonte: 'analytics',
       giorno,
@@ -61,7 +61,6 @@ export async function raccogliComportamento(s: Sito, da: string, a: string): Pro
         avvertenza: 'solo visitatori che hanno accettato i cookie',
       },
     })
-    n++
   }
-  return n
+  return salvaMisure(daScrivere)
 }

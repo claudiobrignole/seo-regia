@@ -68,7 +68,48 @@ function permessoNegatoComeSottoManager(json: unknown, testo: string): boolean {
   return /USER_PERMISSION_DENIED|login-customer-id/i.test(blob)
 }
 
-function erroreAds(identita: Identita, status: number, json: any, testo: string): Error {
+/**
+ * Il motivo vero sta in error.details, non in error.message: il messaggio in
+ * cima dice sempre "The caller does not have permission" anche quando il
+ * problema e il livello del token. Per mesi abbiamo cercato l invito sbagliato
+ * per questo.
+ */
+function motivoAds(json: any): { codice: string; messaggio: string } {
+  const errore = json?.error
+  const dettaglio = errore?.details?.[0]?.errors?.[0]
+  const codice = dettaglio?.errorCode ? Object.values(dettaglio.errorCode)[0] : undefined
+  return {
+    codice: String(codice ?? errore?.status ?? ''),
+    messaggio: String(dettaglio?.message ?? errore?.message ?? '').replace(/\s+/g, ' '),
+  }
+}
+
+/** Ogni errore Ads dice cosa fare, altrimenti resta un numero e basta. */
+function cosaFareAds(identita: Identita, codice: string, messaggio: string, b: BancoAds): string {
+  const quale = identita === 'brignole' ? 'Brignole' : 'Biography Library'
+  if (/only approved for use with test accounts|ACTION_NOT_PERMITTED|DEVELOPER_TOKEN_NOT_APPROVED/i.test(`${codice} ${messaggio}`)) {
+    return (
+      `Il token per sviluppatori di ${quale} vale solo per account di prova. ` +
+      `Entra nel Google Ads di ${quale}, Strumenti, Centro API, e chiedi l accesso Basic. ` +
+      `Fino all approvazione questo banco non legge dati veri: e una attesa, non un errore da correggere nel codice.`
+    )
+  }
+  if (/USER_PERMISSION_DENIED/i.test(codice)) {
+    return (
+      `L email del pannello non e fra gli utenti dell account ${b.cliente ?? '?'} di ${quale}. ` +
+      `In Google Ads, Amministrazione, Accesso e sicurezza, invitala: sola lettura per Brignole, Standard per il Grants.`
+    )
+  }
+  if (/CUSTOMER_NOT_ENABLED|CUSTOMER_NOT_FOUND/i.test(codice)) {
+    return `L account ${b.cliente ?? '?'} risulta chiuso o inesistente. Controlla il numero nelle variabili di ${quale}.`
+  }
+  if (/NOT_ADS_USER/i.test(codice)) {
+    return `L email del pannello non ha nessun account Google Ads collegato. Serve l invito dentro Google Ads di ${quale}.`
+  }
+  return `Guarda la riga Ads ${quale} nella pagina Impianto: dice quale invito o quale variabile manca.`
+}
+
+function erroreAds(identita: Identita, status: number, json: any, testo: string, b: BancoAds): Error {
   if (!json) {
     return new Error(
       `Google Ads ${identita}: risposta non JSON (HTTP ${status}). ` +
@@ -76,9 +117,21 @@ function erroreAds(identita: Identita, status: number, json: any, testo: string)
         testo.replace(/\s+/g, ' ').slice(0, 180)
     )
   }
-  const msg = json?.error?.message ?? JSON.stringify(json).slice(0, 400)
-  return new Error(`Google Ads ${identita}: ${status} ${msg}`)
+  const { codice, messaggio } = motivoAds(json)
+  const dove = codice ? ` ${codice}` : ''
+  return new Error(
+    `Google Ads ${identita}: HTTP ${status}${dove}. ${messaggio || 'nessun dettaglio'} ` +
+      `Cosa fare: ${cosaFareAds(identita, codice, messaggio, b)}`
+  )
 }
+
+/**
+ * Una volta scoperto se quell account vuole login-customer-id, lo ricordiamo:
+ * altrimenti ogni chiamata paga un 403 di prova, e la raccolta fa il doppio
+ * delle richieste per niente. Si azzera al riavvio, che e quello che serve
+ * quando cambiano le variabili.
+ */
+const conManagerServe = new Map<Identita, boolean>()
 
 async function adsPostUna(
   b: BancoAds,
@@ -107,14 +160,25 @@ async function adsPostUna(
 /** percorso: ":uploadClickConversions" oppure "/conversionActions:mutate" */
 export async function adsPost(identita: Identita, percorso: string, corpo: unknown): Promise<any> {
   const b = banco(identita)
-  const prima = await adsPostUna(b, percorso, corpo, true)
-  if (prima.ok) return prima.json
-  if (b.manager && permessoNegatoComeSottoManager(prima.json, prima.testo)) {
-    const seconda = await adsPostUna(b, percorso, corpo, false)
-    if (seconda.ok) return seconda.json
-    throw erroreAds(identita, seconda.status, seconda.json, seconda.testo)
+  const ricordato = conManagerServe.get(identita)
+  const primoTentativo = ricordato ?? true
+
+  const prima = await adsPostUna(b, percorso, corpo, primoTentativo)
+  if (prima.ok) {
+    conManagerServe.set(identita, primoTentativo)
+    return prima.json
   }
-  throw erroreAds(identita, prima.status, prima.json, prima.testo)
+  // Un solo ritentativo, e solo se il primo giro aveva il manager in testa:
+  // l account campagne puo non stare sotto quel manager pur essendo visibile.
+  if (primoTentativo && b.manager && permessoNegatoComeSottoManager(prima.json, prima.testo)) {
+    const seconda = await adsPostUna(b, percorso, corpo, false)
+    if (seconda.ok) {
+      conManagerServe.set(identita, false)
+      return seconda.json
+    }
+    throw erroreAds(identita, seconda.status, seconda.json, seconda.testo, b)
+  }
+  throw erroreAds(identita, prima.status, prima.json, prima.testo, b)
 }
 
 export async function gaql(b: BancoAds, sql: string): Promise<any[]> {

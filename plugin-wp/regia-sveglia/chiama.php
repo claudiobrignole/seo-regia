@@ -5,7 +5,10 @@
  */
 declare(strict_types=1);
 
-if (PHP_SAPI !== 'cli') {
+// Il blocco vale per il web, non per la sveglia: alcuni hosting eseguono i
+// lavori pianificati con cgi-fcgi invece di cli, e in quel caso un controllo
+// su PHP_SAPI fermerebbe anche la sveglia. Dal web arriva sempre un metodo HTTP.
+if (!empty($_SERVER['REQUEST_METHOD']) || !empty($_SERVER['HTTP_HOST'])) {
     http_response_code(403);
     echo 'Solo la sveglia Hostinger, non il browser.';
     exit(1);
@@ -51,6 +54,9 @@ function svegliaRegia(string $percorso): void
         exit(1);
     }
 
+    // La riga di intestazione serve a View Output di Hostinger: senza data e
+    // codice non si capisce se la sveglia ha chiamato o se e vecchia.
+    echo '[', gmdate('Y-m-d H:i:s'), ' UTC] ', $percorso, ' HTTP ', $codice, "\n";
     echo $corpo, "\n";
     if ($codice >= 400) {
         exit(1);

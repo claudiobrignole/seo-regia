@@ -250,6 +250,16 @@ Verifica (puo restituire zero: non ci sono ancora modifiche applicate da quattor
 
 Deve comparire del testo JSON, non “chiave non valida”.
 
+### Prima di tutto: nel pannello c e la voce Sveglia
+
+Dal 16 settembre non serve piu incollare indirizzi con la chiave per provare un
+lavoro. Pannello, voce **Sveglia**: ogni lavoro dice quando ha girato l ultima
+volta, a che ora e atteso di notte, e ha il pulsante **Lancia adesso**. Le pagine
+di prova qui sotto restano valide, ma il pulsante e piu semplice e non mette un
+segreto nella barra del browser.
+
+Le azioni che restano a te, una per documento, stanno in `docs/tuo/00-indice.md`.
+
 ### Poi, la sveglia su Hostinger (undici righe, piu una opzionale)
 
 I Cron Jobs di Hostinger si creano sul **dominio principale `brignole.ch`**, non sull applicazione Node `seo.brignole.ch`. Lì la voce non c e, ed e normale.

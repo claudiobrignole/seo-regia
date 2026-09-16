@@ -1,5 +1,11 @@
 # Cosa ti resta da fare (nel browser)
 
+> **Aggiornamento del 16 settembre.** La lista di oggi, corta e con un documento
+> per azione, sta in [`tuo/00-indice.md`](tuo/00-indice.md). Questo file resta
+> come guida di riferimento: i punti 1, 2 e 3 sono fatti, e per provare i lavori
+> non serve piu incollare indirizzi con la chiave (pannello, voce **Sveglia**,
+> pulsante **Lancia adesso**).
+
 Aggiornato l’11 settembre 2026. Questo file è la lista di oggi: i passi ancora
 tuoi, in ordine, con i clic. Se una schermata ha un nome un po’ diverso, fermati
 e manda uno screenshot con l’indirizzo in alto.
@@ -207,68 +213,175 @@ Search Console del dominio biographylibrary.org verificata con DNS. Email
 
 ## 4. Prove nel browser (prima delle sveglie)
 
-Stessa `CRON_CHIAVE` già nelle variabili Hostinger. Incollala dopo `chiave=`,
-senza virgolette, senza spazi, senza caratteri come `#` `&` `+`.
+Qui non entri nel pannello con la password. Apri degli indirizzi, come hai
+fatto per **Database pronto**. Ogni indirizzo dice al server: fai questo
+lavoro adesso. La chiave nell’indirizzo sostituisce il login.
 
-Deve comparire del testo JSON, non “chiave non valida” e non una pagina di
-accesso. Se compare **chiave non valida**: la parola nell’indirizzo non è
-identica a `CRON_CHIAVE`. Controlla, salva, riavvia, riprova.
+### 4.0 Copia la chiave
+
+1. hPanel → applicazione Node `seo.brignole.ch` → **Environment variables**
+   (variabili d’ambiente).
+2. Trova `CRON_CHIAVE`. Copia il valore, nient’altro.
+3. Niente virgolette, niente spazio prima o dopo, niente caratteri
+   `#` `&` `+`. Se la chiave li contiene, usane una nuova solo di lettere e
+   numeri, salva, **riavvia**, poi usa quella.
+
+In ogni indirizzo sotto, al posto di `INCOLLA_LA_CHIAVE` metti quella parola,
+attaccata dopo `chiave=`. Esempio (inventato):
+
+`https://seo.brignole.ch/api/cron/raccolta?chiave=abc123def456`
+
+**Cosa deve comparire:** una pagina di testo JSON (graffe `{` `}`, parole come
+`righe` o `pagine`). Non la schermata di accesso. Non “chiave non valida”.
+
+**Se compare chiave non valida (HTTP 401):** la parola nell’indirizzo non è
+identica a `CRON_CHIAVE`. Ricopia, controlla di non aver preso uno spazio,
+riprova.
+
+**Se compare la pagina di accesso:** manca `?chiave=` oppure hai aperto un
+indirizzo sbagliato (home, non `/api/cron/...`).
+
+**Se Chrome dice errore 500 / Il database non risponde:** la chiave è giusta,
+sbagliano i `DB_*`. Non è questo capitolo.
+
+Fai **4a, 4b, 4c, 4d** in quest’ordine, oggi. 4e è una prova extra, quando vuoi.
 
 ### 4a. Raccolta (una volta)
 
-Apri:
+Cosa fa: legge Search Console, Analytics Brignole, Ecwid, Ads (se il token lo
+permette) e le mette nel database. Non cambia i siti.
+
+1. Incolla nella barra del browser:
 
 `https://seo.brignole.ch/api/cron/raccolta?chiave=INCOLLA_LA_CHIAVE`
 
-Aspetta. Può durare un minuto. I `problemi` su Biography Library (se il JSON
-BL o gli inviti non sono ancora pronti) e sui token Ads di prova **si
-ignorano**. Non è un errore del pannello.
+2. Invio. **Aspetta.** Può durare da venti secondi a un paio di minuti.
+   Non chiudere la scheda. Non ricaricare se sembra ferma.
+3. Deve comparire JSON con `"righe"` (un numero) e `"problemi"` (un elenco,
+   anche vuoto) e `"finestra"` con due date.
 
-Poi apri `https://seo.brignole.ch`. I siti Brignole dovrebbero avere
-clic/impressioni. Luna può restare a zero. Biography Library ha dati solo se
-il punto 1 e il punto 3 sono fatti.
+**Problemi che si ignorano (non sono un bug del pannello):**
+
+- Ads Brignole o Ads Biography Library: *permission* / 403, finché i token
+  sono di prova (punto 6).
+- Conversioni Grants: stesso 403 Ads.
+- CrUX o Merchant: chiave o invito mancante.
+
+**Problema che va corretto:** Search Console di un sito Brignole in
+`problemi` *dopo* che hai già invitato l’email `iam`. Allora l’invito sta
+sulla proprietà sbagliata (prefisso `https://` invece di Dominio).
+
+4. Apri una scheda nuova: `https://seo.brignole.ch` e entra con
+   `PANNELLO_PASSWORD`.
+5. Tabella **Siti**: Aelle e brignole.ch devono avere clic e impressioni
+   (numeri, non vuoto). Luna può restare a zero: è normale. Biography Library
+   ha numeri solo se i punti 1 e 3 sono fatti e Search Console ha già dati.
+
+Se la home è vuota di numeri ma la raccolta ha detto `"righe": 10000` o
+simile: ricarica la home. Se resta vuota, manda screenshot di JSON e home.
 
 ### 4b. Scansione, un sito alla volta
 
-Un indirizzo alla volta. Deve comparire JSON con `"pagine"`, non una pagina
-bianca.
+Cosa fa: legge le pagine del sito (titolo, descrizione, robots, sitemap) e le
+fotografa. Non cambia i testi in vetrina. **Un sito per indirizzo.** Se li
+metti tutti insieme, Hostinger taglia.
 
-Aelle è grande: una passata legge un pezzo e si riprende da sola (lunedì
-notte, e i lunedì dopo). Se il browser dice **504 Gateway Time-out**, **non
-ricaricare in loop**: Hostinger ha tagliato l’attesa. I siti piccoli di solito
-finiscono al primo colpo. Il negozio Ecwid sta dentro Aelle, non ha una
-scansione sua.
+Oggi basta **Aelle**. Gli altri, uno al giorno, se Aelle non finisce (oppure
+lasciali alle sveglie del punto 5).
 
-Oggi basta Aelle. Gli altri, uno al giorno, se Aelle non finisce:
+1. Incolla:
 
-- Aelle: `https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE`
-- brignole.ch: `https://seo.brignole.ch/api/cron/scansione?sito=brignole&chiave=INCOLLA_LA_CHIAVE`
-- Tag Tales: `https://seo.brignole.ch/api/cron/scansione?sito=tagtales&chiave=INCOLLA_LA_CHIAVE`
-- Kizunama: `https://seo.brignole.ch/api/cron/scansione?sito=kizunama&chiave=INCOLLA_LA_CHIAVE`
-- StrangeGlyph: `https://seo.brignole.ch/api/cron/scansione?sito=strangeglyph&chiave=INCOLLA_LA_CHIAVE`
-- Luna Nihongo: `https://seo.brignole.ch/api/cron/scansione?sito=lunanihongo&chiave=INCOLLA_LA_CHIAVE`
-- Biography Library (sito): `https://seo.brignole.ch/api/cron/scansione?sito=biography-library&chiave=INCOLLA_LA_CHIAVE`
-- Biography Library (app): `https://seo.brignole.ch/api/cron/scansione?sito=biography-library-app&chiave=INCOLLA_LA_CHIAVE`
+`https://seo.brignole.ch/api/cron/scansione?sito=aelle&chiave=INCOLLA_LA_CHIAVE`
+
+2. Invio. Aspetta. Deve comparire JSON con `"pagine"` (un numero) e
+   `"problemi"`.
+3. Aelle è grande: una passata legge un pezzo (decine di pagine) e si
+   riprende da sola il lunedì notte, e i lunedì dopo. `"pagine": 40` è già
+   un successo, non zero.
+4. Se il browser dice **504 Gateway Time-out**: Hostinger ha tagliato
+   l’attesa. **Non ricaricare in loop.** La coda è già sul server. La
+   prossima passata (sveglia o stesso indirizzo un’altra volta, dopo un
+   po’) continua da dove era.
+
+Il negozio Ecwid sta dentro Aelle: non ha una scansione sua.
+
+Gli altri, quando tocca, cambia solo `sito=`:
+
+- brignole.ch: `sito=brignole`
+- Tag Tales: `sito=tagtales`
+- Kizunama: `sito=kizunama`
+- StrangeGlyph: `sito=strangeglyph`
+- Luna Nihongo: `sito=lunanihongo`
+- Biography Library sito: `sito=biography-library`
+- Biography Library app: `sito=biography-library-app`
+
+Indirizzo intero, stesso schema:
+
+`https://seo.brignole.ch/api/cron/scansione?sito=brignole&chiave=INCOLLA_LA_CHIAVE`
+
+I siti piccoli di solito finiscono al primo colpo (`"pagine"` almeno 1).
 
 ### 4c. Diagnosi (dopo almeno una scansione)
 
+Cosa fa: guarda misure e pagine, propone titoli e note, le mette in coda.
+Chiama Claude per alcuni testi. Non pubblica nulla finché tu non premi
+Approva.
+
+1. Incolla:
+
 `https://seo.brignole.ch/api/cron/diagnosi?chiave=INCOLLA_LA_CHIAVE`
 
-Poi ricarica la home: dovrebbero comparire schede (titoli da migliorare, ecc.).
+2. Invio. Aspetta (può durare fino a un minuto).
+3. JSON con `"proposte"` (un numero: anche 50 o 100 va bene) e `"problemi"`.
+   Se compare `ripresa: tempo esaurito`, è normale: il resto la notte dopo.
+4. Ricarica `https://seo.brignole.ch`. Devono comparire schede **Da fare
+   adesso** / **Da fare** (titoli da migliorare, robots, ecc.).
 
-### 4d. Verifica
+Se `"proposte": 0` e la home è vuota: o la scansione non ha ancora pagine,
+o non ci sono casi. Manda lo JSON.
+
+### 4d. Verifica a 14 giorni
+
+Cosa fa: sulle modifiche **già applicate da due settimane** confronta i clic
+prima e dopo. Oggi, se non hai ancora approvato nulla da 14 giorni, torna
+zero. Va bene.
+
+1. Incolla:
 
 `https://seo.brignole.ch/api/cron/verifica?chiave=INCOLLA_LA_CHIAVE`
 
-Zero è normale: non ci sono ancora modifiche applicate da quattordici giorni.
+2. JSON con `"verificate": 0` (o un numero piccolo). Zero è il risultato
+   atteso all’inizio.
+
+### 4e. Extra, quando vuoi: Approva e Annulla su brignole.ch
+
+Serve a vedere se il registro funziona. **Solo brignole.ch**, un titolo,
+poi Annulla subito.
+
+1. Nel pannello apri il sito **Brignole**.
+2. Una scheda con **Modifica titolo** e testo nuovo. **Approva**.
+3. Deve comparire esito applicata (o Storico). Il titolo pubblico della
+   pagina cambia.
+4. Stessa scheda, **Annulla**. Il titolo deve tornare quello di prima.
+
+Se Approva fallisce con 401 WordPress: password applicativa (punto già
+visto su Aelle/brignole). Non insistere su Tag Tales: apre una richiesta
+GitHub.
+
+### 4f. Extra: Impianto (se la voce c’è già nel menu)
+
+Dopo il deploy del controllo impianto: menu **Impianto** → **Controlla
+adesso**. Non sostituisce 4a–4d: dice se Google e WordPress rispondono.
+Le righe arancio sono da correggere. Le attese (Ads di prova) si ignorano.
 
 ### Controllo del punto 4
 
-La raccolta ha risposto JSON. Aelle ha almeno una scansione (anche parziale).
-La diagnosi ha girato. La home non è più vuota, oppure dice perché è vuota.
-
-Prova extra, quando vuoi: sulla scheda brignole.ch, **Approva** un titolo e poi
-**Annulla**. Il registro deve rimettere il testo di prima.
+- Raccolta: JSON con `righe`.
+- Home: numeri su Aelle e brignole.ch.
+- Scansione Aelle: JSON con `pagine` (anche parziale) oppure un 504 **senza**
+  ricaricare in loop.
+- Diagnosi: JSON con `proposte`; home con schede.
+- Verifica: JSON con `verificate` (zero ok).
 
 ---
 
@@ -352,29 +465,91 @@ mattino dopo la raccolta, la home ha dati aggiornati.
 
 ## 6. Quando arriva l’email Google “Basic”
 
-Oggi i due token Ads sono di **prova**. Google li alza a **Basic** in giorni,
-a volte una o due settimane. Arriva un’email. Fino ad allora i banchi
-pubblicità possono restare vuoti o parziali: è atteso.
+**Non è un lavoro di oggi.** Lo fai solo quando Google scrive che il token
+sviluppatore non è più di prova. Fino ad allora i banchi **Pubblicità
+Brignole** e **Pubblicità Biography Library** possono restare vuoti o
+parziali: è atteso. Search Console e la coda SEO girano lo stesso.
 
-Quando arriva **Basic**, due volte, due Gmail:
+### Cosa stai aspettando
 
-1. Hostinger, applicazione Node: sostituisci `GOOGLE_ADS_DEVELOPER_TOKEN`
-   con il token Brignole (Gmail tua).
-2. Sostituisci `BL_ADS_DEVELOPER_TOKEN` con il token dell’associazione
-   (altra Gmail). Non è la stessa casella del punto 1.
-3. Salva, **riavvia**.
-4. Non sommare i due banchi. Non incollare lo stesso token nelle due caselle.
+Hai chiesto il token **due volte, due Gmail**:
 
-**Campagne** (Aelle Store a pagamento, Grants su Biography Library): solo
-quando **tu** le vuoi. Non chiudono il collegamento. Conversioni Grants: niente
-CSV a mano, le carica il notturno dopo il plugin già installato.
+- Gmail tua → token Brignole (soldi tuoi)
+- Gmail dell’associazione → token Grants
 
-Dettaglio campagne: `istruzioni-tue.md`, capitolo 7.
+Google dà subito un token di **prova**. Per leggere l’account che spende
+davvero deve alzarlo a **Basic**. Tempi: giorni, a volte una o due settimane.
+Arriva un’email (oggetto tipico su API / developer token / Basic). Possono
+arrivare **due email**, in giorni diversi: una per banco.
+
+Finché l’email non c’è, **non** toccare le variabili Ads. Non sommare i due
+banchi. Non incollare lo stesso token nelle due caselle Hostinger.
+
+### Quando l’email c’è: copiare il token nuovo
+
+Fai **un banco alla volta**. Chiudi le schede Google dell’altra Gmail, o usa
+una finestra riservata.
+
+**Brignole (Gmail tua)**
+
+1. [ads.google.com](https://ads.google.com). In alto, account **Brignole**
+   (nello screenshot dell’8 settembre: `712-100-7160`). Non Biography Library.
+2. Devi essere nel **manager** (la cartella), non in una campagna figlia.
+   Il Centro API compare solo lì: Strumenti (chiave inglese) → **Centro API**
+   (API Center).
+3. Copia il **developer token** (stringa lunga). Se la schermata dice ancora
+   Test / Prova, l’email Basic non è ancora attiva: aspetta.
+4. Non copiare i numeri account (quelli con i trattini): `CUSTOMER_ID` e
+   `MANAGER_ID` in Hostinger restano quelli che hai già, senza trattini.
+
+**Biography Library (Gmail associazione)**
+
+1. Chiudi la finestra Brignole. Nuova finestra. Gmail **associazione**.
+2. Account **Biography Library** (`289-519-5392`). Manager Grants, non il
+   manager Brignole.
+3. Centro API, copia l’**altro** token. Non quello del punto Brignole.
+
+### Incollare in Hostinger
+
+1. hPanel → applicazione Node `seo.brignole.ch` → variabili d’ambiente.
+2. Trova `GOOGLE_ADS_DEVELOPER_TOKEN`. Sostituisci **solo** il valore con il
+   token Brignole nuovo. Non cambiare `GOOGLE_ADS_CUSTOMER_ID` né
+   `GOOGLE_ADS_MANAGER_ID`.
+3. Trova `BL_ADS_DEVELOPER_TOKEN`. Sostituisci **solo** il valore con il token
+   dell’associazione. Non cambiare `BL_ADS_CUSTOMER_ID` né `BL_ADS_MANAGER_ID`.
+4. Le due caselle devono contenere **due stringhe diverse**.
+5. Salva. **Riavvia** l’applicazione Node. Senza riavvio il programma legge
+   ancora i token vecchi.
+
+### Dopo il riavvio, controllo
+
+1. Pannello → **Impianto** → **Controlla adesso** (oppure aspetta la sveglia
+   delle 5:15 UTC).
+2. Le righe **Ads Brignole (lettura)** e **Ads Biography Library (lettura)**
+   devono passare da atteso/403 a **ok**, oppure restare atteso solo se manca
+   ancora l’invito dell’email `iam` in Ads (Sola lettura Brignole, Standard
+   Grants). In quel caso: Ads → Accesso e sicurezza, stessa email `iam` del
+   JSON di quel banco.
+3. Apri **Pubblicità Brignole** e **Pubblicità Biography Library**: restano
+   **due** schermate. Non esiste un totale unico di spesa.
+
+Se dopo Basic e riavvio Impianto dice ancora *The caller does not have
+permission*: manca l’invito `iam` in quel account Ads, o hai incollato il
+token nel banco sbagliato. Screenshot della riga Impianto e del menu account
+Ads in alto.
+
+### Campagne: non fanno parte di questo punto
+
+Creare campagne Aelle Store o Grants è **un altro momento**, solo quando tu
+le vuoi. Non chiude il collegamento. Dettaglio: `istruzioni-tue.md`, capitolo 7.
+Conversioni Grants: niente CSV, le carica il notturno dopo il plugin.
 
 ### Controllo del punto 6
 
-Dopo il riavvio, **Pubblicità Brignole** e **Pubblicità Biography Library**
-restano due schermate. I numeri di spesa non si sommano.
+Email Basic arrivata (anche una sola: fai quel banco e aspetti l’altra).
+Token sostituiti nelle **due** caselle giuste, applicazione riavviata. Impianto:
+Ads in lettura ok o, se 403, invito `iam` ancora da fare. Due schede
+pubblicità, mai una cassa unica.
 
 ---
 

@@ -1,4 +1,33 @@
-# Dove siamo, all 11 settembre 2026
+# Dove siamo, al 16 settembre 2026
+
+## Aggiornamento del 16 settembre
+
+Tutti e sei i lavori del ciclo sono stati eseguiti per davvero contro il database
+di produzione. Nessuno era rotto; tre erano troppo lenti per il tempo che
+Hostinger concede, e uno raccontava la cosa sbagliata.
+
+- **Ads Brignole funziona.** Il pannello mandava sempre `login-customer-id` con
+  il manager 150-466-0044, e l account campagne 712-100-7160 non sta sotto quel
+  manager: Google rispondeva 403 anche con il token buono. Ora ritenta senza, e
+  ricorda la risposta per non pagare due richieste ogni volta.
+- **Ads Biography Library e in attesa di Google**, non di un invito: il token di
+  quell account vale solo per account di prova (`ACTION_NOT_PERMITTED`). Il
+  motivo vero stava in `error.details`, che il codice non leggeva.
+- **Search Console dell associazione si legge** (D2 e D2b verdi).
+- **Raccolta da 383 a 16 secondi**, scansione di un sito piccolo da 63 a 2:
+  le misure e la coda si scrivono a lotti.
+- **Pagina Sveglia** (`/sveglia`): ogni lavoro ha ultima esecuzione, orario
+  atteso e pulsante Lancia adesso. I lavori vivono in `lib/lavori/`, chiamati sia
+  dalla sveglia con la chiave sia dal pannello con la sessione.
+- **Impianto**: 21 righe su 25 a posto. Le due rosse sono i token GitHub troppo
+  larghi e la Content API del Merchant spenta.
+- **La sveglia notturna non aveva ancora avuto occasione di girare**: i file PHP
+  sono stati caricati alle dieci del mattino, le sveglie sono fra le 3:00 e le
+  5:30 UTC. Manca del tutto la riga `raccolta.php`.
+
+Cosa resta a Claudio, un documento per azione: `docs/tuo/00-indice.md`.
+
+# Dove eravamo, all 11 settembre 2026
 
 Questo file esiste per chi riapre il progetto: io, Claude Code, Cursor, o Claudio
 fra tre settimane. Dice a che punto è il lavoro e cosa viene dopo, senza dover
@@ -32,20 +61,18 @@ e Merchant se ci sono chiave e invito. Cron citazioni a parte, opzionale.
 
 Lista clic per clic di ciò che resta a Claudio: `docs/passi-rimasti.md`.
 
-**Già fatto (11 settembre):** codice in produzione, Database pronto, plugin
-Regia robots sui tre WordPress, Regia BL Grants sul sito associazione, 27
-variabili Hostinger (token Ads ancora di prova). Cron Jobs creati su
-`brignole.ch` (unico posto possibile). I comandi curl con `?chiave=` non
-arrivano al pannello: Hostinger taglia `?` e `&`. Passare ai file PHP in
-`plugin-wp/regia-sveglia/`.
+**Già fatto (al 16 settembre):** codice in produzione, Database pronto, plugin
+Regia robots sui tre WordPress, Regia BL Grants sul sito associazione, variabili
+Hostinger compreso `BL_SERVICE_ACCOUNT_JSON`, inviti Search Console delle due
+identità, Analytics Brignole, Ads Brignole in sola lettura. File PHP della sveglia
+caricati in `public_html/regia-sveglia` su brignole.ch e dodici Cron Jobs creati.
 
-**Resto, tu nel browser:** `BL_SERVICE_ACCOUNT_JSON` (progetto Cloud
-associazione), inviti Search Console / Analytics Brignole / Ads sola lettura
-Brignole e Standard Grants. Sostituire i curl nei Cron Jobs di brignole.ch
-con i file PHP `plugin-wp/regia-sveglia/`. Token Ads: Explorer basta per
-Brignole in lettura; Grants resta un altro account.
+**Resto, tu nel browser** (dettaglio in `docs/tuo/`): rilasciare il codice nuovo,
+aggiungere la sveglia mancante della raccolta, chiedere l accesso Basic per il
+token Ads dell associazione, accendere la Content API for Shopping nel progetto
+Cloud Brignole, restringere i due token GitHub al loro perimetro.
 
-Opzionale: `CRUX_API_KEY`, invito Merchant Center 5717230535, cron citazioni.
+Opzionale: `CRUX_API_KEY`, cron citazioni.
 
 Poi, in Cursor sui siti Node: lettura `seo/contenuti.json` (prima StrangeGlyph).
 Prova titolo home brignole.ch e Annulla.

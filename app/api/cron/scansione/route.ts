@@ -1,36 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verificaChiaveCron } from '@/lib/auth'
-import { iniziaEsecuzione, chiudiEsecuzione } from '@/lib/db'
-import { scansiona } from '@/lib/scansione/crawler'
-import { SITI, sito } from '@/siti.config'
+import { eseguiScansione } from '@/lib/lavori'
 
-export const maxDuration = 60
+export const maxDuration = 120
 export const dynamic = 'force-dynamic'
 
 /**
  * Un sito per volta: con la pausa fra le pagine, scansionarli tutti insieme
- * supererebbe qualunque limite di tempo. Il pianificatore chiama
+ * supererebbe qualunque limite di tempo. La sveglia chiama
  * /api/cron/scansione?sito=aelle una notte, ?sito=brignole quella dopo.
+ * Senza il parametro tocca al sito del giorno, non sempre al primo.
  */
 export async function GET(req: NextRequest) {
   const negato = verificaChiaveCron(req)
   if (negato) return negato
 
   const id = new URL(req.url).searchParams.get('sito')
-  const bersagli = id ? [sito(id)] : SITI.slice(0, 1)
-
-  const esecuzione = await iniziaEsecuzione('scansione')
-  let pagine = 0
-  const problemi: string[] = []
-
-  for (const s of bersagli) {
-    try {
-      pagine += await scansiona(s)
-    } catch (e) {
-      problemi.push(`${s.id}: ${(e as Error).message}`)
-    }
+  try {
+    const esito = await eseguiScansione(id)
+    return NextResponse.json({
+      pagine: esito.righe,
+      problemi: esito.problemi,
+      riassunto: esito.riassunto,
+      ...(esito.extra ?? {}),
+    })
+  } catch (e) {
+    return NextResponse.json(
+      {
+        errore: (e as Error).message,
+        cosaFare:
+          'Il parametro sito deve essere uno degli identificatori del perimetro: aelle, brignole, tagtales, kizunama, strangeglyph, lunanihongo, biography-library, biography-library-app.',
+      },
+      { status: 400 }
+    )
   }
-
-  await chiudiEsecuzione(esecuzione, problemi.length ? 'parziale' : 'ok', pagine, problemi.join(' / ') || undefined)
-  return NextResponse.json({ pagine, problemi })
 }

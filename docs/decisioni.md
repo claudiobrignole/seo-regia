@@ -154,3 +154,47 @@ manager: serve a sapere quale MCC possiede il token. Biography Library resta
 un altro banco.
 
 
+
+## 2026-09-16, i lavori notturni sono funzioni, non solo rotte
+Prima ogni lavoro viveva dentro il suo `app/api/cron/*/route.ts`, e si poteva
+lanciare solo con la chiave nell indirizzo. Risultato: per sapere se la raccolta
+funzionava bisognava aspettare la notte o incollare un indirizzo con un segreto
+dentro. Ora il corpo di ogni lavoro sta in `lib/lavori/`, la rotta della sveglia
+lo chiama con la chiave e il pannello lo chiama con la sessione
+(`/api/lavori/esegui`, pagina `/sveglia`). Un lavoro che non si puo provare e un
+lavoro di cui non si sa niente.
+
+## 2026-09-16, le misure si scrivono a lotti
+`salvaMisura` faceva una INSERT per riga: sulle diecimila righe di una notte, da
+fuori il datacentro, erano 383 secondi di sola attesa di rete, e la raccolta
+sforava il tempo concesso da Hostinger. Con `salvaMisure` a lotti di duecento la
+stessa raccolta dura 16 secondi. Il contenuto del database e identico,
+sovrascrittura compresa. Stessa cura sulla coda di scansione e sui link entranti:
+StrangeGlyph e passato da 63 secondi a 2.
+
+## 2026-09-16, il motivo vero di un errore Google Ads sta in error.details
+`error.message` dice sempre "The caller does not have permission", anche quando
+il problema e il livello del token per sviluppatori. Il codice vero
+(`ACTION_NOT_PERMITTED`, `USER_PERMISSION_DENIED`) sta in
+`error.details[0].errors[0].errorCode`. Per questo per giorni si e cercato un
+invito mancante sul banco Biography Library, quando il blocco era che quel token
+vale solo per account di prova. Ora `lib/ads/chiamata.ts` legge il dettaglio e
+aggiunge una frase con cosa fare.
+
+## 2026-09-16, un permesso mancante non e uno stato atteso
+In `lib/impianto/controlli.ts` qualunque messaggio Ads con la parola *permission*
+finiva fra gli attesi, e cosi un invito mai fatto sembrava normale. Ora resta
+atteso solo cio che dipende da una approvazione di Google (token ancora per soli
+account di prova). Tutto il resto e rosso finche non e sistemato.
+
+## 2026-09-16, il rapporto AI Overview della Search Console resta spento
+L API risponde `AI_OVERVIEW is not a valid searchAppearance`: Google non ha
+aperto quel filtro. Erano quattordici richieste buttate ogni notte e altrettanti
+avvisi che coprivano gli errori veri. Il codice resta, spento, dietro
+`SEARCH_CONSOLE_AI=1`.
+
+## 2026-09-16, la home mette prima le decisioni, poi i numeri
+La tabella dei siti e l elenco dei lavori stavano sopra il briefing: si apriva il
+pannello e la prima cosa erano numeri da guardare, non cose da fare. Ora l ordine
+e avvisi, da fare adesso, da fare, tabella dei siti, stato della sveglia. Guardare
+i numeri non e un compito.

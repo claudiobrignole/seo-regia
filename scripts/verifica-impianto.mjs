@@ -683,7 +683,7 @@ async function main() {
           'fallito',
           `GitHub ${repo} (deve restare fuori)`,
           'Il token vede un repo dell altra identita',
-          'Due token, due proprietari. Non mescolare GITHUB_TOKEN e GITHUB_TOKEN_BL'
+          'Rigenera il token a grana fine con Only select repositories: passi in docs/tuo/05-token-github.md'
         )
       } else if (!deveEntrare && (res.status === 404 || res.status === 403)) {
         registra(id, 'ok', `GitHub ${repo} isolato`, `HTTP ${res.status}: l altro token non entra`, '')

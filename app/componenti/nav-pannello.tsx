@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const VOCI = [
   { href: '/', etichetta: 'Siti', prefisso: false },
+  { href: '/sveglia', etichetta: 'Sveglia', prefisso: false },
   { href: '/impianto', etichetta: 'Impianto', prefisso: false },
   { href: '/pubblicita/brignole', etichetta: 'Pubblicita Brignole', prefisso: true },
   {

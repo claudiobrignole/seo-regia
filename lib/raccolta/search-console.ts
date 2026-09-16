@@ -1,6 +1,6 @@
 import { google } from 'googleapis'
 import { auth } from './google'
-import { salvaMisura } from '@/lib/db'
+import { salvaMisure, type Misura } from '@/lib/db'
 import type { Sito } from '@/siti.config'
 
 /**
@@ -68,11 +68,11 @@ async function interroga(
 }
 
 export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<number> {
-  let scritte = 0
+  const daScrivere: Misura[] = []
 
   for (const r of await interroga(s, ['date', 'page'], da, a)) {
     if (!r.chiave) continue
-    await salvaMisura({
+    daScrivere.push({
       sitoId: s.id,
       fonte: 'search-console',
       giorno: r.giorno,
@@ -83,12 +83,11 @@ export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<n
       posizione: Number(r.posizione.toFixed(2)),
       extra: { ctr: r.ctr },
     })
-    scritte++
   }
 
   for (const r of await interroga(s, ['date', 'query'], da, a)) {
     if (!r.chiave) continue
-    await salvaMisura({
+    daScrivere.push({
       sitoId: s.id,
       fonte: 'search-console',
       giorno: r.giorno,
@@ -99,14 +98,13 @@ export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<n
       posizione: Number(r.posizione.toFixed(2)),
       extra: { ctr: r.ctr },
     })
-    scritte++
   }
 
   // Coppie pagina + query: servono a chi scrive i titoli. Una fotografia
   // della finestra, non da sommare sulla home.
   for (const r of await interroga(s, ['page', 'query'], da, a, 10000)) {
     if (!r.chiave || !r.chiave2) continue
-    await salvaMisura({
+    daScrivere.push({
       sitoId: s.id,
       fonte: 'search-console',
       giorno: a,
@@ -117,17 +115,25 @@ export async function raccogliRicerca(s: Sito, da: string, a: string): Promise<n
       posizione: Number(r.posizione.toFixed(2)),
       extra: { ctr: r.ctr, pagina: r.chiave, query: r.chiave2, finestra: { da, a } },
     })
-    scritte++
   }
 
-  return scritte
+  return salvaMisure(daScrivere)
 }
 
 /**
  * Rapporto sulle funzionalita di AI generativa, ancora in prova.
  * Fonte distinta: altrimenti sovrascrive i clic del risultato classico.
+ *
+ * Oggi l API risponde "AI_OVERVIEW is not a valid searchAppearance": Google non
+ * ha ancora aperto quel filtro. Il codice resta pronto ma spento, perche
+ * chiamarlo per ogni sito ogni notte sono quattordici richieste buttate e
+ * altrettanti avvisi che coprono gli errori veri. Il giorno che lo apriranno
+ * basta mettere SEARCH_CONSOLE_AI=1 fra le variabili.
  */
+const AI_ACCESA = process.env.SEARCH_CONSOLE_AI === '1'
+
 export async function raccogliAI(s: Sito, da: string, a: string): Promise<number> {
+  if (!AI_ACCESA) return 0
   if (!s.searchConsole) return 0
   const api = google.searchconsole({ version: 'v1', auth: auth(s.identita) as any })
   let n = 0
@@ -158,12 +164,12 @@ async function salvaAI(
         type: 'web',
       },
     })
-    let n = 0
+    const daScrivere: Misura[] = []
     for (const r of res.data.rows ?? []) {
       const giorno = r.keys?.[0] ?? a
       const chiave = r.keys?.[1] ?? ''
       if (!chiave) continue
-      await salvaMisura({
+      daScrivere.push({
         sitoId: s.id,
         fonte: 'search-console-ai',
         giorno,
@@ -174,9 +180,8 @@ async function salvaAI(
         posizione: r.position ?? null,
         extra: { superficie: 'ai' },
       })
-      n++
     }
-    return n
+    return salvaMisure(daScrivere)
   } catch (e) {
     console.warn(`[ai] ${s.id}/${tipoChiave}: rapporto non disponibile`, (e as Error).message)
     return 0

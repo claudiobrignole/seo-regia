@@ -83,20 +83,22 @@ export default async function Pannello() {
   const briefing = errore ? null : await vociBriefing()
   const lezioni = errore ? [] : await lezioniRecenti()
   const impianto = errore ? null : await ultimaPassata()
+  // L ultimo giro di ogni lavoro, non le ultime dodici righe: dodici righe
+  // dello stesso lavoro non dicono se gli altri hanno girato.
   let esecuzioni: Esecuzione[] = []
-  let ultimaRaccolta: Esecuzione | null = null
   if (!errore) {
     try {
       esecuzioni = await query<Esecuzione>(
-        `SELECT lavoro, iniziata_il, esito, messaggio FROM esecuzioni ORDER BY id DESC LIMIT 12`
+        `SELECT e.lavoro, e.iniziata_il, e.esito, e.messaggio
+           FROM esecuzioni e
+           INNER JOIN (SELECT lavoro, MAX(id) AS id FROM esecuzioni GROUP BY lavoro) x ON x.id = e.id
+          ORDER BY e.iniziata_il DESC`
       )
-      ultimaRaccolta = await query<Esecuzione>(
-        `SELECT lavoro, iniziata_il, esito, messaggio FROM esecuzioni WHERE lavoro = 'raccolta' ORDER BY id DESC LIMIT 1`
-      ).then((r) => r[0] ?? null)
     } catch {
       esecuzioni = []
     }
   }
+  const ultimaRaccolta = esecuzioni.find((e) => e.lavoro === 'raccolta') ?? null
   const oreRaccolta = oreDa(ultimaRaccolta?.iniziata_il)
   const svegliaFerma = !ultimaRaccolta || (oreRaccolta != null && oreRaccolta > 30)
 
@@ -134,6 +136,60 @@ export default async function Pannello() {
             </Link>
           </p>
         </div>
+      )}
+
+      {svegliaFerma && (
+        <div className="al-avviso">
+          <strong>I numeri sono fermi: la raccolta non gira.</strong>
+          <p style={{ margin: '8px 0 0' }}>
+            {ultimaRaccolta
+              ? `Ultima raccolta ${quandoLavoro(ultimaRaccolta.iniziata_il)} (circa ${Math.round(oreRaccolta ?? 0)} ore fa).`
+              : 'Nel database non c e ancora nessuna raccolta.'}{' '}
+            Non aspettare la notte per sapere se funziona:{' '}
+            <Link href="/sveglia" style={{ fontWeight: 700 }}>
+              apri Sveglia e premi Lancia adesso
+            </Link>
+            . Quella pagina dice anche quando ogni lavoro ha girato per l ultima volta.
+          </p>
+        </div>
+      )}
+
+      {/* Prima cosa che si legge: quello che aspetta una decisione. I numeri
+          vengono dopo, perche guardarli non e un compito. */}
+      {briefing && !briefing.errore && (
+        <>
+          {nienteUrgente && (
+            <p className="al-muted">Questa settimana niente di urgente. Il resto, se c e, sta nelle schede dei siti.</p>
+          )}
+
+          {briefing.urgente.length > 0 && (
+            <>
+              <h2>Da fare adesso</h2>
+              <div className="al-griglia-voci">
+                {briefing.urgente.map((v, i) => (
+                  <VoceRegista key={`u-${v.href}-${i}`} voce={v} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {briefing.importante.length > 0 && (
+            <>
+              <h2>Da fare</h2>
+              <div className="al-griglia-voci">
+                {briefing.importante.map((v, i) => (
+                  <VoceRegista key={`i-${v.href}-${i}`} voce={v} />
+                ))}
+              </div>
+            </>
+          )}
+          {briefing.nascoste > 0 && (
+            <p className="al-muted al-griglia-coda">
+              Altre {briefing.nascoste} {briefing.nascoste === 1 ? 'proposta sta' : 'proposte stanno'} nelle schede
+              dei siti: qui solo le piu urgenti.
+            </p>
+          )}
+        </>
       )}
 
       <h2>Siti</h2>
@@ -183,68 +239,30 @@ export default async function Pannello() {
         </tbody>
       </table>
 
-      <h2>Ultimi lavori notturni</h2>
-      {svegliaFerma && (
-        <div className="al-avviso" style={{ marginBottom: 16 }}>
-          <strong>La sveglia su brignole.ch non arriva al pannello.</strong>
-          <p style={{ margin: '8px 0 0' }}>
-            {ultimaRaccolta
-              ? `Ultima raccolta ${quandoLavoro(ultimaRaccolta.iniziata_il)} (circa ${Math.round(oreRaccolta ?? 0)} ore fa).`
-              : 'Nel database non c e ancora nessuna raccolta.'}{' '}
-            I Cron Jobs stanno sul dominio principale, e va bene. Nella casella comando pero non si mette curl con
-            punto interrogativo o e commerciale: Hostinger taglia la chiave e qui non compare nulla. Serve un file
-            PHP, come wp-cron, in File Manager di brignole.ch (cartella public_html/regia-sveglia).
-          </p>
-        </div>
-      )}
+      <h2>Sveglia</h2>
       {esecuzioni.length === 0 ? (
         <p className="al-sezione-vuota">
-          Ancora nessuno. Quando Hostinger chiamera le rotte, compariranno qui.
+          Nessun lavoro ha ancora girato.{' '}
+          <Link href="/sveglia" style={{ fontWeight: 700 }}>
+            Aprine uno a mano da Sveglia
+          </Link>
+          : e il modo di sapere se il pannello parla con Google.
         </p>
       ) : (
-        <ul style={{ paddingLeft: 18, fontSize: 14 }}>
-          {esecuzioni.map((e, i) => (
-            <li key={i} style={{ marginBottom: 6 }}>
-              <strong>{e.lavoro}</strong> {quandoLavoro(e.iniziata_il)}: {e.esito ?? 'in corso'}
-              {e.messaggio ? `: ${e.messaggio}` : ''}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {briefing && !briefing.errore && (
         <>
-          {nienteUrgente && (
-            <p className="al-muted">Questa settimana niente di urgente. Il resto, se c e, sta nelle schede dei siti.</p>
-          )}
-
-          {briefing.urgente.length > 0 && (
-            <>
-              <h2>Da fare adesso</h2>
-              <div className="al-griglia-voci">
-                {briefing.urgente.map((v, i) => (
-                  <VoceRegista key={`u-${v.href}-${i}`} voce={v} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {briefing.importante.length > 0 && (
-            <>
-              <h2>Da fare</h2>
-              <div className="al-griglia-voci">
-                {briefing.importante.map((v, i) => (
-                  <VoceRegista key={`i-${v.href}-${i}`} voce={v} />
-                ))}
-              </div>
-            </>
-          )}
-          {briefing.nascoste > 0 && (
-            <p className="al-muted al-griglia-coda">
-              Altre {briefing.nascoste} {briefing.nascoste === 1 ? 'proposta sta' : 'proposte stanno'} nelle schede
-              dei siti: qui solo le piu urgenti.
-            </p>
-          )}
+          <ul style={{ paddingLeft: 18, fontSize: 14 }}>
+            {esecuzioni.map((e, i) => (
+              <li key={i} style={{ marginBottom: 6 }}>
+                <strong>{e.lavoro}</strong> {quandoLavoro(e.iniziata_il)}: {e.esito ?? 'in corso'}
+              </li>
+            ))}
+          </ul>
+          <p className="al-muted">
+            <Link href="/sveglia" style={{ fontWeight: 700 }}>
+              Sveglia
+            </Link>{' '}
+            dice per ogni lavoro l ultimo messaggio, l orario previsto, e ha il pulsante per lanciarlo adesso.
+          </p>
         </>
       )}
 

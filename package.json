@@ -9,7 +9,8 @@
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "db:migra": "node scripts/migra.mjs",
-    "verifica": "node scripts/verifica-impianto.mjs"
+    "verifica": "node scripts/verifica-impianto.mjs",
+    "lavoro": "npx --yes tsx@4.19.2 scripts/prova-lavoro.mts"
   },
   "dependencies": {
     "next": "15.5.21",

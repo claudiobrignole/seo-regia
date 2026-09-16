@@ -27,8 +27,14 @@ function accorcia(testo: string, n = 400): string {
   return String(testo ?? '').replace(/\s+/g, ' ').trim().slice(0, n)
 }
 
+/**
+ * Solo l attesa di Google e "atteso": il token che vale ancora per i soli
+ * account di prova dipende da una loro approvazione, non da noi. Un invito che
+ * manca invece e un lavoro da fare, e deve restare rosso finche non e fatto.
+ * Prima erano tutti attesi, e un permesso mancante sembrava normale.
+ */
 function adsAtteso(messaggio: string): boolean {
-  return /permission|developer token|test account|prova|not allowed|NOT_ADS_USER/i.test(messaggio)
+  return /only approved for use with test accounts|DEVELOPER_TOKEN_NOT_APPROVED|ACTION_NOT_PERMITTED/i.test(messaggio)
 }
 
 async function proprietaSearchConsole(identita: Identita): Promise<{ url: string; permesso: string }[]> {
@@ -417,6 +423,57 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
     }
   } else {
     metti('F2', 'GitHub Biography Library', 'atteso', 'manca GITHUB_TOKEN_BL', '')
+  }
+
+  // Due token diversi non bastano: se quello dell associazione vede anche i
+  // repository di Brignole, un errore su un lato tocca l altro perimetro.
+  if (tokenGh && tokenBl) {
+    try {
+      const blVedeBrignole = await githubRepo(tokenBl, 'claudiobrignole/TagTales')
+      const brignoleVedeBl = await githubRepo(tokenGh, 'biographylibrary/Biography-Library')
+      const sconfina: string[] = []
+      if (blVedeBrignole.status === 200) sconfina.push('il token BL arriva su claudiobrignole/TagTales')
+      if (brignoleVedeBl.status === 200) sconfina.push('il token Brignole arriva su biographylibrary/Biography-Library')
+      metti(
+        'F0b',
+        'Token GitHub ognuno nel suo perimetro',
+        sconfina.length ? 'fallito' : 'ok',
+        sconfina.length ? sconfina.join('; ') : 'ogni token vede solo i propri repository',
+        'Rigenerali a grana fine scegliendo Only select repositories: quello Brignole sui repo Brignole, quello BL solo su Biography-Library'
+      )
+    } catch (e) {
+      metti('F0b', 'Token GitHub ognuno nel suo perimetro', 'atteso', (e as Error).message, '')
+    }
+  }
+
+  // Merchant Center: se la Content API e spenta nel progetto Cloud, la
+  // raccolta salta le schede prodotto in silenzio. Meglio dirlo qui.
+  if (emailB) {
+    try {
+      const client = await auth('brignole').getClient()
+      const tok = await client.getAccessToken()
+      const accesso = typeof tok === 'string' ? tok : tok?.token
+      const res = await fetch(
+        'https://shoppingcontent.googleapis.com/content/v2.1/5717230535/productstatuses?maxResults=1',
+        { headers: { authorization: `Bearer ${accesso}` } }
+      )
+      const corpo = (await res.json().catch(() => null)) as { error?: { message?: string } } | null
+      const messaggio = corpo?.error?.message ?? ''
+      const apiSpenta = /has not been used in project|is disabled/i.test(messaggio)
+      metti(
+        'F5',
+        'Merchant Center Aelle',
+        res.ok ? 'ok' : apiSpenta ? 'fallito' : 'atteso',
+        res.ok ? 'schede prodotto leggibili' : `HTTP ${res.status}: ${accorcia(messaggio, 200)}`,
+        res.ok
+          ? ''
+          : apiSpenta
+            ? 'Nel progetto Cloud Brignole accendi Content API for Shopping, poi aspetta due minuti e premi Controlla adesso'
+            : 'Nel Merchant Center 5717230535, Utenti, invita l email iam Brignole in sola lettura'
+      )
+    } catch (e) {
+      metti('F5', 'Merchant Center Aelle', 'atteso', (e as Error).message, '')
+    }
   }
 
   const ecwid = credenzialiEcwid()

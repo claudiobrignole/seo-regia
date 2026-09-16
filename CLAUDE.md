@@ -42,6 +42,10 @@ Gira su Hostinger Business, piano che supporta Node.
 - `lib/regole/` — le diagnosi. Una regola, un file. La più importante è `ctr-basso.ts`.
 - `lib/esecutori/` — WordPress, GitHub, Ecwid. Gli unici punti che scrivono.
 - `lib/registro/` — storico e annullamento.
+- `lib/lavori/` — il corpo dei lavori del ciclo, come funzioni. Due strade li
+  chiamano: `app/api/cron/` con la chiave, `/api/lavori/esegui` con la sessione
+  (pulsante Lancia adesso nella pagina `/sveglia`). Un lavoro che si puo lanciare
+  solo di notte non si puo provare.
 - `app/api/cron/` — le rotte che i lavori pianificati chiamano.
 - `db/schema.sql` — lo schema. Si applica con `npm run db:migra`.
 - `docs/decisioni.md` — perché le cose sono come sono, con la data.
@@ -72,6 +76,17 @@ Cambiare `PANNELLO_PASSWORD` invalida tutte le sessioni aperte, ed e il modo di
 chiudere fuori tutti se serve. Non ci sono utenti multipli e non servono: e un
 pannello per una persona. Se un giorno dovesse aprirsi a piu persone, il punto
 da cambiare e solo questo file piu una tabella utenti.
+
+## Come si prova un lavoro senza aspettare la notte
+
+Nel pannello, voce **Sveglia** (`/sveglia`): ogni lavoro dice quando ha girato
+l ultima volta, a che ora e atteso, e ha un pulsante **Lancia adesso**. Da
+terminale la stessa cosa:
+
+    npm run lavoro -- raccolta
+    npm run lavoro -- scansione strangeglyph
+
+Scrive nel database (misure, pagine, proposte), non sui siti.
 
 ## Come girano i lavori notturni
 

@@ -35,8 +35,7 @@ export async function unaRiga<T = any>(sql: string, valori: unknown[] = []): Pro
   return r[0] ?? null
 }
 
-/** Scrive una misura, sovrascrivendo quella dello stesso giorno se rieseguiamo il lavoro. */
-export async function salvaMisura(m: {
+export type Misura = {
   sitoId: string
   fonte: string
   giorno: string
@@ -47,19 +46,53 @@ export async function salvaMisura(m: {
   posizione?: number | null
   valore?: number | null
   extra?: unknown
-}) {
+}
+
+function valoriMisura(m: Misura): unknown[] {
+  return [
+    m.sitoId, m.fonte, m.giorno, m.chiave.slice(0, 500), m.tipoChiave,
+    m.clic ?? 0, m.impressioni ?? 0, m.posizione ?? null, m.valore ?? null,
+    m.extra ? JSON.stringify(m.extra) : null,
+  ]
+}
+
+const SOVRASCRIVI_MISURA = `ON DUPLICATE KEY UPDATE
+       clic = VALUES(clic), impressioni = VALUES(impressioni),
+       posizione = VALUES(posizione), valore = VALUES(valore), extra = VALUES(extra)`
+
+/** Scrive una misura, sovrascrivendo quella dello stesso giorno se rieseguiamo il lavoro. */
+export async function salvaMisura(m: Misura) {
   await query(
     `INSERT INTO misure (sito_id, fonte, giorno, chiave, tipo_chiave, clic, impressioni, posizione, valore, extra)
      VALUES (?,?,?,?,?,?,?,?,?,?)
-     ON DUPLICATE KEY UPDATE
-       clic = VALUES(clic), impressioni = VALUES(impressioni),
-       posizione = VALUES(posizione), valore = VALUES(valore), extra = VALUES(extra)`,
-    [
-      m.sitoId, m.fonte, m.giorno, m.chiave.slice(0, 500), m.tipoChiave,
-      m.clic ?? 0, m.impressioni ?? 0, m.posizione ?? null, m.valore ?? null,
-      m.extra ? JSON.stringify(m.extra) : null,
-    ]
+     ${SOVRASCRIVI_MISURA}`,
+    valoriMisura(m)
   )
+}
+
+/**
+ * Scrive molte misure in pochi viaggi.
+ *
+ * Una riga per volta la Search Console ce ne fa diecimila per notte: da fuori
+ * il datacentro sono sei minuti di sola attesa di rete, e la raccolta sfora il
+ * tempo concesso. A lotti dura una frazione. Il risultato nel database e
+ * identico, sovrascrittura compresa.
+ */
+export async function salvaMisure(righe: Misura[], perLotto = 200): Promise<number> {
+  let scritte = 0
+  for (let i = 0; i < righe.length; i += perLotto) {
+    const lotto = righe.slice(i, i + perLotto)
+    const segnaposto = lotto.map(() => '(?,?,?,?,?,?,?,?,?,?)').join(',')
+    const valori = lotto.flatMap(valoriMisura)
+    await query(
+      `INSERT INTO misure (sito_id, fonte, giorno, chiave, tipo_chiave, clic, impressioni, posizione, valore, extra)
+       VALUES ${segnaposto}
+       ${SOVRASCRIVI_MISURA}`,
+      valori
+    )
+    scritte += lotto.length
+  }
+  return scritte
 }
 
 export async function iniziaEsecuzione(lavoro: string): Promise<number> {

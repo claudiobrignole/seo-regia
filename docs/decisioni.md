@@ -272,3 +272,48 @@ La lezione: uno stile che si chiama come un effetto (ghost) e non come il posto
 dove vive (fondo scuro) prima o poi finisce sul fondo sbagliato, e un pulsante
 invisibile non da errori in nessuna prova. La prova che lo prende non e la build
 ne il typecheck: e guardare la pagina.
+
+## 2026-09-16, un ok deve voler dire "sono andato a guardare"
+Il pannello scriveva i titoli SEO con `POST wp/v2/{tipo}/{id}` passando
+`meta: { rank_math_title }`. WordPress accetta dalla REST soltanto i meta che
+qualcuno ha registrato con `show_in_rest`, e Rank Math non registra i suoi: la
+richiesta tornava 200 e il valore veniva buttato via. Nessun errore, nessun
+sospetto, e `segnaApplicata` scattava comunque. Controllate tutte le azioni in
+stato applicata su titolo e descrizione: 44 su 44 non erano mai arrivate sui siti,
+su tre siti diversi, da quando il pannello esiste.
+Tre conseguenze in questo commit.
+Primo: i titoli passano dalla rotta `regia-seo/v1/meta` del plugin Regia robots
+(versione 1.1.0), che scrive con `update_post_meta` e risponde con il valore
+riletto dal database. La rotta di Rank Math (`rankmath/v1/updateMeta`) non si usa:
+su questo hosting risponde 403 con una pagina HTML, tutte le sue rotte sono
+bloccate a monte, e comunque e roba interna di un plugin altrui.
+Secondo: `applicaAzione` rilegge dal sito e confronta prima di segnare applicata.
+Salta i siti con repository, dove la modifica diventa vera quando si accetta la
+richiesta, e robots.txt, che passa dalle cache. Costa una lettura in piu per ogni
+Approva: e il prezzo di non mentire.
+Terzo: `seoPlugin` esce da `siti.config.ts`. Quale plugin SEO ci sia lo riconosce
+il plugin dentro WordPress, che e l unico che scrive. Prima Biography Library non
+lo dichiarava e il pannello le mandava le chiavi di Yoast piu `title`, cioe stava
+per rinominare gli articoli credendo di cambiare il titolo SEO.
+La lezione: un codice HTTP dice che la richiesta e arrivata, non che ha fatto
+effetto. Dove si scrive su un sistema di qualcun altro, la prova e rileggere.
+
+## 2026-09-16, gli indirizzi del negozio non sono pagine di WordPress
+Le schede prodotto di Ecwid vivono sotto `/store/...` e `/search-products/...` ma
+non esistono in WordPress: le disegna il JavaScript dentro la pagina del negozio.
+`trovaContenuto` non trovava lo slug, leggeva l HTML, ne ricavava il numero della
+pagina contenitore e lo restituiva come se fosse la scheda. Approvare un titolo di
+prodotto avrebbe cambiato il titolo della pagina *Search products*, e l annulla
+avrebbe rimesso il nome di un prodotto su quella pagina. Ora, quando il numero
+arriva dall HTML, si controlla che lo slug del contenuto sia l ultimo pezzo
+dell indirizzo chiesto; se no, la scrittura si ferma e spiega dove va fatta
+davvero. Il confronto per prefisso non bastava: `/en/search-products/...` ha
+permalink `/search-products/`, il prefisso di lingua non c e.
+Vale anche per i vecchi indirizzi che rimandano altrove: meglio fermarsi che
+scrivere sul contenuto sbagliato.
+
+## 2026-09-16, Ecwid: updateCount, non il codice HTTP
+`PUT /products/{id}` risponde 200 anche quando non ha aggiornato niente, e lo dice
+solo in `updateCount`. Stesso errore di WordPress, altra facciata. Ora zero
+diventa un errore che nomina la causa piu probabile, il titolo che vive nella
+traduzione di un negozio a piu lingue.

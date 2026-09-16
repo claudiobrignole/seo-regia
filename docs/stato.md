@@ -1,5 +1,31 @@
 # Dove siamo, al 16 settembre 2026
 
+## Approva non scriveva, 16 settembre (sera tardi)
+
+Il guasto piu grave trovato finora, e il piu silenzioso. I titoli SEO andavano a
+WordPress con `POST wp/v2/{tipo}/{id}` e `meta: { rank_math_title }`. La REST di
+WordPress accetta solo i meta registrati con `show_in_rest`, e Rank Math non
+registra i suoi: risposta **200**, valore buttato via, scheda segnata applicata.
+Verificate una per una tutte le azioni in stato applicata su titolo e descrizione:
+**44 su 44 non erano mai arrivate**, su Aelle, brignole.ch e Biography Library.
+
+- I titoli passano ora dalla rotta `regia-seo/v1/meta` del plugin Regia robots
+  1.1.0, che scrive con `update_post_meta` e risponde con il valore riletto.
+- `applicaAzione` rilegge dal sito e confronta prima di segnare applicata. Se non
+  combacia, la scheda diventa rossa col motivo. Vale per WordPress ed Ecwid, non
+  per i siti con repository (la modifica e una richiesta) ne per robots.txt (cache).
+- Le schede prodotto del negozio (`/store/...`, `/search-products/...`) non si
+  scrivono da WordPress: non sono pagine, le disegna Ecwid dentro la pagina del
+  negozio. Prima il pannello avrebbe cambiato il titolo di *Search products*.
+- Ecwid: `updateCount` a zero e un errore, non un successo.
+- Impianto: le righe WordPress diventano rosse se il plugin e la versione vecchia.
+- Le 44 schede sono tornate in coda come `fallita`, col motivo scritto sopra, e
+  ognuna ha una riga nel registro. Si riapprovano dopo il plugin.
+
+**Resta a Claudio:** caricare il plugin aggiornato sui tre siti WordPress,
+`docs/tuo/07-plugin-titoli.md`. Finche non e fatto, Approva su un titolo si ferma
+con un messaggio, invece di dire ok a vuoto.
+
 ## Chat interna e memoria, 16 settembre (sera)
 
 Su ogni proposta, campagna e bozza c e **Chiedi a Claude**. Claude legge un dossier

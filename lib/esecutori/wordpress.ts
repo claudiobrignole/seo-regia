@@ -31,7 +31,11 @@ export async function chiamaWordpress(s: Sito, percorso: string, opzioni: Reques
   return chiama(s, percorso, opzioni)
 }
 
-async function chiama(s: Sito, percorso: string, opzioni: RequestInit = {}) {
+async function chiamaGrezza(
+  s: Sito,
+  percorso: string,
+  opzioni: RequestInit = {}
+): Promise<{ status: number; corpo: unknown; testo: string }> {
   const { utente, password, base } = credenziali(s)
   const autorizzazione = Buffer.from(`${utente}:${password}`).toString('base64')
   const res = await fetch(`${base}/wp-json/${percorso}`, {
@@ -42,12 +46,22 @@ async function chiama(s: Sito, percorso: string, opzioni: RequestInit = {}) {
       ...(opzioni.headers ?? {}),
     },
   })
-  if (!res.ok) throw new Error(`WordPress ${percorso}: ${res.status} ${await res.text()}`)
-  return res.json()
+  const testo = await res.text()
+  let corpo: unknown = null
+  try {
+    corpo = JSON.parse(testo)
+  } catch {
+    /* qualche hosting risponde con una pagina HTML: il testo basta per il messaggio */
+  }
+  return { status: res.status, corpo, testo }
 }
 
-function usaRankMath(s: Sito): boolean {
-  return s.scrittura.tipo === 'wordpress' && s.scrittura.seoPlugin === 'rank-math'
+async function chiama(s: Sito, percorso: string, opzioni: RequestInit = {}) {
+  const r = await chiamaGrezza(s, percorso, opzioni)
+  if (r.status < 200 || r.status >= 300) {
+    throw new Error(`WordPress ${percorso}: ${r.status} ${r.testo}`)
+  }
+  return r.corpo as any
 }
 
 /** Basi REST che non sono articoli o pagine: una 404 qui non deve far fallire la scrittura. */
@@ -81,7 +95,7 @@ const BASI_NON_CONTENUTO = new Set([
   'widget-types',
 ])
 
-async function elencoPerSlug(s: Sito, tipo: string, slug: string): Promise<{ id: number }[]> {
+async function elencoPerSlug(s: Sito, tipo: string, slug: string): Promise<{ id: number; link?: string }[]> {
   try {
     const trovati = await chiama(s, `wp/v2/${tipo}?slug=${encodeURIComponent(slug)}`)
     return Array.isArray(trovati) ? trovati : []
@@ -90,8 +104,48 @@ async function elencoPerSlug(s: Sito, tipo: string, slug: string): Promise<{ id:
   }
 }
 
+export type Contenuto = {
+  id: number
+  tipo: string
+  /**
+   * Riempito quando l indirizzo chiesto non ha un contenuto suo e finisce
+   * dentro un altro: le schede prodotto di Ecwid, o un indirizzo vecchio che
+   * rimanda. Chi scrive deve fermarsi, altrimenti cambia il titolo del
+   * contenitore credendo di cambiare quello della scheda.
+   */
+  contenitore?: string
+}
+
+/** L ultimo pezzo dell indirizzo: per un contenuto vero e il suo slug. */
+function ultimoPezzo(url: string): string {
+  try {
+    const percorso = decodeURIComponent(new URL(url).pathname).replace(/\/+$/, '')
+    return (percorso.split('/').pop() ?? '').toLowerCase()
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * L indirizzo chiesto e davvero quel contenuto?
+ *
+ * Quando lo troviamo leggendo l HTML, il numero che ne ricaviamo e quello della
+ * pagina che ha disegnato quell HTML, e non e detto che sia la stessa cosa: le
+ * schede prodotto di Ecwid vivono tutte dentro la pagina del negozio, e un
+ * indirizzo vecchio arriva sulla pagina nuova per via di un rimando. In quei
+ * casi lo slug non combacia con l ultimo pezzo dell indirizzo, e scrivere
+ * cambierebbe il titolo del contenitore credendo di cambiare quello del
+ * prodotto. Il prefisso di lingua non serve al confronto: /en/search-products/
+ * ha permalink /search-products/, e resta la stessa pagina.
+ */
+function combacia(url: string, slug: unknown): boolean {
+  const atteso = String(slug ?? '').toLowerCase()
+  if (!atteso) return true
+  return ultimoPezzo(url) === atteso
+}
+
 /** Trova il contenuto a partire dall indirizzo pubblico, inclusa la home. */
-export async function trovaContenuto(s: Sito, url: string): Promise<{ id: number; tipo: string } | null> {
+export async function trovaContenuto(s: Sito, url: string): Promise<Contenuto | null> {
   const u = new URL(url)
   const pezzi = u.pathname.split('/').filter(Boolean)
   const tipi = await basiRest(s)
@@ -115,11 +169,7 @@ export async function trovaContenuto(s: Sito, url: string): Promise<{ id: number
   return trovaDaHtml(s, url, tipi)
 }
 
-async function trovaDaHtml(
-  s: Sito,
-  url: string,
-  tipi: string[]
-): Promise<{ id: number; tipo: string } | null> {
+async function trovaDaHtml(s: Sito, url: string, tipi: string[]): Promise<Contenuto | null> {
   try {
     const res = await fetch(url, {
       redirect: 'follow',
@@ -136,7 +186,11 @@ async function trovaDaHtml(
     for (const tipo of tipi) {
       try {
         const dato = await chiama(s, `wp/v2/${tipo}/${id}`)
-        if (dato?.id) return { id: Number(dato.id), tipo }
+        if (dato?.id) {
+          const trovato: Contenuto = { id: Number(dato.id), tipo }
+          if (!combacia(url, dato.slug)) trovato.contenitore = String(dato.link || dato.slug)
+          return trovato
+        }
       } catch {
         /* tipo sbagliato per questo id */
       }
@@ -161,22 +215,75 @@ async function basiRest(s: Sito): Promise<string[]> {
   }
 }
 
-/** Legge il valore attuale prima di scrivere: senza il vecchio non si annulla nulla. */
+/**
+ * Titolo e descrizione SEO passano dal plugin Regia robots, non da wp/v2.
+ *
+ * wp/v2 accetta soltanto i meta registrati per la REST, e Rank Math non
+ * registra i suoi: la scrittura rispondeva 200 e non cambiava niente, quindi il
+ * pannello diceva "applicata" a una cosa che non era mai arrivata. Il plugin
+ * scrive con update_post_meta e rimanda il valore riletto, cosi un ok e un ok.
+ */
+const META_PLUGIN = 'regia-seo/v1/meta'
+
+type MetaSeo = { titolo: string; descrizione: string; motore: string }
+
+function erroreMetaPlugin(s: Sito, r: { status: number; corpo: any; testo: string }): Error {
+  const detto = String(r.corpo?.message ?? '').trim()
+  if (r.status === 404) {
+    return new Error(
+      `Su ${s.nome} il plugin Regia robots manca o e la versione vecchia (serve la 1.1.0). ` +
+        `Il titolo SEO di Rank Math non si puo scrivere da fuori senza quello: WordPress risponde ok e non cambia niente. ` +
+        `Vedi docs/tuo/07-plugin-titoli.md, sono tre minuti.`
+    )
+  }
+  if (r.status === 403) {
+    return new Error(
+      `${s.nome}: l utente della password applicativa non puo modificare questo contenuto. ` +
+        `Rendilo Amministratore in WordPress, Utenti. ${detto}`
+    )
+  }
+  if (r.status === 501) {
+    return new Error(`${s.nome}: ${detto || 'sul sito non c e ne Rank Math ne Yoast, il titolo SEO non ha dove stare.'}`)
+  }
+  return new Error(`${s.nome}, titolo SEO: HTTP ${r.status}. ${detto || r.testo.slice(0, 200)}`)
+}
+
+/**
+ * La rotta dei titoli risponde su questo sito?
+ *
+ * Serve al controllo Impianto: se il plugin e la versione vecchia, Approva non
+ * scrive niente, e questo deve vedersi prima di scoprirlo su una proposta.
+ * Senza il numero della pagina il plugin nuovo si lamenta (400), il vecchio non
+ * ha la rotta (404): la differenza basta.
+ */
+export async function rottaTitoliPronta(s: Sito): Promise<boolean> {
+  const r = await chiamaGrezza(s, META_PLUGIN)
+  return r.status !== 404
+}
+
+async function metaDalPlugin(s: Sito, id: number): Promise<MetaSeo> {
+  const r = await chiamaGrezza(s, `${META_PLUGIN}?id=${id}`)
+  if (r.status !== 200) throw erroreMetaPlugin(s, r)
+  const c = r.corpo as any
+  return {
+    titolo: String(c?.titolo ?? ''),
+    descrizione: String(c?.descrizione ?? ''),
+    motore: String(c?.motore ?? '?'),
+  }
+}
+
+/**
+ * Legge il valore attuale prima di scrivere: senza il vecchio non si annulla nulla.
+ *
+ * Torna la stringa vuota, non null, quando il titolo SEO non e mai stato
+ * scritto: e un valore vero, ed e quello a cui tornare se poi si annulla. Null
+ * vuol dire soltanto "questo indirizzo non e un contenuto di WordPress".
+ */
 export async function leggiSeo(s: Sito, url: string): Promise<{ titolo: string | null; descrizione: string | null }> {
   const c = await trovaContenuto(s, url)
-  if (!c) return { titolo: null, descrizione: null }
-  const dato = await chiama(s, `wp/v2/${c.tipo}/${c.id}?context=edit`)
-  const meta = dato.meta ?? {}
-  if (usaRankMath(s)) {
-    return {
-      titolo: meta.rank_math_title ?? dato.title?.raw ?? null,
-      descrizione: meta.rank_math_description ?? null,
-    }
-  }
-  return {
-    titolo: meta._yoast_wpseo_title ?? dato.title?.raw ?? null,
-    descrizione: meta._yoast_wpseo_metadesc ?? null,
-  }
+  if (!c || c.contenitore) return { titolo: null, descrizione: null }
+  const meta = await metaDalPlugin(s, c.id)
+  return { titolo: meta.titolo, descrizione: meta.descrizione }
 }
 
 export async function scriviSeo(
@@ -191,27 +298,34 @@ export async function scriviSeo(
         `Se e la home, l utente applicazione deve poter leggere le impostazioni del sito.`
     )
   }
-
-  const corpo: Record<string, unknown> = {}
-  const meta: Record<string, string> = {}
-
-  if (usaRankMath(s)) {
-    if (campi.titolo !== undefined) meta.rank_math_title = campi.titolo
-    if (campi.descrizione !== undefined) meta.rank_math_description = campi.descrizione
-    corpo.meta = meta
-  } else {
-    if (campi.titolo !== undefined) {
-      meta._yoast_wpseo_title = campi.titolo
-      corpo.title = campi.titolo
-    }
-    if (campi.descrizione !== undefined) meta._yoast_wpseo_metadesc = campi.descrizione
-    if (Object.keys(meta).length) corpo.meta = meta
+  if (c.contenitore) {
+    throw new Error(
+      `${url} non ha una pagina sua in WordPress: quell indirizzo viene disegnato dentro ${c.contenitore}. ` +
+        `Scrivere qui cambierebbe il titolo di quella pagina, non quello della scheda. ` +
+        `Se e un prodotto del negozio, il titolo si cambia su Ecwid (nel pannello, sito Aelle Store); ` +
+        `se e un indirizzo vecchio che rimanda altrove, chiudi la proposta.`
+    )
   }
 
-  await chiama(s, `wp/v2/${c.tipo}/${c.id}`, {
+  const r = await chiamaGrezza(s, META_PLUGIN, {
     method: 'POST',
-    body: JSON.stringify(corpo),
+    body: JSON.stringify({ id: c.id, titolo: campi.titolo, descrizione: campi.descrizione }),
   })
+  if (r.status !== 200) throw erroreMetaPlugin(s, r)
+
+  // Controprova subito, con il valore che il plugin ha riletto dal database.
+  const scritto = r.corpo as any
+  for (const [campo, atteso] of Object.entries(campi)) {
+    if (atteso === undefined) continue
+    const ora = String(scritto?.[campo] ?? '')
+    if (ora.trim() !== atteso.trim()) {
+      throw new Error(
+        `${s.nome} ha accettato la richiesta ma il ${campo} risulta ancora "${ora || '(vuoto)'}". ` +
+          `Di solito e un plugin di sicurezza o una cache che rifiuta le scritture da fuori: ` +
+          `guarda in WordPress se il titolo di quella pagina si cambia a mano.`
+      )
+    }
+  }
 }
 
 function erroreRobotsWordpress(e: unknown): Error {

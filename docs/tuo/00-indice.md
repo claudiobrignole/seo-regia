@@ -1,8 +1,9 @@
 # Cosa resta a te, 16 settembre 2026
 
-Quattro azioni. Due sono da fare oggi e durano pochi minuti, due si possono
+Cinque azioni. Tre sono da fare oggi e durano pochi minuti, due si possono
 rimandare senza che il pannello si fermi. Ogni azione ha il suo documento, con i
-clic e con la frase che ti dice se e andata.
+clic e con la frase che ti dice se e andata. Il numero nella prima colonna e
+quello del documento, non l ordine: fai le righe dall alto in basso.
 
 Prima due cose che cambiano il modo di lavorare.
 
@@ -16,11 +17,12 @@ non tocca niente da solo: propone, e tu premi un pulsante. Quando gli dai una
 regola ti propone di ricordarla, e da quel momento vale per tutti i testi che
 scrive di notte. Vedi [06-chat-memoria.md](06-chat-memoria.md).
 
-## Oggi (dieci minuti in tutto)
+## Oggi (un quarto d ora in tutto)
 
 | | Azione | Quanto | Se non la fai |
 | --- | --- | --- | --- |
 | 1 | [Rilasciare il codice nuovo](01-rilascio.md) | 3 minuti | Resta il pannello vecchio: niente pagina Sveglia, niente chat, e la raccolta continua a durare sei minuti invece di sedici secondi |
+| 7 | [Il plugin che fa arrivare i titoli su WordPress](07-plugin-titoli.md) | 5 minuti | **Approva su un titolo non cambia niente.** E il guasto piu grave trovato: 44 schede risultavano applicate e sui siti non era mai arrivato niente |
 | 2 | [Aggiungere la sveglia della raccolta](02-sveglia-raccolta.md) | 5 minuti | I numeri restano fermi: e la ragione per cui sembrava che non funzionasse niente |
 
 ## Quando vuoi (nessuna urgenza)

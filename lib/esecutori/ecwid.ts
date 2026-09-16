@@ -40,5 +40,22 @@ export async function scriviSeoProdotto(
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(corpo),
   })
-  if (!res.ok) throw new Error(`Ecwid scrittura ${id}: ${res.status} ${await res.text()}`)
+  const testo = await res.text()
+  if (!res.ok) throw new Error(`Ecwid scrittura ${id}: ${res.status} ${testo}`)
+
+  // Ecwid risponde 200 anche quando non ha cambiato niente, e lo dice solo in
+  // updateCount. Senza questo controllo il pannello direbbe "applicata" a una
+  // scrittura mai avvenuta, che e il modo peggiore di sbagliare.
+  let contati: number | null = null
+  try {
+    contati = Number((JSON.parse(testo) as { updateCount?: number }).updateCount ?? null)
+  } catch {
+    /* risposta non JSON: la controprova la fa chi ha chiamato, rileggendo */
+  }
+  if (contati === 0) {
+    throw new Error(
+      `Ecwid ha accettato la richiesta sul prodotto ${id} senza cambiare niente. ` +
+        `Succede quando il negozio ha piu lingue e il titolo vive nella traduzione: cambialo dal pannello Ecwid.`
+    )
+  }
 }

@@ -87,6 +87,34 @@ async function scrivi(a: Azione, valore: string): Promise<string | undefined> {
   await scriviSeoProdotto(Number(a.bersaglio), { [campo]: valore })
 }
 
+function uguali(a: string | null, b: string): boolean {
+  return (a ?? '').replace(/\s+/g, ' ').trim() === b.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Rilegge dal sito quello che si e appena scritto.
+ *
+ * Fino al 16 settembre il pannello si fidava del codice HTTP, e WordPress
+ * rispondeva 200 ignorando i campi di Rank Math: tutta la coda risultava
+ * applicata e sui siti non era cambiato niente. Un ok deve voler dire "sono
+ * andato a guardare".
+ *
+ * Sui siti con repository no: la modifica esiste come richiesta e diventa vera
+ * quando la si accetta, quindi rileggere adesso direbbe sempre il valore
+ * vecchio. Nemmeno su robots.txt, che passa dalle cache.
+ */
+async function controprova(a: Azione, scritto: string, riferimento?: string): Promise<void> {
+  const s = sito(a.sito_id)
+  if (riferimento || s.scrittura.tipo === 'github' || a.campo === 'robots') return
+
+  const ora = await valoreAttuale(a)
+  if (ora === null || uguali(ora, scritto)) return
+  throw new Error(
+    `${s.nome} ha risposto ok, ma rileggendo ${a.campo} ho ritrovato "${ora || '(vuoto)'}" invece del testo nuovo. ` +
+      `Non l ho segnata come applicata: sul sito non e cambiato niente.`
+  )
+}
+
 export async function applicaAzione(id: number): Promise<{ riferimento?: string }> {
   const a = await caricaAzione(id)
   if (!a) throw new Error('azione non trovata')
@@ -110,6 +138,7 @@ export async function applicaAzione(id: number): Promise<{ riferimento?: string 
     if (veroVecchio !== null) await aggiornaValoreVecchio(a.id, veroVecchio)
     const daSalvare = { ...a, valore_vecchio: veroVecchio ?? a.valore_vecchio }
     const riferimento = await scrivi(daSalvare, a.valore_nuovo)
+    await controprova(daSalvare, a.valore_nuovo, riferimento)
     await annota(a.sito_id, 'applicata', a.id, {
       campo: a.campo,
       vecchio: veroVecchio ?? a.valore_vecchio,

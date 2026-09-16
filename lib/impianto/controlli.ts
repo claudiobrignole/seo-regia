@@ -3,7 +3,7 @@ import { query, unaRiga } from '@/lib/db'
 import { SITI } from '@/siti.config'
 import { auth, type Identita } from '@/lib/raccolta/google'
 import { banco, bancoPronto, gaql } from '@/lib/ads/chiamata'
-import { chiamaWordpress } from '@/lib/esecutori/wordpress'
+import { chiamaWordpress, rottaTitoliPronta } from '@/lib/esecutori/wordpress'
 import { giornoIso } from '@/lib/date'
 import { avvisoTokenEcwid, credenzialiEcwid, leggiProfiloEcwid } from '@/lib/ecwid/credenziali'
 import type { ControlloImpianto, EsitoImpianto } from './tipi'
@@ -340,6 +340,14 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
       const haGrants = ns.includes('regia-bl/v1')
       const problemi: string[] = []
       if (w.robots && !haRobots) problemi.push('manca il plugin Regia robots')
+      // La versione vecchia del plugin non ha la rotta dei titoli, e senza
+      // quella Approva su un titolo non scrive niente: va detto qui, non
+      // scoperto su una proposta.
+      if (haRobots && !(await rottaTitoliPronta(s))) {
+        problemi.push(
+          'il plugin Regia robots e la versione vecchia: i titoli non si possono scrivere (docs/tuo/07-plugin-titoli.md)'
+        )
+      }
       if (w.grants && !haGrants) problemi.push('manca il plugin Regia BL Grants')
       if (!w.grants && haGrants) problemi.push('plugin Grants su un sito che non e Biography Library: disattivalo')
       metti(

@@ -22,7 +22,9 @@ export type Sito = {
   automazioneAttiva: boolean
   /** dove il pannello scrive */
   scrittura:
-    | { tipo: 'wordpress'; base: string; prefissoCredenziali: string; seoPlugin?: 'rank-math' }
+    // Quale plugin SEO c e sul sito non si dichiara qui: lo riconosce il plugin
+    // Regia robots dentro WordPress, che e il solo che scrive i titoli.
+    | { tipo: 'wordpress'; base: string; prefissoCredenziali: string }
     | { tipo: 'github'; repo: string; ramoBase: string; fileDati: string }
     | { tipo: 'ecwid'; storeId: string }
     // Salvaguardia: un sito senza repository non si tocca, perche senza storico
@@ -44,7 +46,7 @@ export const SITI: Sito[] = [
     hostnameValidi: ['aelle.hiphop', 'www.aelle.hiphop'],
     lingue: ['it', 'en'],
     automazioneAttiva: false,
-    scrittura: { tipo: 'wordpress', base: 'https://aelle.hiphop', prefissoCredenziali: 'WP_AELLE', seoPlugin: 'rank-math' },
+    scrittura: { tipo: 'wordpress', base: 'https://aelle.hiphop', prefissoCredenziali: 'WP_AELLE' },
     identita: 'brignole',
     note: 'Archivio 1991-2001: titoli originali della rivista, non si toccano (lib/siti/archivio-aelle.ts). Il negozio Ecwid e incorporato qui, con due sezioni: Aelle e Tag Tales.',
   },
@@ -72,7 +74,7 @@ export const SITI: Sito[] = [
     hostnameValidi: ['brignole.ch', 'www.brignole.ch'],
     lingue: ['it', 'en', 'fr', 'de'],
     automazioneAttiva: false,
-    scrittura: { tipo: 'wordpress', base: 'https://brignole.ch', prefissoCredenziali: 'WP_BRIGNOLE', seoPlugin: 'rank-math' },
+    scrittura: { tipo: 'wordpress', base: 'https://brignole.ch', prefissoCredenziali: 'WP_BRIGNOLE' },
     identita: 'brignole',
     note: 'Primo sito su cui accendere automazione: e suo e un errore costa meno.',
   },

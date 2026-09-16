@@ -350,3 +350,39 @@ caricando le librerie e rifacendo `npm run verifica`. `npm audit` ora dice zero.
 La lezione: leggere a cosa serve la parte bucata prima di accettare il rimedio
 proposto. `overrides` aggiorna una dipendenza dentro una libreria che la tiene
 ferma, senza cambiare la libreria; `npm audit fix --force` avrebbe cambiato Google.
+
+## 2026-09-16, la cache dell hosting rispondeva al posto del sito
+Col plugin installato, Approva diceva ancora "rileggendo titolo ho ritrovato
+(vuoto)". Il titolo era arrivato: la home di Aelle aveva il testo nuovo nel
+`<title>`. Sbagliava la controprova. La lettura di controllo tornava con
+`x-litespeed-cache: hit`: LiteSpeed teneva da parte anche le risposte della REST
+autenticate e le riserviva per giorni, quindi il pannello rileggeva la fotografia
+scattata **prima** della scrittura. La stessa lettura con un pezzo di indirizzo in
+piu, mai visto, rispondeva col titolo nuovo: prova che il guaio era in mezzo, non
+sul sito.
+
+Perche la cache le ha prese per pagine da salvare: la password applicativa viaggia
+in un header, non in un cookie di sessione, quindi da fuori quelle letture
+sembrano visite anonime. La risposta portava perfino `no-store, private`, e
+LiteSpeed le ha messe in cache comunque.
+
+Rimedio dal lato pannello, quello che non dipende da come e configurato l hosting:
+`chiamaGrezza` aggiunge alle sole letture un `regia_adesso` col millisecondo, cosi
+ogni lettura e nuova per qualunque cache; i `Cache-Control: no-cache` si mandano
+comunque, ma da soli non bastavano. Le scritture non passano dalla cache e restano
+come erano. Nel plugin, versione 1.2.0, le stesse rotte si dichiarano da non
+mettere in cache e dopo una scrittura si butta la copia della pagina
+(`litespeed_purge_post`): serve al sito pubblico e alla scansione notturna, che
+altrimenti rilegge il titolo vecchio e ripropone la modifica appena fatta. Non e
+obbligatoria, e per questo non blocca niente nel controllo Impianto.
+
+Conta anche per il registro, non solo per il messaggio: il valore da salvare per
+l annullamento si legge prima di scrivere, e una lettura dalla cache avrebbe fatto
+salvare un valore vecchio come se fosse quello vero.
+
+L azione della home di Aelle era fallita per questo, con il testo nuovo gia sul
+sito: riletta senza cache, e tornata applicata, quindi annullabile. Le altre 43 in
+coda sono quelle del guaio precedente, mai riprovate: quelle vanno riapprovate.
+
+La lezione, di nuovo la stessa da un altro lato: rileggere prova qualcosa solo se
+si e sicuri di stare leggendo il sito, e non qualcuno che parla per lui.

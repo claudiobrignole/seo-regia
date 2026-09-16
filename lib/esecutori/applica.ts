@@ -111,7 +111,8 @@ async function controprova(a: Azione, scritto: string, riferimento?: string): Pr
   if (ora === null || uguali(ora, scritto)) return
   throw new Error(
     `${s.nome} ha risposto ok, ma rileggendo ${a.campo} ho ritrovato "${ora || '(vuoto)'}" invece del testo nuovo. ` +
-      `Non l ho segnata come applicata: sul sito non e cambiato niente.`
+      `Non l ho segnata come applicata. Prima di rifare, apri quella pagina e guarda il titolo: se il testo nuovo ` +
+      `c e davvero, la scrittura e andata e qualcosa fra il pannello e il sito ci risponde con pagine vecchie.`
   )
 }
 

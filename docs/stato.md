@@ -1,5 +1,27 @@
 # Dove siamo, al 16 settembre 2026
 
+## Il secondo perche di Approva, 16 settembre (notte)
+
+Col plugin installato sui tre siti, Approva diceva ancora di non essere riuscita:
+*rileggendo titolo ho ritrovato (vuoto)*. Il titolo era arrivato, la home di Aelle
+lo mostrava. Sbagliava la controprova: LiteSpeed teneva in cache anche le letture
+autenticate della REST (`x-litespeed-cache: hit`) e serviva al pannello la
+fotografia scattata prima della scrittura. La password applicativa viaggia in un
+header e non in un cookie, quindi da fuori quelle letture sembrano visite anonime.
+
+- Le letture di `chiamaGrezza` portano un `regia_adesso` col millisecondo: nuove
+  per qualunque cache, hosting configurato come gli pare. Le scritture no.
+- Plugin 1.2.0: le rotte si dichiarano da non mettere in cache e dopo la scrittura
+  si butta la copia della pagina. Serve al sito pubblico e alla scansione, non al
+  pannello, quindi **non e obbligatoria** e non blocca il controllo Impianto.
+- L azione della home di Aelle, che era fallita col testo nuovo gia sul sito, e
+  tornata applicata dopo una rilettura vera, quindi si puo annullare.
+- Un file caricato in Media (i PDF di Biography Library) ora lo dice: non e una
+  pagina, il titolo SEO non ha dove stare, si chiude la proposta.
+
+Restano in coda le 43 schede del guasto precedente, mai riprovate: quelle vanno
+riapprovate una per una, e adesso arrivano davvero.
+
 ## Approva non scriveva, 16 settembre (sera tardi)
 
 Il guasto piu grave trovato finora, e il piu silenzioso. I titoli SEO andavano a
@@ -22,9 +44,8 @@ Verificate una per una tutte le azioni in stato applicata su titolo e descrizion
 - Le 44 schede sono tornate in coda come `fallita`, col motivo scritto sopra, e
   ognuna ha una riga nel registro. Si riapprovano dopo il plugin.
 
-**Resta a Claudio:** caricare il plugin aggiornato sui tre siti WordPress,
-`docs/tuo/07-plugin-titoli.md`. Finche non e fatto, Approva su un titolo si ferma
-con un messaggio, invece di dire ok a vuoto.
+Il plugin 1.1.0 e stato caricato sui tre siti la sera stessa, verificato dalla
+rotta dei titoli in `npm run verifica` e nella pagina Impianto.
 
 ## Chat interna e memoria, 16 settembre (sera)
 

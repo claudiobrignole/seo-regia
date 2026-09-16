@@ -31,6 +31,22 @@ export async function chiamaWordpress(s: Sito, percorso: string, opzioni: Reques
   return chiama(s, percorso, opzioni)
 }
 
+/**
+ * Rende la lettura nuova agli occhi di una cache.
+ *
+ * LiteSpeed, su Hostinger, tiene in cache anche le risposte della REST, e le
+ * serve identiche per giorni: la lettura di controllo dopo una scrittura
+ * riceveva la fotografia di prima e il pannello concludeva che sul sito non era
+ * cambiato niente, mentre era cambiato. Un pezzo di indirizzo diverso ogni
+ * volta e l unico modo che non dipende da come e configurato l hosting: i
+ * Cache-Control li mandiamo comunque, ma LiteSpeed puo ignorarli, e infatti li
+ * ignorava. Solo per le letture: le scritture non passano dalla cache.
+ */
+function indirizzoSenzaCache(base: string, percorso: string): string {
+  const separatore = percorso.includes('?') ? '&' : '?'
+  return `${base}/wp-json/${percorso}${separatore}regia_adesso=${Date.now()}`
+}
+
 async function chiamaGrezza(
   s: Sito,
   percorso: string,
@@ -38,11 +54,14 @@ async function chiamaGrezza(
 ): Promise<{ status: number; corpo: unknown; testo: string }> {
   const { utente, password, base } = credenziali(s)
   const autorizzazione = Buffer.from(`${utente}:${password}`).toString('base64')
-  const res = await fetch(`${base}/wp-json/${percorso}`, {
+  const inLettura = String(opzioni.method ?? 'GET').toUpperCase() === 'GET'
+  const indirizzo = inLettura ? indirizzoSenzaCache(base, percorso) : `${base}/wp-json/${percorso}`
+  const res = await fetch(indirizzo, {
     ...opzioni,
     headers: {
       Authorization: `Basic ${autorizzazione}`,
       'Content-Type': 'application/json',
+      ...(inLettura ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : {}),
       ...(opzioni.headers ?? {}),
     },
   })
@@ -297,6 +316,14 @@ export async function scriviSeo(
 ): Promise<void> {
   const c = await trovaContenuto(s, url)
   if (!c) {
+    // Un file caricato non e una pagina: non ha un titolo SEO da nessuna parte,
+    // e continuare a proporlo fa perdere tempo. Capita con i PDF in Media.
+    if (/\/wp-content\/uploads\//.test(url) || /\.(pdf|zip|docx?|xlsx?|jpe?g|png|gif|webp|svg|mp4|mp3)$/i.test(url)) {
+      throw new Error(
+        `${url} e un file caricato in Media, non una pagina: il titolo SEO non ha dove stare. ` +
+          `Chiudi la proposta. Se quel documento deve farsi trovare, gli serve una pagina che lo presenti.`
+      )
+    }
     throw new Error(
       `Nessun contenuto WordPress corrisponde a ${url}. ` +
         `Se e la home, l utente applicazione deve poter leggere le impostazioni del sito.`

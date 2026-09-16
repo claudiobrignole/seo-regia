@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Regia robots
  * Description: Lascia scrivere al pannello seo.brignole.ch robots.txt e il titolo SEO delle pagine, senza toccare il codice del tema. Nessuno script Google.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Claudio Brignole
  * Text Domain: regia-robots
  */
@@ -17,6 +17,19 @@ function regia_robots_permesso() {
 
 function regia_robots_file_fisico() {
   return ABSPATH . 'robots.txt';
+}
+
+/**
+ * Questa risposta non va messa in cache.
+ *
+ * LiteSpeed, sull hosting, teneva in cache anche le letture di questa rotta e
+ * le serviva identiche per giorni: il pannello scriveva un titolo, rileggeva
+ * per controllare, riceveva il valore di prima e concludeva che la scrittura
+ * non era arrivata. Senza LiteSpeed questa riga non fa niente.
+ */
+function regia_seo_niente_cache() {
+  do_action('litespeed_control_set_nocache', 'Regia: il pannello deve leggere il valore vero');
+  nocache_headers();
 }
 
 add_action('rest_api_init', function () {
@@ -83,6 +96,7 @@ function regia_seo_stato_meta($id, array $motore) {
 }
 
 function regia_seo_rest_leggi_meta(WP_REST_Request $richiesta) {
+  regia_seo_niente_cache();
   $motore = regia_seo_motore();
   if (!$motore) {
     return new WP_Error('motore', 'Su questo sito non c e ne Rank Math ne Yoast: il titolo SEO non ha un posto dove stare.', ['status' => 501]);
@@ -95,6 +109,7 @@ function regia_seo_rest_leggi_meta(WP_REST_Request $richiesta) {
 }
 
 function regia_seo_rest_scrivi_meta(WP_REST_Request $richiesta) {
+  regia_seo_niente_cache();
   $motore = regia_seo_motore();
   if (!$motore) {
     return new WP_Error('motore', 'Su questo sito non c e ne Rank Math ne Yoast: il titolo SEO non ha un posto dove stare.', ['status' => 501]);
@@ -130,7 +145,11 @@ function regia_seo_rest_scrivi_meta(WP_REST_Request $richiesta) {
 
   // Svuota la cache di quel contenuto: chi rilegge subito dopo (il pannello, e
   // il visitatore) deve vedere il valore nuovo, non quello in memoria.
+  // La seconda riga e per LiteSpeed, che tiene una copia della pagina fatta e
+  // finita: senza quella il titolo nuovo si vedrebbe solo alla scadenza della
+  // copia, e Google potrebbe passare prima. Senza LiteSpeed non fa niente.
   clean_post_cache($id);
+  do_action('litespeed_purge_post', $id);
 
   $stato = regia_seo_stato_meta($id, $motore);
   $stato['scritti'] = $scritti;

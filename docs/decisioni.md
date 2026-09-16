@@ -317,3 +317,36 @@ scrivere sul contenuto sbagliato.
 solo in `updateCount`. Stesso errore di WordPress, altra facciata. Ora zero
 diventa un errore che nomina la causa piu probabile, il titolo che vive nella
 traduzione di un negozio a piu lingue.
+
+## 2026-09-16, le falle segnalate da Hostinger, e quali riguardavano il pannello
+Hostinger ne elencava sei. Tre erano nostre, tre no, e la differenza conta perche
+aggiornare a caso rompe cose che funzionano.
+
+Nostre. `next` 15.5.21 aveva due falle gravi, portata a 15.5.25. Di quelle due,
+una vale solo per chi ospita su Windows: qui e Linux, non ci toccava. L altra sta
+nell ottimizzatore di immagini, che apre i file AVIF con `sharp`, e quella andava
+chiusa. Sono due i modi, fatti entrambi: `sharp` sale a 0.35.4, e in
+`next.config.mjs` l ottimizzatore si spegne del tutto con `images.unoptimized`.
+Il pannello non usa `next/image` in nessuna pagina, quindi non perde niente, e
+cosi la rotta `/_next/image` non esiste piu. Quello che non c e non si buca, e la
+prossima falla della stessa famiglia ci trovera senza quella porta.
+
+`postcss` era ferma alla 8.4.31 perche Next la fissa a quella versione esatta, non
+a un intervallo: aggiornare Next non la muoveva. Ora c e un `overrides` in
+`package.json` che la porta alla 8.5.x. Le quattro falle di postcss valgono per
+chi da in pasto a postcss il CSS scritto da altri; il nostro CSS e nostro e passa
+solo in compilazione, quindi il rischio vero era nullo. L abbiamo aggiornata
+comunque: una dipendenza ferma da anni resta ferma anche quando il rischio cambia,
+e ogni controllo futuro l avrebbe segnalata di nuovo.
+
+`uuid` 9.0.1 arriva da googleapis. La falla riguarda le funzioni `v3`, `v5` e `v6`
+quando chi chiama passa un pezzo di memoria suo; gaxios usa `v4`, che non e fra
+quelle. Non ci riguardava. Il consiglio automatico era salire a googleapis 181,
+trentasette versioni maggiori sulla libreria che legge Search Console e Analytics:
+un rischio molto piu concreto della falla. Risolto con un `overrides` su `uuid`
+alla 11, che espone ancora la funzione nel modo in cui gaxios la chiama, provato
+caricando le librerie e rifacendo `npm run verifica`. `npm audit` ora dice zero.
+
+La lezione: leggere a cosa serve la parte bucata prima di accettare il rimedio
+proposto. `overrides` aggiorna una dipendenza dentro una libreria che la tiene
+ferma, senza cambiare la libreria; `npm audit fix --force` avrebbe cambiato Google.

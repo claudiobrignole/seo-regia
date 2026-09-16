@@ -9,6 +9,10 @@ const nextConfig = {
       },
     ]
   },
+  // Il pannello non usa next/image: nessuna immagine passa dall ottimizzatore.
+  // Spegnendolo sparisce anche la rotta /_next/image, che e la porta delle falle
+  // gravi di settembre 2026 (AVIF, libheif). Quello che non c e non si buca.
+  images: { unoptimized: true },
   experimental: { serverActions: { bodySizeLimit: '2mb' } },
 }
 export default nextConfig

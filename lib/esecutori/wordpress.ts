@@ -253,12 +253,16 @@ function erroreMetaPlugin(s: Sito, r: { status: number; corpo: any; testo: strin
  *
  * Serve al controllo Impianto: se il plugin e la versione vecchia, Approva non
  * scrive niente, e questo deve vedersi prima di scoprirlo su una proposta.
- * Senza il numero della pagina il plugin nuovo si lamenta (400), il vecchio non
- * ha la rotta (404): la differenza basta.
+ * Chiamata senza il numero della pagina, il plugin nuovo si lamenta (400).
+ *
+ * Pronto vuol dire 400 oppure 200, non "qualunque cosa tranne 404": un 403 del
+ * firewall dell hosting o un plugin di sicurezza che chiude la REST lascerebbe
+ * il pannello senza strada per scrivere, e chiamarlo ok sarebbe la stessa
+ * bugia da cui siamo partiti. Torna anche il codice, per dirlo nel messaggio.
  */
-export async function rottaTitoliPronta(s: Sito): Promise<boolean> {
+export async function rottaTitoliPronta(s: Sito): Promise<{ pronta: boolean; status: number }> {
   const r = await chiamaGrezza(s, META_PLUGIN)
-  return r.status !== 404
+  return { pronta: r.status === 400 || r.status === 200, status: r.status }
 }
 
 async function metaDalPlugin(s: Sito, id: number): Promise<MetaSeo> {

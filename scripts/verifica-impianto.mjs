@@ -602,6 +602,24 @@ async function main() {
       const haGrants = namespaces.includes('regia-bl/v1')
       const problemi = []
       if (w.robots && !haRobots) problemi.push('manca namespace regia-seo/v1')
+      // La rotta dei titoli c e solo dal plugin 1.1.0. Senza quella, Approva su
+      // un titolo non scrive niente: WordPress accetta dalla REST solo i meta
+      // registrati, e Rank Math non registra i suoi. Senza id il plugin nuovo
+      // risponde 400, il vecchio 404.
+      if (haRobots) {
+        const meta = await httpJson(`${w.base}/wp-json/regia-seo/v1/meta`, {
+          headers: { Authorization: authBasic(w.u, w.p) },
+        })
+        // Pronta vuol dire 400 (si lamenta perche manca l id) oppure 200. Ogni
+        // altro codice e comunque una strada chiusa per il pannello.
+        if (meta.status !== 400 && meta.status !== 200) {
+          problemi.push(
+            meta.status === 404
+              ? 'plugin Regia robots vecchio: manca la rotta dei titoli (docs/tuo/07-plugin-titoli.md)'
+              : `rotta dei titoli HTTP ${meta.status}: qualcosa chiude la REST, Approva sui titoli non scrivera`
+          )
+        }
+      }
       if (w.grants && !haGrants) problemi.push('manca namespace regia-bl/v1')
       if (!w.grants && haGrants) problemi.push('plugin Grants su un sito che non e BL')
       registra(

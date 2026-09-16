@@ -343,10 +343,15 @@ export async function eseguiControlli(): Promise<ControlloImpianto[]> {
       // La versione vecchia del plugin non ha la rotta dei titoli, e senza
       // quella Approva su un titolo non scrive niente: va detto qui, non
       // scoperto su una proposta.
-      if (haRobots && !(await rottaTitoliPronta(s))) {
-        problemi.push(
-          'il plugin Regia robots e la versione vecchia: i titoli non si possono scrivere (docs/tuo/07-plugin-titoli.md)'
-        )
+      if (haRobots) {
+        const titoli = await rottaTitoliPronta(s)
+        if (!titoli.pronta) {
+          problemi.push(
+            titoli.status === 404
+              ? 'il plugin Regia robots e la versione vecchia: i titoli non si possono scrivere (docs/tuo/07-plugin-titoli.md)'
+              : `la rotta dei titoli risponde ${titoli.status}: qualcosa chiude la REST da fuori, e Approva sui titoli non scrivera`
+          )
+        }
       }
       if (w.grants && !haGrants) problemi.push('manca il plugin Regia BL Grants')
       if (!w.grants && haGrants) problemi.push('plugin Grants su un sito che non e Biography Library: disattivalo')

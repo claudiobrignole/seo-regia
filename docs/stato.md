@@ -1,3 +1,18 @@
+# Dove siamo, al 17 settembre 2026
+
+## Controllo indicizzazione e chiusura operativa, 17 settembre
+
+Il pannello sa finalmente chiedere a Google se una pagina e nell indice.
+Lavoro notturno `indicizzazione` (URL Inspection + sitemap), crawler con meta
+robots / canonical / catena redirect, regola solo-nota, sentinella settimanale
+(`misure` fonte `copertura`), pagina `/rapporto` (email Resend se configurata).
+
+In piu, per smaltire il lavoro quotidiano: dossier per URL (con hreflang sulle
+traduzioni TranslatePress), regola `negozio` su Aelle Store, Approva/Chiudi a
+lotti. Resta a Claudio: rilascio, Cron delle `indicizzazione-*.php`, plugin
+Regia robots 1.2.0 sui tre WordPress, eventuali `RESEND_API_KEY` e
+`RAPPORTO_EMAIL`.
+
 # Dove siamo, al 16 settembre 2026
 
 ## Le schede che non si potevano applicare, 16 settembre (notte)

@@ -57,21 +57,30 @@ function comeSaprai(regola: string): string {
   if (regola === 'robots-sitemap') {
     return 'Alla prossima scansione controlliamo se robots e sitemap rispondono come previsto.'
   }
+  if (regola === 'indicizzazione') {
+    return 'Alla prossima ispezione e alla scansione vediamo se Google ha cambiato idea su questa pagina.'
+  }
   if (regola === 'merchant') {
     return 'Alla prossima raccolta Merchant vediamo se la scheda e di nuovo approvata.'
   }
   if (regola === 'vitali') {
     return 'I vitali Chrome si aggiornano a blocchi di 28 giorni: non e immediato.'
   }
-  if (regola === 'cannibalizzazione' || regola === 'pagine-orfane' || regola === 'lacune') {
+  if (regola === 'cannibalizzazione' || regola === 'pagine-orfane' || regola === 'lacune' || regola === 'titoli-non-tradotti') {
     return 'Quando hai sistemato, chiudi la nota. I clic sulla query si vedono in Search Console.'
   }
   return 'Tra due settimane il pannello misura se i clic su questa pagina sono cambiati.'
 }
 
-function livelloAzione(regola: string, campo: string, guadagno: number | null): Livello {
+function livelloAzione(regola: string, campo: string, guadagno: number | null, motivo?: string): Livello {
   if (regola === 'robots-sitemap' && campo === 'robots') return 'urgente'
   if (regola === 'merchant') return 'urgente'
+  if (regola === 'indicizzazione') {
+    if (motivo && /\bnoindex\b|non e \(pienamente\) indicizzata|non sono indicizzati/i.test(motivo)) {
+      return 'urgente'
+    }
+    return 'importante'
+  }
   if (regola === 'ctr-basso' || regola === 'ai-overview' || regola === 'cannibalizzazione' || regola === 'posizione') {
     return 'importante'
   }
@@ -159,7 +168,12 @@ export async function vociBriefing(): Promise<{
 
     for (const a of azioni) {
       const scrivibile = CAMPI_DA_MODIFICARE.has(a.campo)
-      const livello = livelloAzione(a.regola, a.campo, a.guadagno_stimato == null ? null : Number(a.guadagno_stimato))
+      const livello = livelloAzione(
+        a.regola,
+        a.campo,
+        a.guadagno_stimato == null ? null : Number(a.guadagno_stimato),
+        a.motivo
+      )
       voci.push({
         livello,
         sitoId: a.sito_id,

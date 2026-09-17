@@ -39,11 +39,31 @@ export async function queryDellaPagina(sitoId: string, url: string): Promise<str
 export async function compoTesto(s: Sito, p: Proposta): Promise<string> {
   if (p.campo !== 'titolo' && p.campo !== 'descrizione') return p.valoreNuovo
 
+  let foto: { titolo: string | null; h1: string | null; descrizione: string | null; lingua: string | null } | undefined
   const pagina = await query<{ titolo: string | null; h1: string | null; descrizione: string | null; lingua: string | null }>(
     'SELECT titolo, h1, descrizione, lingua FROM pagine WHERE sito_id = ? AND url = ? LIMIT 1',
     [s.id, p.bersaglio]
   )
-  const foto = pagina[0]
+  foto = pagina[0]
+
+  // Prodotti Ecwid: il bersaglio e un numero, non un indirizzo.
+  if (!foto && s.id === 'aelle-store' && /^\d+$/.test(p.bersaglio)) {
+    try {
+      const { leggiSeoProdotto } = await import('@/lib/esecutori/ecwid')
+      const { prodotti } = await import('@/lib/raccolta/ecwid')
+      const seo = await leggiSeoProdotto(Number(p.bersaglio))
+      const tutti = await prodotti()
+      const prod = tutti.find((x) => x.id === Number(p.bersaglio))
+      foto = {
+        titolo: seo.titolo,
+        descrizione: seo.descrizione,
+        h1: prod?.name ?? null,
+        lingua: s.lingue[0] ?? 'it',
+      }
+    } catch {
+      /* Claude lavorera col motivo e col valore vecchio */
+    }
+  }
   const ricerche = await queryDellaPagina(s.id, p.bersaglio)
   const lingua = foto?.lingua || s.lingue[0] || 'it'
 

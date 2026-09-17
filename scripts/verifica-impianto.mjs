@@ -233,10 +233,13 @@ async function main() {
   const regole = readFileSync('lib/regole/index.ts', 'utf8')
   const attese = [
     'regolaRobotsSitemap',
+    'regolaIndicizzazione',
     'regolaCtrBasso',
     'regolaAiOverview',
     'regolaPosizione',
     'regolaMetaMancanti',
+    'regolaTitoliNonTradotti',
+    'regolaNegozio',
     'regolaCannibalizzazione',
     'regolaPagina',
     'regolaLacune',

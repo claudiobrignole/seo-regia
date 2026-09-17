@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS misure (
   id            BIGINT AUTO_INCREMENT PRIMARY KEY,
   sito_id       VARCHAR(64)  NOT NULL,
-  fonte         VARCHAR(32)  NOT NULL,   -- search-console | search-console-ai | analytics | ecwid | merchant | ads | crux | citazioni-llm
+  fonte         VARCHAR(32)  NOT NULL,   -- search-console | search-console-ai | analytics | ecwid | merchant | ads | crux | citazioni-llm | copertura
   giorno        DATE         NOT NULL,
   chiave        VARCHAR(512) NOT NULL,   -- url della pagina, oppure la query, oppure lo sku
   tipo_chiave   VARCHAR(32)  NOT NULL,   -- pagina | query | pagina_query | prodotto | sito
@@ -293,3 +293,53 @@ CREATE TABLE IF NOT EXISTS memoria (
 
 -- Se il database esiste gia, allarga il tipo chiave: CREATE TABLE IF NOT EXISTS non lo fa.
 ALTER TABLE misure MODIFY tipo_chiave VARCHAR(32) NOT NULL;
+
+-- Segnali locali che toglgono una pagina dall indice: la scansione li leggeva
+-- a meta. CREATE TABLE IF NOT EXISTS non aggiorna le tabelle esistenti.
+ALTER TABLE pagine ADD COLUMN meta_robots      VARCHAR(255) NULL;
+ALTER TABLE pagine ADD COLUMN canonical_url    VARCHAR(768) NULL;
+ALTER TABLE pagine ADD COLUMN x_robots_tag     VARCHAR(255) NULL;
+ALTER TABLE pagine ADD COLUMN stato_http_primo SMALLINT     NULL;
+ALTER TABLE pagine ADD COLUMN catena_redirect  JSON         NULL;
+
+-- Stato di indicizzazione da URL Inspection: una riga per indirizzo.
+CREATE TABLE IF NOT EXISTS indicizzazione (
+  sito_id            VARCHAR(64)  NOT NULL,
+  url                VARCHAR(768) NOT NULL,
+  verdetto           VARCHAR(32)  NULL,
+  copertura          VARCHAR(255) NULL,
+  robots_google      VARCHAR(64)  NULL,
+  indicizzabile      VARCHAR(64)  NULL,
+  canonical_utente   VARCHAR(768) NULL,
+  canonical_google   VARCHAR(768) NULL,
+  ultima_scansione_google DATETIME NULL,
+  sitemap_referente  VARCHAR(768) NULL,
+  esito_chiamata     ENUM('ok','errore','quota') NOT NULL DEFAULT 'ok',
+  messaggio          TEXT         NULL,
+  aggiornato_il      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (sito_id, url(500)),
+  KEY idx_sito_verdetto (sito_id, verdetto)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Sitemap come le vede Google, distinta da tecnici (fotografia scaricata).
+CREATE TABLE IF NOT EXISTS sitemap_stato (
+  sito_id       VARCHAR(64)  NOT NULL,
+  url           VARCHAR(768) NOT NULL,
+  ultima_lettura DATETIME    NULL,
+  inviati       INT          NULL,
+  errori        INT          NOT NULL DEFAULT 0,
+  avvisi        INT          NOT NULL DEFAULT 0,
+  in_sospeso    TINYINT(1)   NOT NULL DEFAULT 0,
+  aggiornato_il TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (sito_id, url(500))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Coda dell ispezione, gemella di scansione_coda: non si mescolano.
+CREATE TABLE IF NOT EXISTS indicizzazione_coda (
+  sito_id   VARCHAR(64)  NOT NULL,
+  url       VARCHAR(768) NOT NULL,
+  priorita  INT          NOT NULL DEFAULT 0,
+  stato     ENUM('in_coda','fatta') NOT NULL DEFAULT 'in_coda',
+  PRIMARY KEY (sito_id, url(500)),
+  KEY idx_coda (sito_id, stato, priorita)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

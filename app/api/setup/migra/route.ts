@@ -91,6 +91,8 @@ export async function GET(req: NextRequest) {
 
   const create: string[] = []
   const problemi: string[] = []
+  // Colonna o indice gia presente: la migrazione si puo rilanciare senza danni.
+  const ignora = /Duplicate column|Duplicate key name|already exists/i
 
   for (const comando of comandi) {
     try {
@@ -98,7 +100,8 @@ export async function GET(req: NextRequest) {
       const nome = comando.match(/CREATE TABLE IF NOT EXISTS\s+(\w+)/i)?.[1]
       if (nome) create.push(nome)
     } catch (e) {
-      problemi.push((e as Error).message)
+      const msg = (e as Error).message
+      if (!ignora.test(msg)) problemi.push(msg)
     }
   }
 

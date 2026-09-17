@@ -46,6 +46,14 @@ Giorno e mese: **ogni** (asterisco o vuoto). Cambia solo il giorno della settima
 | Sabato (6), minuto 30, ora 3 | `public_html/regia-sveglia/scansione-lunanihongo.php` |
 | Domenica (0), minuto 30, ora 3 | `public_html/regia-sveglia/scansione-biography-library.php` |
 | Domenica (0), minuto 0, ora 4 | `public_html/regia-sveglia/scansione-biography-library-app.php` |
+| Lunedi (1), minuto 0, ora 4 | `public_html/regia-sveglia/indicizzazione-aelle.php` |
+| Martedi (2), minuto 0, ora 4 | `public_html/regia-sveglia/indicizzazione-brignole.php` |
+| Mercoledi (3), minuto 0, ora 4 | `public_html/regia-sveglia/indicizzazione-tagtales.php` |
+| Giovedi (4), minuto 0, ora 4 | `public_html/regia-sveglia/indicizzazione-kizunama.php` |
+| Venerdi (5), minuto 0, ora 4 | `public_html/regia-sveglia/indicizzazione-strangeglyph.php` |
+| Sabato (6), minuto 0, ora 4 | `public_html/regia-sveglia/indicizzazione-lunanihongo.php` |
+| Domenica (0), minuto 5, ora 4 | `public_html/regia-sveglia/indicizzazione-biography-library.php` |
+| Domenica (0), minuto 10, ora 4 | `public_html/regia-sveglia/indicizzazione-biography-library-app.php` |
 | Ogni giorno, minuto 30, ora 4 | `public_html/regia-sveglia/diagnosi.php` |
 | Solo lunedi (1), minuto 0, ora 5 | `public_html/regia-sveglia/verifica.php` |
 | Ogni giorno, minuto 15, ora 5 | `public_html/regia-sveglia/impianto.php` |

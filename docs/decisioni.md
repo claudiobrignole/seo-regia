@@ -426,3 +426,20 @@ fuori: quei titoli sono quelli della rivista, tradurli sarebbe riscriverli.
 La lezione: una proposta che non si puo applicare non e un errore da gestire al
 momento di Approva, e una proposta che non andava fatta. Il posto dove fermarla e
 la regola che la genera.
+
+## 2026-09-17, controllo dell indicizzazione e chiusura operativa
+Mancava la domanda elementare: quali pagine sono su Google e perche no.
+`searchanalytics` vede solo chi ha impressioni. Ora c e il lavoro
+`indicizzazione` (URL Inspection + sitemap Google), colonne locali nel crawler
+(meta robots, canonical, X-Robots-Tag, catena redirect), regola solo-nota
+`indicizzazione`, sentinella settimanale in `misure` fonte `copertura`, pagina
+`/rapporto` e invio Resend se ci sono `RESEND_API_KEY` e `RAPPORTO_EMAIL`.
+
+Quota per proprieta Search Console (non per sito_id): aelle e aelle-store
+condividono https://aelle.hiphop/. Nessuna scrittura automatica su noindex,
+canonical, robots.
+
+Per chiudere il lavoro quotidiano senza un secondo progetto: dossier per URL
+(con hreflang/originale sulle pagine TranslatePress), coda vera Aelle Store
+(regola `negozio` + Ecwid), Approva/Chiudi a lotti. Plugin Regia robots 1.2.0
+resta un passo di Claudio sui tre WordPress.

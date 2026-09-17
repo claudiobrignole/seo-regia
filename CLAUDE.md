@@ -34,7 +34,8 @@ Gira su Hostinger Business, piano che supporta Node.
 ## Dove sta cosa
 
 - `siti.config.ts` — i siti del perimetro. Aggiungerne uno è una voce qui, non codice.
-- `lib/raccolta/` — Search Console, Analytics, Ecwid, Google Ads in lettura.
+- `lib/raccolta/` — Search Console, Analytics, Ecwid, Google Ads in lettura,
+  e `indicizzazione.ts` (URL Inspection + sitemap Google).
 - `lib/modelli/` — testi: oggi solo Claude. Gemini, Mistral e Grok restano nel codice, spenti.
 - `lib/ads/` — bozze, verdetti, e (solo Grants) caricamento conversioni dai moduli.
 - `plugin-wp/regia-bl-grants/` — plugin WordPress Biography Library, senza script Google.
@@ -59,7 +60,9 @@ Gira su Hostinger Business, piano che supporta Node.
   chiamano: `app/api/cron/` con la chiave, `/api/lavori/esegui` con la sessione
   (pulsante Lancia adesso nella pagina `/sveglia`). Un lavoro che si puo lanciare
   solo di notte non si puo provare.
-- `app/api/cron/` — le rotte che i lavori pianificati chiamano.
+- `app/api/cron/` — le rotte che i lavori pianificati chiamano (anche
+  `/api/cron/indicizzazione`).
+- `/rapporto` — rapporto settimanale di copertura; `/sito/[id]/pagina` dossier URL.
 - `db/schema.sql` — lo schema. Si applica con `npm run db:migra`.
 - `docs/decisioni.md` — perché le cose sono come sono, con la data.
 - `docs/istruzioni-tue.md` — passi nel browser, per chi non programma.

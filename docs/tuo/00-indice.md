@@ -31,6 +31,7 @@ scrive di notte. Vedi [06-chat-memoria.md](06-chat-memoria.md).
 | --- | --- | --- | --- |
 | 3 | [Ads Biography Library, chiedere l accesso Basic](03-ads-biography-library.md) | 5 minuti piu attesa di Google | La schermata Pubblicita Biography Library resta vuota e le conversioni Grants non si caricano. Tutto il resto gira |
 | 8 | [I titoli delle pagine tradotte](08-titoli-tradotti.md) | 10 minuti, poi quando vuoi | Su Aelle 33 pagine inglesi restano col titolo italiano: per Google sono doppioni, e la versione inglese parte indietro. Le schede impossibili le ho gia chiuse io, il pannello non te le richiede piu |
+| 7b | [Plugin Regia robots 1.2.0](07-plugin-titoli.md) (stesso zip, versione nuova) | 5 minuti, tre siti | Senza, il titolo nuovo sul sito pubblico si vede solo a scadenza cache LiteSpeed; col plugin, subito dopo Approva |
 | 4 | [Merchant Center di Aelle Store, l invito](04-merchant-content-api.md) | 2 minuti | Le schede prodotto di Aelle Store non entrano nel pannello. L API l hai gia accesa: resta solo l invito |
 
 ## Deciso di non fare

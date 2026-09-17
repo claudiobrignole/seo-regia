@@ -10,6 +10,12 @@ import { raccogliCitazioni } from '@/lib/raccolta/citazioni'
 import { sitiPerSearchConsole, sitiPerAnalytics, sitiPerEcwid } from '@/lib/raccolta/perimetro'
 import { giornoIso } from '@/lib/date'
 import { scansiona } from '@/lib/scansione/crawler'
+import {
+  ispezionaCoda,
+  aggiornaSitemapGoogle,
+  salvaCoperturaSettimanale,
+  eLunediUtc,
+} from '@/lib/raccolta/indicizzazione'
 import { REGOLE } from '@/lib/regole'
 import { proponi, aggiornaValoreNuovo, type Azione } from '@/lib/registro'
 import { compoTesto } from '@/lib/regole/testi'
@@ -31,7 +37,7 @@ import { SITI, sito } from '@/siti.config'
  * si puo lanciare solo di notte non si puo provare, e cosi non si sa se gira.
  */
 
-export type NomeLavoro = 'raccolta' | 'scansione' | 'diagnosi' | 'verifica' | 'impianto' | 'citazioni'
+export type NomeLavoro = 'raccolta' | 'scansione' | 'diagnosi' | 'verifica' | 'impianto' | 'citazioni' | 'indicizzazione'
 
 export type EsitoLavoro = {
   lavoro: NomeLavoro
@@ -68,6 +74,15 @@ export const LAVORI: {
     spiegazione:
       'Legge le pagine di un sito una per una, con pausa. Un sito per notte: tutti insieme non stanno nel tempo concesso.',
     quando: 'ogni giorno 3:30 UTC, un sito per giorno',
+    ogniOre: 30,
+    perSito: true,
+  },
+  {
+    nome: 'indicizzazione',
+    titolo: 'Indicizzazione',
+    spiegazione:
+      'Chiede a Google se le pagine sono nell indice e perche no. Aggiorna anche lo stato delle sitemap. Un sito per notte.',
+    quando: 'ogni giorno 4:00 UTC, un sito per giorno',
     ogniOre: 30,
     perSito: true,
   },
@@ -217,6 +232,63 @@ export async function eseguiScansione(sitoId?: string | null): Promise<EsitoLavo
     righe: pagine,
     problemi,
     riassunto: `${scelto.nome}: ${frase(pagine, 'pagina letta', 'pagine lette')}`,
+    extra: { sito: scelto.id },
+  }
+}
+
+export async function eseguiIndicizzazione(sitoId?: string | null): Promise<EsitoLavoro> {
+  const scelto = sitoId ? sito(sitoId) : sito(sitoDelGiorno())
+  const esecuzione = await iniziaEsecuzione('indicizzazione')
+  const problemi: string[] = []
+  let fatte = 0
+
+  if (!scelto.searchConsole) {
+    await chiudiEsecuzione(esecuzione, 'ok', 0, 'Nessuna proprieta Search Console su questo sito.')
+    return {
+      lavoro: 'indicizzazione',
+      righe: 0,
+      problemi: [],
+      riassunto: `${scelto.nome}: saltato, nessuna Search Console`,
+      extra: { sito: scelto.id },
+    }
+  }
+
+  try {
+    const r = await ispezionaCoda(scelto)
+    fatte += r.fatte
+    problemi.push(...r.problemi)
+  } catch (e) {
+    problemi.push(`${scelto.id} ispezione: ${(e as Error).message}`)
+  }
+
+  try {
+    const r = await aggiornaSitemapGoogle(scelto)
+    fatte += r.fatte
+    problemi.push(...r.problemi)
+  } catch (e) {
+    problemi.push(`${scelto.id} sitemap: ${(e as Error).message}`)
+  }
+
+  if (eLunediUtc()) {
+    try {
+      await salvaCoperturaSettimanale(scelto)
+    } catch (e) {
+      problemi.push(`${scelto.id} copertura: ${(e as Error).message}`)
+    }
+    try {
+      const { inviaRapportoSeConfigurato } = await import('@/lib/rapporto')
+      await inviaRapportoSeConfigurato()
+    } catch (e) {
+      problemi.push(`rapporto: ${(e as Error).message}`)
+    }
+  }
+
+  await chiudiEsecuzione(esecuzione, chiudi(problemi), fatte, messaggio(problemi))
+  return {
+    lavoro: 'indicizzazione',
+    righe: fatte,
+    problemi,
+    riassunto: `${scelto.nome}: ${frase(fatte, 'controllo fatto', 'controlli fatti')}`,
     extra: { sito: scelto.id },
   }
 }
@@ -520,6 +592,8 @@ export async function eseguiLavoro(nome: NomeLavoro, sitoId?: string | null): Pr
       return eseguiRaccolta()
     case 'scansione':
       return eseguiScansione(sitoId)
+    case 'indicizzazione':
+      return eseguiIndicizzazione(sitoId)
     case 'diagnosi':
       return eseguiDiagnosi(sitoId)
     case 'verifica':

@@ -122,3 +122,15 @@ richiesta senza chiave, risponde *chiave non valida*, e nel database non resta
 niente. Per questo la chiave sta in `public_html/regia-sveglia/config.php`, che
 il web non puo aprire (c e un `.htaccess` che lo vieta: se provi a chiamarlo dal
 browser risponde 403, ed e giusto cosi).
+
+## Indicizzazione (dopo il rilascio del codice nuovo)
+
+Oltre alla scansione serve una riga Cron per sito che chiama il lavoro
+**Indicizzazione** (URL Inspection + sitemap Google). I file PHP sono gia nella
+cartella `regia-sveglia` del progetto: `indicizzazione-aelle.php`,
+`indicizzazione-brignole.php`, e cosi via. Caricali su brignole.ch come gli altri
+e crea le righe Cron (orario tipico: minuto 0, ora 4 UTC, un sito per giorno della
+settimana). Il dettaglio e in `plugin-wp/regia-sveglia/LEGGIMI.md`.
+
+Finche non le crei, puoi comunque premere **Lancia adesso** su Indicizzazione
+nella pagina Sveglia del pannello.

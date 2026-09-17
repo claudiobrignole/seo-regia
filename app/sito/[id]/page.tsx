@@ -5,6 +5,7 @@ import { SITI } from '@/siti.config'
 import { Telaio } from '@/app/componenti/telaio'
 import type { Azione } from '@/lib/registro'
 import { SchedaAzione } from './scheda-azione'
+import { LottiCoda } from './lotti-coda'
 import { CAMPI_DA_MODIFICARE, vistaSito, type VistaSito } from '@/lib/azioni-viste'
 import { conteggioPerAmbito } from '@/lib/chat'
 
@@ -223,6 +224,28 @@ export default async function PaginaSito({
           .
         </p>
       )}
+      {(() => {
+        const gruppi = new Map<string, { regola: string; campo: string; n: number }>()
+        for (const a of elencoOrdinato) {
+          const k = `${a.regola}|${a.campo}`
+          const g = gruppi.get(k) ?? { regola: a.regola, campo: a.campo, n: 0 }
+          g.n++
+          gruppi.set(k, g)
+        }
+        return [...gruppi.values()]
+          .filter((g) => g.n >= 2)
+          .map((g) => (
+            <LottiCoda
+              key={`${g.regola}-${g.campo}`}
+              sitoId={s.id}
+              regola={g.regola}
+              campo={g.campo}
+              quante={g.n}
+              vista={vista}
+              scrivibile={CAMPI_DA_MODIFICARE.has(g.campo)}
+            />
+          ))
+      })()}
       {elencoOrdinato.map((a) => (
         <SchedaAzione
           key={a.id}

@@ -29,6 +29,7 @@ const ETICHETTA_CAMPO: Record<string, string> = {
   lingua: 'lingua',
   prodotto: 'scheda Merchant',
   vitali: 'vitali Chrome',
+  indicizzazione: 'indicizzazione',
 }
 
 function quando(v: Date | string | null | undefined): string {
@@ -77,6 +78,11 @@ export function SchedaAzione({
         {quando(azione.creata_il) ? ` • ${quando(azione.creata_il)}` : ''}
       </div>
       <p className="al-bersaglio">{azione.bersaglio}</p>
+      {azione.bersaglio.startsWith('http') && (
+        <p>
+          <a href={`/sito/${sitoId}/pagina?url=${encodeURIComponent(azione.bersaglio)}`}>Apri il dossier di questa pagina</a>
+        </p>
+      )}
       <p>{azione.motivo}</p>
       <p>
         <strong>Ora sul sito:</strong> {azione.valore_vecchio || '(vuoto)'}

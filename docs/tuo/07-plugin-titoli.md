@@ -19,11 +19,11 @@ volta, che nessuna cache ha mai visto, quindi rispondono col valore vero.
 **Questo non ti chiede niente: e nel pannello, e gia in linea.** La scheda della
 home di Aelle e tornata verde da sola, e ora si puo annullare.
 
-C e una versione 1.2.0 del plugin che **non e obbligatoria**: dice a LiteSpeed di
-non tenere in cache le nostre rotte, e di buttare via la copia della pagina
-appena il titolo cambia. Serve al sito pubblico, non al pannello: senza, il
-titolo nuovo si vede appena la copia scade; con, subito. Se un giorno hai cinque
-minuti, i passi sono qui sotto, gli stessi di prima.
+C e una versione **1.2.0** del plugin: dice a LiteSpeed di non tenere in cache
+le nostre rotte, e di buttare via la copia della pagina appena il titolo cambia.
+Serve al sito pubblico: senza, il titolo nuovo si vede appena la copia scade;
+con, subito. **E nella chiusura del progetto**: cinque minuti, tre siti, stessi
+passi di sotto. Lo zip e `plugin-wp/regia-robots.zip` (versione 1.2.0).
 
 ## Cosa era rotto (il primo guaio, quello del plugin)
 
